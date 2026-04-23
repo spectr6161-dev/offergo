@@ -9,3 +9,5 @@ pnpm-lock.yaml
 **/.vercel
 **/.env.local
 .node_modules_stale
+
+packages/db/generated
