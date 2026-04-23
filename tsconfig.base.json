@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": false,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    "paths": {
+      "@offergo/shared": ["packages/shared/src/index.ts"],
+      "@offergo/db": ["packages/db/src/index.ts"],
+      "@offergo/auth": ["packages/auth/src/index.ts"],
+      "@offergo/auth/client": ["packages/auth/src/client.ts"],
+      "@offergo/auth/server": ["packages/auth/src/server.ts"],
+      "@offergo/auth/core": ["packages/auth/src/core.ts"],
+      "@offergo/ui": ["packages/ui/src/index.ts"],
+      "@offergo/ai": ["packages/ai/src/index.ts"],
+      "@offergo/billing": ["packages/billing/src/index.ts"],
+      "@offergo/queue": ["packages/queue/src/index.ts"]
+    }
+  }
+}

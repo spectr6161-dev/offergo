@@ -1,0 +1,25 @@
+{
+  "name": "offergo-app",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "dev:web": "pnpm --filter @offergo/web dev",
+    "dev:worker": "pnpm --filter @offergo/worker dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format:check": "turbo format:check",
+    "db:generate": "pnpm --filter @offergo/db db:generate",
+    "db:migrate": "pnpm --filter @offergo/db db:migrate",
+    "db:seed": "pnpm --filter @offergo/db db:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "tsx": "^4.21.0",
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.3"
+  }
+}
