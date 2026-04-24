@@ -61,6 +61,65 @@ function buildHiddenProperties(modelName: string) {
   );
 }
 
+function buildResourceOptions(modelName: string) {
+  const properties = buildHiddenProperties(modelName);
+  const options = {
+    navigation: {
+      name: navigationByModel[modelName] ?? "Данные",
+    },
+    properties,
+  };
+
+  if (modelName !== "Plan") {
+    return options;
+  }
+
+  return {
+    ...options,
+    listProperties: [
+      "name",
+      "priceRub",
+      "subscriptionType",
+      "durationDays",
+      "active",
+      "updatedAt",
+    ],
+    editProperties: [
+      "name",
+      "priceRub",
+      "subscriptionType",
+      "durationDays",
+      "description",
+      "active",
+      "code",
+    ],
+    showProperties: [
+      "id",
+      "code",
+      "name",
+      "description",
+      "priceRub",
+      "subscriptionType",
+      "durationDays",
+      "active",
+      "createdAt",
+      "updatedAt",
+    ],
+    filterProperties: ["name", "subscriptionType", "active", "priceRub"],
+    properties: {
+      ...properties,
+      id: {
+        isVisible: {
+          list: false,
+          filter: true,
+          show: true,
+          edit: false,
+        },
+      },
+    },
+  };
+}
+
 function buildResources(): ResourceWithOptions[] {
   return Prisma.dmmf.datamodel.models.map((model) => ({
     resource: {
@@ -68,12 +127,7 @@ function buildResources(): ResourceWithOptions[] {
       client: prisma,
       clientModule: prismaClientModule,
     },
-    options: {
-      navigation: {
-        name: navigationByModel[model.name] ?? "Данные",
-      },
-      properties: buildHiddenProperties(model.name),
-    },
+    options: buildResourceOptions(model.name),
   }));
 }
 

@@ -29,6 +29,8 @@
     "express-formidable": "^1.2.0",
     "express-session": "^1.19.0",
     "pg": "^8.20.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "swagger-ui-express": "^5.0.1",

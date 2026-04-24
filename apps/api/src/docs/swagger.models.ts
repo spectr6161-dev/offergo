@@ -61,6 +61,13 @@ export class PlanDto {
   @ApiProperty({ type: Number })
   priceRub!: number;
 
+  @ApiProperty({
+    type: String,
+    description: "Бизнес-тип пакета услуг/лимитов тарифа.",
+    example: "pro",
+  })
+  subscriptionType!: string;
+
   @ApiProperty({ type: Number })
   durationDays!: number;
 }
@@ -135,6 +142,9 @@ export class PaymentDto {
   updatedAt!: string;
 
   @ApiPropertyOptional({ type: String, format: "date-time", nullable: true })
+  expiresAt!: string | null;
+
+  @ApiPropertyOptional({ type: String, format: "date-time", nullable: true })
   confirmedAt!: string | null;
 
   @ApiPropertyOptional({ type: String, format: "date-time", nullable: true })
@@ -144,12 +154,39 @@ export class PaymentDto {
   chargebackedAt!: string | null;
 }
 
+export class PaymentWithPlanDto extends PaymentDto {
+  @ApiProperty({ type: () => PlanDto })
+  plan!: PlanDto;
+}
+
+export class PaymentsResponseDto {
+  @ApiProperty({ type: () => PaymentWithPlanDto, isArray: true })
+  items!: PaymentWithPlanDto[];
+}
+
 export class CheckoutResponseDto {
   @ApiProperty({ type: () => PaymentDto })
   payment!: PaymentDto;
 
   @ApiProperty({ type: String })
   paymentUrl!: string;
+}
+
+export class PaymentStatusResponseDto {
+  @ApiProperty({ type: String, enum: paymentStatuses })
+  status!: string;
+
+  @ApiProperty({ type: () => PaymentDto })
+  payment!: PaymentDto;
+
+  @ApiProperty({ type: () => PlanDto })
+  plan!: PlanDto;
+
+  @ApiPropertyOptional({ type: String, nullable: true })
+  paymentUrl!: string | null;
+
+  @ApiPropertyOptional({ type: String, format: "date-time", nullable: true })
+  expiresAt!: string | null;
 }
 
 export class PlategaWebhookBodyDto {

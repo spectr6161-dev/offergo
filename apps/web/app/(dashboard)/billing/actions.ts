@@ -14,6 +14,8 @@ export async function startCheckoutAction(formData: FormData) {
     redirect("/billing?status=checkout_error");
   }
 
+  let paymentUrl: string;
+
   try {
     const checkout = await apiFetch<StartCheckoutResponse>(
       "/api/v1/billing/checkout",
@@ -24,9 +26,11 @@ export async function startCheckoutAction(formData: FormData) {
         }),
       },
     );
-
-    redirect(checkout.paymentUrl);
-  } catch {
+    paymentUrl = checkout.paymentUrl;
+  } catch (error) {
+    console.error("[billing] checkout failed", error);
     redirect("/billing?status=checkout_error");
   }
+
+  redirect(paymentUrl);
 }

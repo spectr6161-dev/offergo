@@ -3,6 +3,8 @@ import {
   Controller,
   Get,
   HttpCode,
+  NotFoundException,
+  Param,
   Post,
   Req,
   UseGuards,
@@ -13,18 +15,22 @@ import {
   ApiCreatedResponse,
   ApiCookieAuth,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
-  ApiOperation,
 } from "@nestjs/swagger";
 import type { Request } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { z } from "zod";
 import {
+  getUserPaymentStatus,
   handleProviderWebhook,
   listActivePlans,
   listUserEntitlements,
+  listUserPayments,
   startCheckout,
 } from "@offergo/billing";
 import { CurrentUser } from "../auth/current-user.decorator";
@@ -32,6 +38,8 @@ import { ApiAuthGuard } from "../auth/auth.guard";
 import {
   CheckoutResponseDto,
   EntitlementsResponseDto,
+  PaymentsResponseDto,
+  PaymentStatusResponseDto,
   PlansResponseDto,
   PlategaWebhookBodyDto,
   PlategaWebhookResponseDto,
@@ -39,8 +47,10 @@ import {
 } from "../docs/swagger.models";
 
 const startCheckoutSchema = z.object({
-  planId: z.string().cuid(),
+  planId: z.string().trim().min(1).max(128),
 });
+
+const paymentIdSchema = z.string().trim().min(1).max(128);
 
 @ApiTags("billing")
 @Controller("billing")
@@ -83,6 +93,30 @@ export class BillingController {
     };
   }
 
+  @Get("payments")
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({
+    summary: "Получение платежей текущего пользователя",
+  })
+  @ApiBearerAuth("bearer")
+  @ApiCookieAuth("session")
+  @ApiOkResponse({
+    description:
+      "Список платежей текущего пользователя, включая pending-платежи без активного entitlement.",
+    type: PaymentsResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description:
+      "Отсутствуют или невалидны session/bearer credentials.",
+  })
+  async getPayments(@CurrentUser() user: { id: string }) {
+    const payments = await listUserPayments(user.id);
+
+    return {
+      items: payments,
+    };
+  }
+
   @Post("checkout")
   @UseGuards(ApiAuthGuard)
   @ApiOperation({
@@ -102,7 +136,8 @@ export class BillingController {
     description: "Отсутствуют или невалидны session/bearer credentials.",
   })
   @ApiForbiddenResponse({
-    description: "Аутентифицированному пользователю запрещено запускать checkout.",
+    description:
+      "Аутентифицированному пользователю запрещено запускать checkout.",
   })
   async createCheckout(
     @CurrentUser() user: { id: string },
@@ -115,6 +150,50 @@ export class BillingController {
       payment: checkout.payment,
       paymentUrl: checkout.paymentUrl,
     };
+  }
+
+  @Get("payments/:paymentId/status")
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({
+    summary: "Проверка статуса платежа текущего пользователя",
+  })
+  @ApiBearerAuth("bearer")
+  @ApiCookieAuth("session")
+  @ApiParam({
+    name: "paymentId",
+    type: String,
+    description: "Внутренний идентификатор платежа.",
+  })
+  @ApiOkResponse({
+    description:
+      "Возвращает локальный статус платежа и при необходимости синхронизирует pending-статус с Platega.",
+    type: PaymentStatusResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: "Отсутствуют или невалидны session/bearer credentials.",
+  })
+  @ApiNotFoundResponse({
+    description: "Платёж не найден или принадлежит другому пользователю.",
+  })
+  async getPaymentStatus(
+    @CurrentUser() user: { id: string },
+    @Param("paymentId") paymentIdParam: string,
+  ) {
+    const paymentId = paymentIdSchema.parse(paymentIdParam);
+
+    try {
+      const payment = await getUserPaymentStatus(user.id, paymentId);
+
+      return {
+        status: payment.status,
+        payment,
+        plan: payment.plan,
+        paymentUrl: payment.paymentUrl,
+        expiresAt: payment.expiresAt,
+      };
+    } catch {
+      throw new NotFoundException("Payment not found");
+    }
   }
 
   @Post("platega")

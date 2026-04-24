@@ -44,18 +44,26 @@ async function ensurePlans() {
   const plans = [
     {
       code: "starter-monthly",
-      name: "Starter Monthly",
-      description:
-        "Resume analysis and interview practice for solo candidates.",
-      priceRub: 1490,
+      name: "Старт",
+      description: "Базовый доступ к AI-инструментам.",
+      priceRub: 100,
+      subscriptionType: "starter",
       durationDays: 30,
     },
     {
       code: "pro-monthly",
-      name: "Pro Monthly",
-      description:
-        "Everything in Starter plus AI trainer and advanced workflows.",
-      priceRub: 2990,
+      name: "Про",
+      description: "Оптимальный тариф для регулярной работы.",
+      priceRub: 200,
+      subscriptionType: "pro",
+      durationDays: 30,
+    },
+    {
+      code: "max-monthly",
+      name: "Макс",
+      description: "Максимальный лимит для активного использования.",
+      priceRub: 300,
+      subscriptionType: "max",
       durationDays: 30,
     },
   ];

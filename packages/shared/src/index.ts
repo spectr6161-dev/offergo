@@ -35,6 +35,7 @@ export const plategaStatusSchema = z.enum([
   "PENDING",
   "CONFIRMED",
   "CANCELED",
+  "CHARGEBACK",
   "CHARGEBACKED",
 ]);
 
@@ -46,12 +47,21 @@ export const plategaCallbackSchema = z.object({
   paymentMethod: z.number().or(z.string()),
 });
 
+export const plategaTransactionStatusSchema = z
+  .object({
+    id: z.string().uuid(),
+    status: plategaStatusSchema,
+  })
+  .passthrough();
+
 export const createPaymentLinkResponseSchema = z.object({
   transactionId: z.string().uuid(),
   status: z.string(),
-  url: z.string().url(),
+  url: z.string().url().optional(),
+  redirect: z.string().url().optional(),
   expiresIn: z.string().optional(),
   rate: z.number().optional(),
+  usdtRate: z.number().optional(),
 });
 
 const envSchema = z.object({

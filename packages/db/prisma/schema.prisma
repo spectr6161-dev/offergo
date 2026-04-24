@@ -177,17 +177,18 @@ model RoleAssignment {
 }
 
 model Plan {
-  id           String        @id @default(cuid())
-  code         String        @unique
-  name         String
-  description  String?
-  priceRub     Int
-  durationDays Int
-  active       Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  payments     Payment[]
-  entitlements Entitlement[]
+  id               String        @id @default(dbgenerated("gen_random_uuid()::text"))
+  code             String        @unique @default(dbgenerated("gen_random_uuid()::text"))
+  name             String
+  description      String?
+  priceRub         Int
+  subscriptionType String        @default("custom")
+  durationDays     Int           @default(30)
+  active           Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
+  payments         Payment[]
+  entitlements     Entitlement[]
 }
 
 model Payment {
@@ -203,6 +204,7 @@ model Payment {
   providerPayload       Json?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
+  expiresAt             DateTime?
   confirmedAt           DateTime?
   canceledAt            DateTime?
   chargebackedAt        DateTime?
