@@ -13,7 +13,16 @@
     "format:check": "turbo format:check",
     "db:generate": "pnpm --filter @offergo/db db:generate",
     "db:migrate": "pnpm --filter @offergo/db db:migrate",
-    "db:seed": "pnpm --filter @offergo/db db:seed"
+    "db:seed": "pnpm --filter @offergo/db db:seed",
+    "docker:setup": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 setup",
+    "docker:dev": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 dev",
+    "docker:build": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 build",
+    "docker:deploy": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 deploy",
+    "docker:restart": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 restart",
+    "docker:logs": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 logs",
+    "docker:ps": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 ps",
+    "docker:health": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 health",
+    "docker:clean": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 clean"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -25,5 +34,11 @@
     "turbo": "^2.5.8",
     "typescript-eslint": "^8.46.2",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@tiptap/core": "2.27.2",
+      "@tiptap/pm": "2.27.2"
+    }
   }
 }

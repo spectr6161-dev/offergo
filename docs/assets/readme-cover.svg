@@ -1,0 +1,89 @@
+<svg width="1280" height="520" viewBox="0 0 1280 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">SaaS Base cover</title>
+  <desc id="desc">Docker-first universal SaaS base with Next.js, NestJS, Prisma, Better Auth, AdminJS and Platega.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06111F"/>
+      <stop offset="0.45" stop-color="#0B1F36"/>
+      <stop offset="1" stop-color="#102A1E"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="148" y1="79" x2="1080" y2="459" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="0.5" stop-color="#A3E635"/>
+      <stop offset="1" stop-color="#FACC15"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="34" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.25 0 0 0 0 0.85 0 0 0 0 0.95 0 0 0 0.28 0"/>
+      <feBlend in2="SourceGraphic" mode="screen"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" stroke="white" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="520" rx="36" fill="url(#bg)"/>
+  <rect width="1280" height="520" rx="36" fill="url(#grid)"/>
+
+  <circle cx="1040" cy="110" r="220" fill="#38BDF8" opacity="0.14" filter="url(#glow)"/>
+  <circle cx="250" cy="430" r="230" fill="#A3E635" opacity="0.12" filter="url(#glow)"/>
+  <path d="M62 420C196 254 349 312 482 176C622 33 796 90 918 159C1055 236 1129 192 1218 90" stroke="url(#accent)" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+
+  <g transform="translate(82 72)">
+    <rect x="0" y="0" width="1116" height="376" rx="28" fill="white" fill-opacity="0.06" stroke="white" stroke-opacity="0.14"/>
+    <rect x="32" y="32" width="62" height="62" rx="18" fill="url(#accent)"/>
+    <path d="M63 49L79 80H47L63 49Z" fill="#06111F"/>
+
+    <text x="32" y="144" fill="white" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="-2">SaaS Base</text>
+    <text x="32" y="193" fill="#CDE7F5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="25" font-weight="500">универсальная Docker-first основа для новых web, mobile и bot проектов</text>
+    <text x="32" y="240" fill="#8FB5C8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20">Next.js + NestJS + Prisma + Better Auth + AdminJS + Platega + Worker</text>
+
+    <g transform="translate(32 286)" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">
+      <rect width="124" height="40" rx="20" fill="#020617" stroke="#334155"/>
+      <text x="22" y="26" fill="#E2E8F0">Docker</text>
+      <circle cx="91" cy="20" r="6" fill="#38BDF8"/>
+
+      <g transform="translate(144 0)">
+        <rect width="126" height="40" rx="20" fill="#020617" stroke="#334155"/>
+        <text x="22" y="26" fill="#E2E8F0">Next.js</text>
+        <circle cx="94" cy="20" r="6" fill="#FFFFFF"/>
+      </g>
+
+      <g transform="translate(290 0)">
+        <rect width="126" height="40" rx="20" fill="#020617" stroke="#334155"/>
+        <text x="22" y="26" fill="#E2E8F0">NestJS</text>
+        <circle cx="95" cy="20" r="6" fill="#E0234E"/>
+      </g>
+
+      <g transform="translate(436 0)">
+        <rect width="126" height="40" rx="20" fill="#020617" stroke="#334155"/>
+        <text x="22" y="26" fill="#E2E8F0">Prisma</text>
+        <circle cx="93" cy="20" r="6" fill="#2D3748"/>
+      </g>
+
+      <g transform="translate(582 0)">
+        <rect width="152" height="40" rx="20" fill="#020617" stroke="#334155"/>
+        <text x="22" y="26" fill="#E2E8F0">Better Auth</text>
+        <circle cx="119" cy="20" r="6" fill="#A3E635"/>
+      </g>
+
+      <g transform="translate(754 0)">
+        <rect width="128" height="40" rx="20" fill="#020617" stroke="#334155"/>
+        <text x="22" y="26" fill="#E2E8F0">AdminJS</text>
+        <circle cx="96" cy="20" r="6" fill="#FACC15"/>
+      </g>
+    </g>
+
+    <g transform="translate(778 70)">
+      <rect width="296" height="212" rx="22" fill="#020617" fill-opacity="0.68" stroke="white" stroke-opacity="0.1"/>
+      <text x="26" y="48" fill="#E2E8F0" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">Docker deploy flow</text>
+      <g font-family="JetBrains Mono, Consolas, monospace" font-size="15" fill="#BAE6FD">
+        <text x="26" y="88">make setup</text>
+        <text x="26" y="122">make dev</text>
+        <text x="26" y="156">make deploy</text>
+        <text x="26" y="190">make health</text>
+      </g>
+      <path d="M202 70L246 114L202 158" stroke="#A3E635" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

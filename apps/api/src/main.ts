@@ -11,6 +11,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "@offergo/auth/core";
 import { createServerLogger, env } from "@offergo/shared";
 import { AppModule } from "./app.module";
+import { mountDataAdmin } from "./data-admin";
 import { enhanceOpenApiDocument } from "./docs/openapi";
 
 const serverLogger = createServerLogger({
@@ -19,7 +20,10 @@ const serverLogger = createServerLogger({
   captureConsole: true,
 });
 
-const allowedOrigins = new Set([new URL(env.APP_URL).origin, new URL(env.API_URL).origin]);
+const allowedOrigins = new Set([
+  new URL(env.APP_URL).origin,
+  new URL(env.API_URL).origin,
+]);
 const localDevOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 function isAllowedOrigin(origin?: string) {
@@ -77,6 +81,7 @@ async function bootstrap() {
     exposedHeaders: ["set-auth-token", "set-auth-jwt"],
   });
 
+  const dataAdminPath = await mountDataAdmin(app);
   app.use("/api/auth", toNodeHandler(auth));
   app.use(json({ limit: "10mb" }));
   app.use(urlencoded({ extended: true }));
@@ -132,6 +137,7 @@ async function bootstrap() {
 
   await app.listen(env.API_PORT, "0.0.0.0");
   serverLogger.info(`[api] ready on ${env.API_URL}`);
+  serverLogger.info(`[api] data admin ready on ${env.API_URL}${dataAdminPath}`);
 }
 
 void bootstrap().catch((error) => {

@@ -1,84 +1,208 @@
+x-app-build: &app-build
+  context: .
+  dockerfile: Dockerfile
+
+x-app-environment: &app-environment
+  DATABASE_URL: postgresql://offergo:offergo@postgres:5432/offergo_app?schema=public
+  REDIS_URL: redis://redis:6379
+  SMTP_HOST: mailpit
+  S3_ENDPOINT: http://minio:9000
+
+x-app-depends-on: &app-depends-on
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  minio:
+    condition: service_healthy
+  mailpit:
+    condition: service_started
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: offergo-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: offergo_app
       POSTGRES_USER: offergo
       POSTGRES_PASSWORD: offergo
     ports:
-      - "5434:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5434}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
     container_name: offergo-redis
+    restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   minio:
     image: minio/minio:latest
     container_name: offergo-minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:${MINIO_HOST_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
     volumes:
       - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   mailpit:
     image: axllent/mailpit:latest
     container_name: offergo-mailpit
+    restart: unless-stopped
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "127.0.0.1:${MAILPIT_SMTP_HOST_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_HOST_PORT:-8025}:8025"
 
   api:
+    image: saas-base-api:local
     build:
-      context: .
-      dockerfile: apps/api/Dockerfile
+      <<: *app-build
+      target: api
+    init: true
+    restart: unless-stopped
     env_file:
       - .env
-    depends_on:
-      - postgres
-      - redis
-      - mailpit
+    environment:
+      <<: *app-environment
+      NODE_ENV: production
+    depends_on: *app-depends-on
     ports:
-      - "3001:3001"
+      - "${API_PORT:-3001}:3001"
+    volumes:
+      - server-logs:/app/logs
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/api/v1/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   web:
+    image: saas-base-web:local
     build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+      <<: *app-build
+      target: web
+    init: true
+    restart: unless-stopped
     env_file:
       - .env
+    environment:
+      <<: *app-environment
+      NODE_ENV: production
+      API_URL: http://api:3001
     depends_on:
-      - api
-      - postgres
-      - redis
-      - minio
-      - mailpit
+      api:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/register').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   worker:
+    image: saas-base-worker:local
     build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
+      <<: *app-build
+      target: worker
+    init: true
+    restart: unless-stopped
     env_file:
       - .env
+    environment:
+      <<: *app-environment
+      NODE_ENV: production
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - server-logs:/app/logs
+
+  db-sync:
+    image: saas-base-api:local
+    build:
+      <<: *app-build
+      target: api
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      <<: *app-environment
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: pnpm --filter @offergo/db exec prisma db push --skip-generate
+
+  db-seed:
+    image: saas-base-api:local
+    build:
+      <<: *app-build
+      target: api
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      <<: *app-environment
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: pnpm --filter @offergo/db db:seed
 
 volumes:
   postgres-data:
   redis-data:
   minio-data:
+  server-logs:

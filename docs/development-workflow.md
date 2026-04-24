@@ -11,9 +11,34 @@
 
 ## Workspace commands
 
+Docker-first path:
+
+```bash
+make setup
+make dev
+make build
+make health
+make logs
+make clean
+```
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/project.ps1 setup
+powershell -ExecutionPolicy Bypass -File scripts/project.ps1 dev
+powershell -ExecutionPolicy Bypass -File scripts/project.ps1 build
+powershell -ExecutionPolicy Bypass -File scripts/project.ps1 health
+powershell -ExecutionPolicy Bypass -File scripts/project.ps1 logs
+powershell -ExecutionPolicy Bypass -File scripts/project.ps1 clean
+```
+
+Host Node path is optional and should not be required for a fresh machine or server:
+
 ```bash
 pnpm install
 pnpm dev:web
+pnpm dev:api
 pnpm dev:worker
 pnpm build
 pnpm typecheck
@@ -29,3 +54,5 @@ Because the current state is a foundation scaffold:
 - prefer small, package-owned additions
 - do not turn placeholder routes into full features accidentally
 - keep product workflows behind clearly named packages and actions
+- prefer Docker-first setup for new machines and agents
+- run Prisma sync/seed through Docker jobs unless you are intentionally debugging locally

@@ -1,0 +1,55 @@
+x-app-volumes: &app-volumes
+  - .:/app
+  - pnpm-store:/pnpm/store
+  - root-node-modules:/app/node_modules
+  - api-node-modules:/app/apps/api/node_modules
+  - web-node-modules:/app/apps/web/node_modules
+  - worker-node-modules:/app/apps/worker/node_modules
+  - ai-node-modules:/app/packages/ai/node_modules
+  - auth-node-modules:/app/packages/auth/node_modules
+  - billing-node-modules:/app/packages/billing/node_modules
+  - db-node-modules:/app/packages/db/node_modules
+  - queue-node-modules:/app/packages/queue/node_modules
+  - shared-node-modules:/app/packages/shared/node_modules
+  - ui-node-modules:/app/packages/ui/node_modules
+  - db-generated:/app/packages/db/generated
+
+services:
+  api:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    command: pnpm --filter @offergo/api dev
+    volumes: *app-volumes
+
+  web:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    command: pnpm --filter @offergo/web dev --hostname 0.0.0.0
+    volumes: *app-volumes
+
+  worker:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    command: pnpm --filter @offergo/worker dev
+    volumes: *app-volumes
+
+volumes:
+  pnpm-store:
+  root-node-modules:
+  api-node-modules:
+  web-node-modules:
+  worker-node-modules:
+  ai-node-modules:
+  auth-node-modules:
+  billing-node-modules:
+  db-node-modules:
+  queue-node-modules:
+  shared-node-modules:
+  ui-node-modules:
+  db-generated:

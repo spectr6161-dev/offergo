@@ -2,6 +2,7 @@
 .turbo
 coverage
 *.tsbuildinfo
+.tmp*.log
 **/node_modules
 **/.next
 **/dist
