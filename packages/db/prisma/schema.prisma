@@ -79,36 +79,36 @@ enum FilePurpose {
 }
 
 model User {
-  id                 String               @id @default(cuid())
-  name               String
-  email              String               @unique
-  emailVerified      Boolean              @default(false)
-  image              String?
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  accounts           Account[]
-  sessions           Session[]
-  roleAssignments    RoleAssignment[]
+  id                  String               @id @default(cuid())
+  name                String
+  email               String               @unique
+  emailVerified       Boolean              @default(false)
+  image               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  accounts            Account[]
+  sessions            Session[]
+  roleAssignments     RoleAssignment[]
   passwordResetTokens PasswordResetToken[]
-  payments           Payment[]
-  entitlements       Entitlement[]
-  resumes            Resume[]
-  trainerSessions    TrainerSession[]
-  files              FileAsset[]
-  auditLogs          AuditLog[]           @relation("AuditActor")
+  payments            Payment[]
+  entitlements        Entitlement[]
+  resumes             Resume[]
+  trainerSessions     TrainerSession[]
+  files               FileAsset[]
+  auditLogs           AuditLog[]           @relation("AuditActor")
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  expiresAt    DateTime
-  token        String   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  ipAddress    String?
-  userAgent    String?
-  userId       String
+  id             String   @id @default(cuid())
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
   impersonatedBy String?
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -139,6 +139,18 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@unique([identifier, value])
+}
+
+model Jwks {
+  id         String    @id @default(cuid())
+  publicKey  String
+  privateKey String
+  alg        String?
+  crv        String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+
+  @@map("jwks")
 }
 
 model PasswordResetToken {
@@ -211,39 +223,39 @@ model Entitlement {
 }
 
 model Resume {
-  id             String        @id @default(cuid())
-  userId         String
-  title          String
-  status         ResumeStatus  @default(draft)
-  originalFileId String?
+  id               String          @id @default(cuid())
+  userId           String
+  title            String
+  status           ResumeStatus    @default(draft)
+  originalFileId   String?
   currentVersionId String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  versions       ResumeVersion[]
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  originalFile   FileAsset?    @relation("ResumeOriginalFile", fields: [originalFileId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  versions         ResumeVersion[]
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalFile     FileAsset?      @relation("ResumeOriginalFile", fields: [originalFileId], references: [id])
 }
 
 model ResumeVersion {
-  id         String               @id @default(cuid())
-  resumeId   String
-  source     ResumeVersionSource
-  plainText  String?
-  content    Json?
-  summary    String?
-  createdAt  DateTime             @default(now())
-  resume     Resume               @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id        String              @id @default(cuid())
+  resumeId  String
+  source    ResumeVersionSource
+  plainText String?
+  content   Json?
+  summary   String?
+  createdAt DateTime            @default(now())
+  resume    Resume              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Question {
-  id          String        @id @default(cuid())
-  slug        String        @unique
-  title       String
-  answer      Json?
-  difficulty  String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  tags        QuestionTag[]
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  title      String
+  answer     Json?
+  difficulty String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  tags       QuestionTag[]
 }
 
 model QuestionTag {
@@ -266,63 +278,63 @@ model TrainerSession {
 }
 
 model TrainerMessage {
-  id         String             @id @default(cuid())
-  sessionId  String
-  role       TrainerMessageRole
-  content    Json
-  createdAt  DateTime           @default(now())
-  session    TrainerSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id        String             @id @default(cuid())
+  sessionId String
+  role      TrainerMessageRole
+  content   Json
+  createdAt DateTime           @default(now())
+  session   TrainerSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model Job {
-  id            String      @id @default(cuid())
+  id            String       @id @default(cuid())
   queue         String
   name          String
   providerJobId String?
-  status        JobStatus   @default(queued)
+  status        JobStatus    @default(queued)
   payload       Json
   result        Json?
   error         String?
-  attempts      Int         @default(0)
+  attempts      Int          @default(0)
   scheduledAt   DateTime?
   lastRunAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   attemptsLog   JobAttempt[]
 }
 
 model JobAttempt {
   id         String           @id @default(cuid())
-  jobId       String
-  status      JobAttemptStatus
-  startedAt   DateTime
-  finishedAt  DateTime?
-  error       String?
-  createdAt   DateTime        @default(now())
-  job         Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId      String
+  status     JobAttemptStatus
+  startedAt  DateTime
+  finishedAt DateTime?
+  error      String?
+  createdAt  DateTime         @default(now())
+  job        Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }
 
 model FileAsset {
-  id         String      @id @default(cuid())
-  ownerId    String?
-  bucket     String
-  objectKey  String      @unique
-  mimeType   String
-  size       Int
-  purpose    FilePurpose
-  checksum   String?
-  createdAt  DateTime    @default(now())
-  owner      User?       @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  sourceResumes Resume[] @relation("ResumeOriginalFile")
+  id            String      @id @default(cuid())
+  ownerId       String?
+  bucket        String
+  objectKey     String      @unique
+  mimeType      String
+  size          Int
+  purpose       FilePurpose
+  checksum      String?
+  createdAt     DateTime    @default(now())
+  owner         User?       @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  sourceResumes Resume[]    @relation("ResumeOriginalFile")
 }
 
 model AuditLog {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   actorUserId String?
   targetType  String
   targetId    String
   action      String
   metadata    Json?
-  createdAt   DateTime  @default(now())
-  actor       User?     @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 }

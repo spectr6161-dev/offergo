@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { AppDataGrid } from "@offergo/ui";
-import type { GridColDef } from "@mui/x-data-grid";
+import { AppDataGrid, type AppDataColumn } from "@offergo/ui";
 
-const columns: GridColDef[] = [
-  { field: "queue", headerName: "Queue", flex: 1 },
-  { field: "status", headerName: "Status", flex: 1 },
-  { field: "attempts", headerName: "Attempts", flex: 1 },
+type JobRow = {
+  id: string;
+  queue: string;
+  status: string;
+  attempts: number;
+};
+
+const columns: AppDataColumn<JobRow>[] = [
+  { key: "queue", header: "Queue" },
+  { key: "status", header: "Status" },
+  { key: "attempts", header: "Attempts", align: "right" },
   {
-    field: "id",
-    headerName: "Open",
-    width: 120,
-    renderCell: (params) => <Link href={`/admin/jobs/${params.value}`}>Details</Link>,
+    key: "id",
+    header: "Open",
+    render: (row) => (
+      <Link href={`/admin/jobs/${row.id}`} className="ui-link">
+        Details
+      </Link>
+    ),
   },
 ];
 
-export function JobsGrid({ rows }: { rows: Array<{ id: string; queue: string; status: string; attempts: number }> }) {
+export function JobsGrid({ rows }: { rows: JobRow[] }) {
   return <AppDataGrid rows={rows} columns={columns} />;
 }

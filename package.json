@@ -5,21 +5,25 @@
   "scripts": {
     "dev": "turbo dev --parallel",
     "dev:web": "pnpm --filter @offergo/web dev",
+    "dev:api": "pnpm --filter @offergo/api dev",
     "dev:worker": "pnpm --filter @offergo/worker dev",
-    "build": "turbo build",
+    "build": "pnpm db:generate && turbo build",
     "lint": "turbo lint",
-    "typecheck": "turbo typecheck",
+    "typecheck": "pnpm db:generate && turbo typecheck",
     "format:check": "turbo format:check",
     "db:generate": "pnpm --filter @offergo/db db:generate",
     "db:migrate": "pnpm --filter @offergo/db db:migrate",
     "db:seed": "pnpm --filter @offergo/db db:seed"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/node": "^22.15.21",
     "eslint": "^9.39.1",
+    "globals": "^16.4.0",
     "prettier": "^3.6.2",
     "tsx": "^4.21.0",
     "turbo": "^2.5.8",
+    "typescript-eslint": "^8.46.2",
     "typescript": "^5.9.3"
   }
 }

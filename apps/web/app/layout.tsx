@@ -4,7 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "offerGO App",
-  description: "Greenfield B2C app for resume analysis, interview training, and billing workflows.",
+  description:
+    "Greenfield B2C app for resume analysis, interview training, and billing workflows.",
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ru" className="font-sans">
       <body>
         <AppProviders>{children}</AppProviders>
       </body>

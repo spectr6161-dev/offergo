@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { AppDataGrid } from "@offergo/ui";
-import type { GridColDef } from "@mui/x-data-grid";
+import { AppDataGrid, type AppDataColumn } from "@offergo/ui";
 
-const columns: GridColDef[] = [
-  { field: "plan", headerName: "Plan", flex: 1 },
-  { field: "status", headerName: "Status", flex: 1 },
-  { field: "window", headerName: "Window", flex: 1.4 },
+type EntitlementRow = {
+  id: string;
+  plan: string;
+  status: string;
+  window: string;
+};
+
+const columns: AppDataColumn<EntitlementRow>[] = [
+  { key: "plan", header: "Plan" },
+  { key: "status", header: "Status" },
+  { key: "window", header: "Window" },
   {
-    field: "id",
-    headerName: "Open",
-    width: 120,
-    renderCell: (params) => <Link href={`/admin/entitlements/${params.value}`}>Details</Link>,
+    key: "id",
+    header: "Open",
+    render: (row) => (
+      <Link href={`/admin/entitlements/${row.id}`} className="ui-link">
+        Details
+      </Link>
+    ),
   },
 ];
 
-export function EntitlementsGrid({ rows }: { rows: Array<{ id: string; plan: string; status: string; window: string }> }) {
+export function EntitlementsGrid({ rows }: { rows: EntitlementRow[] }) {
   return <AppDataGrid rows={rows} columns={columns} />;
 }

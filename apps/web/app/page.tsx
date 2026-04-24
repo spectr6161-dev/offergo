@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { getCurrentSession } from "@offergo/auth/server";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function Home() {
-  const session = await getCurrentSession();
-  redirect(session ? "/dashboard" : "/login");
+  const user = await getCurrentUser();
+  redirect(user ? "/dashboard" : "/login");
 }

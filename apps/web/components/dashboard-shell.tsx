@@ -2,18 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  AppBar,
-  Avatar,
-  Box,
-  Divider,
-  List,
-  ListItemButton,
-  ListItemText,
-  Stack,
-  Toolbar,
-  Typography,
-} from "@mui/material";
 
 type NavigationItem = {
   href: string;
@@ -34,50 +22,46 @@ export function DashboardShell({
   const pathname = usePathname();
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "grid", gridTemplateColumns: { xs: "1fr", md: "280px minmax(0, 1fr)" } }}>
-      <Box
-        component="aside"
-        sx={{
-          borderRight: { md: "1px solid" },
-          borderColor: { md: "divider" },
-          backgroundColor: "background.paper",
-          p: 3,
-        }}
-      >
-        <Stack spacing={3}>
-          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Avatar sx={{ bgcolor: "primary.main" }}>O</Avatar>
-            <Box>
-              <Typography variant="h6">offerGO</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {title}
-              </Typography>
-            </Box>
-          </Stack>
-          <Divider />
-          <List disablePadding>
-            {items.map((item) => (
-              <Link key={item.href} href={item.href} style={{ color: "inherit", textDecoration: "none" }}>
-                <ListItemButton selected={pathname === item.href || pathname.startsWith(`${item.href}/`)}>
-                  <ListItemText primary={item.label} />
-                </ListItemButton>
+    <div className="dashboard-shell">
+      <aside className="dashboard-shell__sidebar">
+        <div className="dashboard-shell__brand">
+          <div className="dashboard-shell__brand-mark">O</div>
+          <div className="dashboard-shell__brand-copy">
+            <h1>offerGO</h1>
+            <p>{title}</p>
+          </div>
+        </div>
+
+        <nav className="dashboard-shell__nav">
+          {items.map((item) => {
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`dashboard-shell__nav-link${
+                  isActive ? " dashboard-shell__nav-link--active" : ""
+                }`}
+              >
+                {item.label}
               </Link>
-            ))}
-          </List>
-          <Divider />
-          <Typography variant="body2" color="text.secondary">
-            {subtitle}
-          </Typography>
-        </Stack>
-      </Box>
-      <Box component="section">
-        <AppBar position="sticky" color="transparent" elevation={0} sx={{ backdropFilter: "blur(10px)", borderBottom: "1px solid", borderColor: "divider" }}>
-          <Toolbar>
-            <Typography variant="h6">{title}</Typography>
-          </Toolbar>
-        </AppBar>
-        <Box sx={{ p: { xs: 2, md: 4 } }}>{children}</Box>
-      </Box>
-    </Box>
+            );
+          })}
+        </nav>
+
+        <p className="dashboard-shell__subtitle" style={{ marginTop: "1.5rem" }}>
+          {subtitle}
+        </p>
+      </aside>
+
+      <section className="dashboard-shell__main">
+        <header className="dashboard-shell__topbar">
+          <h2>{title}</h2>
+        </header>
+        <div className="dashboard-shell__content">{children}</div>
+      </section>
+    </div>
   );
 }

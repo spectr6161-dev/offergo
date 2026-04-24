@@ -45,14 +45,16 @@ async function ensurePlans() {
     {
       code: "starter-monthly",
       name: "Starter Monthly",
-      description: "Resume analysis and interview practice for solo candidates.",
+      description:
+        "Resume analysis and interview practice for solo candidates.",
       priceRub: 1490,
       durationDays: 30,
     },
     {
       code: "pro-monthly",
       name: "Pro Monthly",
-      description: "Everything in Starter plus AI trainer and advanced workflows.",
+      description:
+        "Everything in Starter plus AI trainer and advanced workflows.",
       priceRub: 2990,
       durationDays: 30,
     },

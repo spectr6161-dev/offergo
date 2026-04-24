@@ -1,3 +1,4 @@
+import "@offergo/shared";
 import { PrismaClient } from "../generated/client";
 
 const globalForPrisma = globalThis as unknown as {

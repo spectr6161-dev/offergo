@@ -39,6 +39,19 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - mailpit
+    ports:
+      - "3001:3001"
+
   web:
     build:
       context: .
@@ -46,6 +59,7 @@ services:
     env_file:
       - .env
     depends_on:
+      - api
       - postgres
       - redis
       - minio

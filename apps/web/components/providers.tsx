@@ -20,7 +20,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <OffergoProviders>
       <ToastProvider>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </ToastProvider>
     </OffergoProviders>
   );

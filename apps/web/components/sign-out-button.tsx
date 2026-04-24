@@ -1,16 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@mui/material";
 import { authClient } from "@offergo/auth/client";
 
 export function SignOutButton() {
   const router = useRouter();
 
   return (
-    <Button
-      variant="outlined"
-      color="inherit"
+    <button
+      type="button"
+      className="sign-out-button"
       onClick={async () => {
         await authClient.signOut();
         router.push("/login");
@@ -18,6 +17,6 @@ export function SignOutButton() {
       }}
     >
       Sign out
-    </Button>
+    </button>
   );
 }

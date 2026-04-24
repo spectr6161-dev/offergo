@@ -13,15 +13,10 @@
     "paths": {
       "@/*": ["./*"],
       "@offergo/shared": ["../../packages/shared/src/index.ts"],
-      "@offergo/db": ["../../packages/db/src/index.ts"],
       "@offergo/auth": ["../../packages/auth/src/index.ts"],
       "@offergo/auth/client": ["../../packages/auth/src/client.ts"],
-      "@offergo/auth/server": ["../../packages/auth/src/server.ts"],
-      "@offergo/auth/core": ["../../packages/auth/src/core.ts"],
       "@offergo/ui": ["../../packages/ui/src/index.tsx"],
-      "@offergo/ai": ["../../packages/ai/src/index.ts"],
-      "@offergo/billing": ["../../packages/billing/src/index.ts"],
-      "@offergo/queue": ["../../packages/queue/src/index.ts"]
+      "@offergo/ai": ["../../packages/ai/src/index.ts"]
     }
   },
   "include": [

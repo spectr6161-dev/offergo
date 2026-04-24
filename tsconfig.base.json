@@ -19,6 +19,7 @@
       "@offergo/auth": ["packages/auth/src/index.ts"],
       "@offergo/auth/client": ["packages/auth/src/client.ts"],
       "@offergo/auth/server": ["packages/auth/src/server.ts"],
+      "@offergo/auth/session": ["packages/auth/src/session.ts"],
       "@offergo/auth/core": ["packages/auth/src/core.ts"],
       "@offergo/ui": ["packages/ui/src/index.ts"],
       "@offergo/ai": ["packages/ai/src/index.ts"],

@@ -1,74 +1,327 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Alert, Button, Stack, TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Eye, EyeOff } from "lucide-react";
 import { authClient } from "@offergo/auth/client";
+import { deriveNameFromLogin, loginToAuthEmail, normalizeLogin } from "@/lib/auth-login";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Field,
+  FieldContent,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
-const schema = z
-  .object({
-    name: z.string().min(2),
-    email: z.string().email(),
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  })
-  .refine((values) => values.password === values.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+type FieldErrors = {
+  login?: string;
+  password?: string;
+  termsAccepted?: string;
+  privacyAccepted?: string;
+};
 
-type FormValues = z.infer<typeof schema>;
+type StatusState =
+  | {
+      tone: "default" | "destructive";
+      message: string;
+    }
+  | undefined;
+
+function validate(
+  login: string,
+  password: string,
+  termsAccepted: boolean,
+  privacyAccepted: boolean,
+): FieldErrors {
+  const errors: FieldErrors = {};
+
+  if (!login.trim()) {
+    errors.login = "Введите логин.";
+  }
+
+  if (!password) {
+    errors.password = "Введите пароль.";
+  } else if (password.length < 8) {
+    errors.password = "Минимум 8 символов.";
+  }
+
+  if (!termsAccepted) {
+    errors.termsAccepted = "Подтвердите правила пользования сервисом.";
+  }
+
+  if (!privacyAccepted) {
+    errors.privacyAccepted =
+      "Подтвердите согласие с политикой обработки персональных данных.";
+  }
+
+  return errors;
+}
 
 export function RegisterForm() {
   const router = useRouter();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  });
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [status, setStatus] = useState<StatusState>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = handleSubmit(async (values) => {
-    const { error } = await authClient.signUp.email({
-      name: values.name,
-      email: values.email,
-      password: values.password,
-      callbackURL: "/dashboard",
-    });
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    if (error) {
-      setError("root", {
-        message: error.message,
-      });
+    const nextErrors = validate(
+      login,
+      password,
+      termsAccepted,
+      privacyAccepted,
+    );
+    const normalizedLogin = normalizeLogin(login);
+    setErrors(nextErrors);
+    setStatus(undefined);
+
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
-    router.push("/verify-email");
+    setIsSubmitting(true);
+
+    const { error } = await authClient.signUp.email({
+      name: deriveNameFromLogin(normalizedLogin),
+      email: loginToAuthEmail(normalizedLogin),
+      password,
+    });
+
+    if (error) {
+      setStatus({
+        tone: "destructive",
+        message: error.message ?? "Не удалось зарегистрироваться.",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    router.push("/dashboard");
     router.refresh();
-  });
+  }
+
+  function handleSocialClick(provider: "telegram" | "google") {
+    setStatus({
+      tone: "default",
+      message:
+        provider === "telegram"
+          ? "Вход через Telegram пока не подключен."
+          : "Вход через Google пока не подключен.",
+    });
+  }
 
   return (
-    <Stack component="form" spacing={2} onSubmit={onSubmit}>
-      {errors.root?.message ? <Alert severity="error">{errors.root.message}</Alert> : null}
-      <TextField label="Full name" {...register("name")} error={Boolean(errors.name)} helperText={errors.name?.message} />
-      <TextField label="Email" type="email" {...register("email")} error={Boolean(errors.email)} helperText={errors.email?.message} />
-      <TextField label="Password" type="password" {...register("password")} error={Boolean(errors.password)} helperText={errors.password?.message} />
-      <TextField
-        label="Confirm password"
-        type="password"
-        {...register("confirmPassword")}
-        error={Boolean(errors.confirmPassword)}
-        helperText={errors.confirmPassword?.message}
-      />
-      <Button type="submit" variant="contained" disabled={isSubmitting}>
-        {isSubmitting ? "Creating..." : "Create account"}
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+      {status ? (
+        <Alert
+          variant={status.tone}
+          className="rounded-xl border-white/10 bg-[#090909] px-4 py-3 text-white shadow-none"
+        >
+          <AlertDescription>{status.message}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <FieldGroup className="gap-3.5">
+        <Field data-invalid={Boolean(errors.login)}>
+          <FieldLabel htmlFor="register-login" className="sr-only">
+            Логин
+          </FieldLabel>
+          <Input
+            id="register-login"
+            type="text"
+            inputMode="text"
+            autoComplete="username"
+            placeholder="Логин"
+            value={login}
+            aria-label="Логин"
+            aria-invalid={Boolean(errors.login)}
+            className="h-[3.25rem] rounded-xl border-white/10 bg-[#090909] px-4 text-[1.02rem] text-white shadow-none placeholder:text-white/38 focus-visible:border-white/20 focus-visible:ring-white/5"
+            onChange={(event) => {
+              setLogin(event.target.value);
+              if (errors.login) {
+                setErrors((current) => ({ ...current, login: undefined }));
+              }
+            }}
+          />
+          <FieldError>{errors.login}</FieldError>
+        </Field>
+
+        <Field data-invalid={Boolean(errors.password)}>
+          <FieldLabel htmlFor="register-password" className="sr-only">
+            Пароль
+          </FieldLabel>
+          <div className="relative">
+            <Input
+              id="register-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="Пароль"
+              value={password}
+              aria-label="Пароль"
+              aria-invalid={Boolean(errors.password)}
+              className="h-[3.25rem] rounded-xl border-white/10 bg-[#090909] px-4 pr-14 text-[1.02rem] text-white shadow-none placeholder:text-white/38 focus-visible:border-white/20 focus-visible:ring-white/5"
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (errors.password) {
+                  setErrors((current) => ({ ...current, password: undefined }));
+                }
+              }}
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
+              className="absolute inset-y-0 right-0 inline-flex items-center justify-center px-4 text-white/42 transition-colors hover:text-white/70"
+              onClick={() => setShowPassword((current) => !current)}
+            >
+              {showPassword ? <EyeOff /> : <Eye />}
+            </button>
+          </div>
+          <FieldError>{errors.password}</FieldError>
+        </Field>
+      </FieldGroup>
+
+      <FieldGroup className="gap-3">
+        <Field
+          orientation="horizontal"
+          data-invalid={Boolean(errors.termsAccepted)}
+          className="items-start gap-3"
+        >
+          <Checkbox
+            id="register-terms"
+            checked={termsAccepted}
+            aria-invalid={Boolean(errors.termsAccepted)}
+            className="mt-1 border-white/18 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+            onCheckedChange={(checked) => {
+              setTermsAccepted(checked === true);
+              if (errors.termsAccepted) {
+                setErrors((current) => ({
+                  ...current,
+                  termsAccepted: undefined,
+                }));
+              }
+            }}
+          />
+          <FieldContent className="min-w-0 gap-1">
+            <FieldLabel
+              htmlFor="register-terms"
+              className="block w-full min-w-0 text-sm font-normal leading-6 whitespace-normal text-white/78"
+            >
+              Я принимаю{" "}
+              <Link
+                href="/terms"
+                className="text-white underline underline-offset-4 hover:text-white/80"
+                onClick={(event) => event.stopPropagation()}
+              >
+                правила пользования сервисом
+              </Link>
+            </FieldLabel>
+            <FieldError>{errors.termsAccepted}</FieldError>
+          </FieldContent>
+        </Field>
+
+        <Field
+          orientation="horizontal"
+          data-invalid={Boolean(errors.privacyAccepted)}
+          className="items-start gap-3"
+        >
+          <Checkbox
+            id="register-privacy"
+            checked={privacyAccepted}
+            aria-invalid={Boolean(errors.privacyAccepted)}
+            className="mt-1 border-white/18 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+            onCheckedChange={(checked) => {
+              setPrivacyAccepted(checked === true);
+              if (errors.privacyAccepted) {
+                setErrors((current) => ({
+                  ...current,
+                  privacyAccepted: undefined,
+                }));
+              }
+            }}
+          />
+          <FieldContent className="min-w-0 gap-1">
+            <FieldLabel
+              htmlFor="register-privacy"
+              className="block w-full min-w-0 text-sm font-normal leading-6 whitespace-normal text-white/78"
+            >
+              Я согласен с{" "}
+              <Link
+                href="/privacy-policy"
+                className="text-white underline underline-offset-4 hover:text-white/80"
+                onClick={(event) => event.stopPropagation()}
+              >
+                политикой обработки персональных данных
+              </Link>
+            </FieldLabel>
+            <FieldError>{errors.privacyAccepted}</FieldError>
+          </FieldContent>
+        </Field>
+      </FieldGroup>
+
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="h-[3.1rem] w-full rounded-xl bg-white text-[1.02rem] font-medium text-black shadow-none hover:bg-white/92"
+      >
+        {isSubmitting ? "Создание аккаунта..." : "Зарегистрироваться"}
       </Button>
-      <Link href="/login">Already have an account?</Link>
-    </Stack>
+
+      <div className="flex items-center gap-3 py-3 text-sm font-medium text-white/38">
+        <Separator className="flex-1 bg-white/10" />
+        <span>или</span>
+        <Separator className="flex-1 bg-white/10" />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="h-[3.1rem] w-full rounded-xl border-white/10 bg-[#090909] text-[1.02rem] font-medium text-white hover:bg-[#111111] hover:text-white"
+          onClick={() => handleSocialClick("telegram")}
+        >
+          <Image
+            src="/brands/telegram.svg"
+            alt=""
+            width={20}
+            height={20}
+            data-icon="inline-start"
+            className="size-5"
+          />
+          Продолжить через Telegram
+        </Button>
+
+        <Button
+          type="button"
+          size="lg"
+          variant="outline"
+          className="h-[3.1rem] w-full rounded-xl border-white/10 bg-[#090909] text-[1.02rem] font-medium text-white hover:bg-[#111111] hover:text-white"
+          onClick={() => handleSocialClick("google")}
+        >
+          <Image
+            src="/brands/google.svg"
+            alt=""
+            width={20}
+            height={20}
+            data-icon="inline-start"
+            className="size-5"
+          />
+          Продолжить через Google
+        </Button>
+      </div>
+    </form>
   );
 }

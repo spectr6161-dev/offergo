@@ -1,70 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  CssBaseline,
-  Snackbar,
-  Stack,
-  ThemeProvider,
-  Typography,
-  createTheme,
-} from "@mui/material";
-import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
 
-const theme = createTheme({
-  cssVariables: true,
-  colorSchemes: {
-    light: {
-      palette: {
-        primary: {
-          main: "#1967d2",
-        },
-        secondary: {
-          main: "#5b3fd6",
-        },
-        background: {
-          default: "#f5f7fb",
-          paper: "#ffffff",
-        },
-      },
-    },
-    dark: {
-      palette: {
-        primary: {
-          main: "#8ab4f8",
-        },
-      },
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  typography: {
-    h3: {
-      fontSize: "1.75rem",
-      fontWeight: 700,
-    },
-    h4: {
-      fontSize: "1.25rem",
-      fontWeight: 700,
-    },
-  },
-});
+type ToastSeverity = "success" | "info" | "warning" | "error";
+type RowRecord = {
+  id: string | number;
+};
+
+export type AppDataColumn<Row extends RowRecord> = {
+  key: keyof Row | string;
+  header: string;
+  align?: "left" | "center" | "right";
+  render?: (row: Row) => React.ReactNode;
+};
+
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export function OffergoProviders({ children }: { children: React.ReactNode }) {
-  return (
-    <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
-    </AppRouterCacheProvider>
-  );
+  return <>{children}</>;
 }
 
 export function PageFrame({
@@ -79,27 +34,18 @@ export function PageFrame({
   children: React.ReactNode;
 }) {
   return (
-    <Stack spacing={3}>
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={2}
-        sx={{
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", md: "center" },
-        }}
-      >
-        <Box>
-          <Typography variant="h3">{title}</Typography>
+    <section className="ui-page-frame">
+      <header className="ui-page-frame__header">
+        <div>
+          <h1 className="ui-page-frame__title">{title}</h1>
           {description ? (
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 720 }}>
-              {description}
-            </Typography>
+            <p className="ui-page-frame__description">{description}</p>
           ) : null}
-        </Box>
-        {actions}
-      </Stack>
+        </div>
+        {actions ? <div className="ui-page-frame__actions">{actions}</div> : null}
+      </header>
       {children}
-    </Stack>
+    </section>
   );
 }
 
@@ -113,41 +59,31 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Stack spacing={2}>
-          <Box>
-            <Typography variant="h4">{title}</Typography>
-            {subtitle ? (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {subtitle}
-              </Typography>
-            ) : null}
-          </Box>
-          {children}
-        </Stack>
-      </CardContent>
-    </Card>
+    <section className="ui-card ui-card--section">
+      <div className="ui-card__header">
+        <h2 className="ui-card__title">{title}</h2>
+        {subtitle ? <p className="ui-card__subtitle">{subtitle}</p> : null}
+      </div>
+      {children}
+    </section>
   );
 }
 
-export function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+export function StatCard({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) {
   return (
-    <Card variant="outlined" sx={{ minWidth: 0 }}>
-      <CardContent>
-        <Stack spacing={1}>
-          <Typography variant="body2" color="text.secondary">
-            {label}
-          </Typography>
-          <Typography variant="h4">{value}</Typography>
-          {hint ? (
-            <Typography variant="caption" color="text.secondary">
-              {hint}
-            </Typography>
-          ) : null}
-        </Stack>
-      </CardContent>
-    </Card>
+    <article className="ui-card ui-stat-card">
+      <div className="ui-stat-card__label">{label}</div>
+      <div className="ui-stat-card__value">{value}</div>
+      {hint ? <div className="ui-stat-card__hint">{hint}</div> : null}
+    </article>
   );
 }
 
@@ -161,71 +97,122 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-          <Box>
-            <Typography variant="h4">{title}</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {description}
-            </Typography>
-          </Box>
-          {action}
-        </Stack>
-      </CardContent>
-    </Card>
+    <div className="ui-empty-state">
+      <div>
+        <h3 className="ui-empty-state__title">{title}</h3>
+        <p className="ui-empty-state__description">{description}</p>
+      </div>
+      {action ? <div>{action}</div> : null}
+    </div>
   );
 }
 
-export function AppDataGrid(props: DataGridProps) {
+export function AppDataGrid<Row extends RowRecord>({
+  rows,
+  columns,
+  emptyMessage = "No rows to display.",
+}: {
+  rows: Row[];
+  columns: AppDataColumn<Row>[];
+  emptyMessage?: string;
+}) {
+  if (rows.length === 0) {
+    return <div className="ui-table-empty">{emptyMessage}</div>;
+  }
+
   return (
-    <Box sx={{ width: "100%", minHeight: 420 }}>
-      <DataGrid
-        disableRowSelectionOnClick
-        pageSizeOptions={[10, 25, 50]}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-              page: 0,
-            },
-          },
-        }}
-        {...props}
-      />
-    </Box>
+    <div className="ui-table-wrap">
+      <table className="ui-table">
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th
+                key={String(column.key)}
+                className={cx(
+                  column.align === "center" && "ui-table__cell--center",
+                  column.align === "right" && "ui-table__cell--right",
+                )}
+              >
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              {columns.map((column) => {
+                const value = row[column.key as keyof Row];
+
+                return (
+                  <td
+                    key={`${row.id}-${String(column.key)}`}
+                    className={cx(
+                      column.align === "center" && "ui-table__cell--center",
+                      column.align === "right" && "ui-table__cell--right",
+                    )}
+                  >
+                    {column.render ? column.render(row) : String(value ?? "")}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
-const ToastContext = React.createContext<((message: string, severity?: "success" | "info" | "warning" | "error") => void) | null>(null);
+const ToastContext = React.createContext<
+  | ((message: string, severity?: ToastSeverity) => void)
+  | null
+>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<{
     open: boolean;
     message: string;
-    severity: "success" | "info" | "warning" | "error";
+    severity: ToastSeverity;
   }>({
     open: false,
     message: "",
     severity: "info",
   });
 
-  const showToast = React.useCallback((message: string, severity: "success" | "info" | "warning" | "error" = "info") => {
-    setState({
-      open: true,
-      message,
-      severity,
-    });
-  }, []);
+  const showToast = React.useCallback(
+    (message: string, severity: ToastSeverity = "info") => {
+      setState({
+        open: true,
+        message,
+        severity,
+      });
+    },
+    [],
+  );
+
+  React.useEffect(() => {
+    if (!state.open) {
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setState((current) => ({ ...current, open: false }));
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [state.open]);
 
   return (
     <ToastContext.Provider value={showToast}>
       {children}
-      <Snackbar open={state.open} autoHideDuration={4000} onClose={() => setState((current) => ({ ...current, open: false }))}>
-        <Alert severity={state.severity} variant="filled" sx={{ width: "100%" }}>
+      {state.open ? (
+        <div className={cx("ui-toast", `ui-toast--${state.severity}`)}>
           {state.message}
-        </Alert>
-      </Snackbar>
+        </div>
+      ) : null}
     </ToastContext.Provider>
   );
 }

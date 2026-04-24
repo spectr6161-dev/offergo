@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { AppDataGrid } from "@offergo/ui";
-import type { GridColDef } from "@mui/x-data-grid";
+import { AppDataGrid, type AppDataColumn } from "@offergo/ui";
 
-const columns: GridColDef[] = [
-  { field: "name", headerName: "Name", flex: 1 },
-  { field: "email", headerName: "Email", flex: 1.2 },
-  { field: "roles", headerName: "Roles", flex: 1 },
+type UserRow = {
+  id: string;
+  name: string;
+  email: string;
+  roles: string;
+};
+
+const columns: AppDataColumn<UserRow>[] = [
+  { key: "name", header: "Name" },
+  { key: "email", header: "Email" },
+  { key: "roles", header: "Roles" },
   {
-    field: "id",
-    headerName: "Open",
-    width: 120,
-    renderCell: (params) => <Link href={`/admin/users/${params.value}`}>Details</Link>,
+    key: "id",
+    header: "Open",
+    render: (row) => (
+      <Link href={`/admin/users/${row.id}`} className="ui-link">
+        Details
+      </Link>
+    ),
   },
 ];
 
-export function UsersGrid({ rows }: { rows: Array<{ id: string; name: string; email: string; roles: string }> }) {
+export function UsersGrid({ rows }: { rows: UserRow[] }) {
   return <AppDataGrid rows={rows} columns={columns} />;
 }

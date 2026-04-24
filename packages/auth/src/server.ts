@@ -1,35 +1,18 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@offergo/db";
 import { type AppRole } from "@offergo/shared";
-import { auth } from "./core";
+import {
+  getCurrentSessionFromHeaders,
+  getCurrentUserFromHeaders,
+  hasAnyRole,
+} from "./session";
 
 export async function getCurrentSession() {
-  return auth.api.getSession({
-    headers: await headers(),
-  });
+  return getCurrentSessionFromHeaders(await headers());
 }
 
 export async function getCurrentUser() {
-  const session = await getCurrentSession();
-
-  if (!session) {
-    return null;
-  }
-
-  const roles = await prisma.roleAssignment.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    select: {
-      role: true,
-    },
-  });
-
-  return {
-    ...session.user,
-    roles: roles.length > 0 ? roles.map((entry) => entry.role) : (["user"] as AppRole[]),
-  };
+  return getCurrentUserFromHeaders(await headers());
 }
 
 export async function requireUser() {
@@ -44,9 +27,8 @@ export async function requireUser() {
 
 export async function requireRole(role: AppRole | AppRole[]) {
   const user = await requireUser();
-  const expected = Array.isArray(role) ? role : [role];
 
-  if (!expected.some((entry) => user.roles.includes(entry))) {
+  if (!hasAnyRole(user, role)) {
     redirect("/dashboard");
   }
 

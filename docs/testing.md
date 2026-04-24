@@ -7,8 +7,8 @@
   - queue payload validation
   - AI adapter input validation
 - integration tests for:
-  - auth route mounting
-  - billing webhook handling
+  - auth route mounting in `apps/api`
+  - billing webhook handling in `apps/api`
   - Prisma client and migrations
 - e2e tests for:
   - login/register/verify flows
@@ -23,7 +23,7 @@ Minimum validation after changes:
 
 - `pnpm typecheck`
 - `pnpm build`
-- targeted route smoke checks in `apps/web`
+- targeted route smoke checks in `apps/api` and `apps/web`
 
 When product flows are implemented, expand into:
 

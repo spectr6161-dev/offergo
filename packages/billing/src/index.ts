@@ -1,7 +1,14 @@
 import { prisma } from "@offergo/db";
-import { createPaymentLinkResponseSchema, env, plategaCallbackSchema, type PaymentStatus } from "@offergo/shared";
+import {
+  createPaymentLinkResponseSchema,
+  env,
+  plategaCallbackSchema,
+  type PaymentStatus,
+} from "@offergo/shared";
 
-function mapProviderStatus(status: "PENDING" | "CONFIRMED" | "CANCELED" | "CHARGEBACKED"): PaymentStatus {
+function mapProviderStatus(
+  status: "PENDING" | "CONFIRMED" | "CANCELED" | "CHARGEBACKED",
+): PaymentStatus {
   switch (status) {
     case "CONFIRMED":
       return "confirmed";
@@ -14,39 +21,92 @@ function mapProviderStatus(status: "PENDING" | "CONFIRMED" | "CANCELED" | "CHARG
   }
 }
 
-export async function createPaymentLink(userId: string, planId: string) {
-  const plan = await prisma.plan.findUniqueOrThrow({
-    where: { id: planId },
-  });
-
-  const response = await fetch(new URL("v2/transaction/process", env.PLATEGA_BASE_URL), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-MerchantId": env.PLATEGA_MERCHANT_ID,
-      "X-Secret": env.PLATEGA_SECRET,
-    },
-    body: JSON.stringify({
-      paymentDetails: {
-        amount: plan.priceRub,
-        currency: "RUB",
+async function requestPaymentLink(
+  userId: string,
+  planId: string,
+  plan: { name: string; priceRub: number },
+) {
+  const response = await fetch(
+    new URL("v2/transaction/process", env.PLATEGA_BASE_URL),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-MerchantId": env.PLATEGA_MERCHANT_ID,
+        "X-Secret": env.PLATEGA_SECRET,
       },
-      description: `offerGO access: ${plan.name}`,
-      return: env.PLATEGA_SUCCESS_URL,
-      failedUrl: env.PLATEGA_FAIL_URL,
-      payload: JSON.stringify({ userId, planId }),
-    }),
-  });
+      body: JSON.stringify({
+        paymentDetails: {
+          amount: plan.priceRub,
+          currency: "RUB",
+        },
+        description: `offerGO access: ${plan.name}`,
+        return: env.PLATEGA_SUCCESS_URL,
+        failedUrl: env.PLATEGA_FAIL_URL,
+        payload: JSON.stringify({ userId, planId }),
+      }),
+    },
+  );
 
   if (!response.ok) {
-    throw new Error(`Platega payment link creation failed with status ${response.status}`);
+    throw new Error(
+      `Platega payment link creation failed with status ${response.status}`,
+    );
   }
 
-  const parsed = createPaymentLinkResponseSchema.parse(await response.json());
+  return createPaymentLinkResponseSchema.parse(await response.json());
+}
 
-  const payment = await prisma.payment.create({
-    data: {
-      provider: "platega",
+type LockCapableClient = Pick<typeof prisma, "$queryRaw">;
+
+async function acquireTransactionLock(tx: LockCapableClient, lockKey: string) {
+  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey})::bigint)`;
+}
+
+function buildEntitlementWindow(periodDays: number) {
+  const startsAt = new Date();
+  const endsAt = new Date(
+    startsAt.getTime() + periodDays * 24 * 60 * 60 * 1000,
+  );
+
+  return {
+    startsAt,
+    endsAt,
+  };
+}
+
+export async function createPaymentLink(userId: string, planId: string) {
+  return prisma.$transaction(async (tx) => {
+    const checkoutLockKey = `billing:checkout:${userId}:${planId}`;
+    await acquireTransactionLock(tx, checkoutLockKey);
+
+    const plan = await tx.plan.findUniqueOrThrow({
+      where: { id: planId },
+    });
+
+    const existingPendingPayment = await tx.payment.findFirst({
+      where: {
+        provider: "platega",
+        userId,
+        planId,
+        status: "pending",
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (existingPendingPayment?.paymentUrl) {
+      return {
+        payment: existingPendingPayment,
+        paymentUrl: existingPendingPayment.paymentUrl,
+      };
+    }
+
+    const parsed = await requestPaymentLink(userId, planId, plan);
+
+    const paymentData = {
+      provider: "platega" as const,
       providerTransactionId: parsed.transactionId,
       userId,
       planId,
@@ -54,26 +114,43 @@ export async function createPaymentLink(userId: string, planId: string) {
       currency: "RUB",
       paymentUrl: parsed.url,
       providerPayload: parsed,
-    },
-  });
+      status: "pending" as const,
+    };
 
-  return {
-    payment,
-    paymentUrl: parsed.url,
-  };
+    const payment = existingPendingPayment
+      ? await tx.payment.update({
+          where: {
+            id: existingPendingPayment.id,
+          },
+          data: paymentData,
+        })
+      : await tx.payment.create({
+          data: paymentData,
+        });
+
+    return {
+      payment,
+      paymentUrl: parsed.url,
+    };
+  });
 }
 
 export async function getTransactionStatus(transactionId: string) {
-  const response = await fetch(new URL(`transaction/${transactionId}`, env.PLATEGA_BASE_URL), {
-    headers: {
-      "X-MerchantId": env.PLATEGA_MERCHANT_ID,
-      "X-Secret": env.PLATEGA_SECRET,
+  const response = await fetch(
+    new URL(`transaction/${transactionId}`, env.PLATEGA_BASE_URL),
+    {
+      headers: {
+        "X-MerchantId": env.PLATEGA_MERCHANT_ID,
+        "X-Secret": env.PLATEGA_SECRET,
+      },
+      cache: "no-store",
     },
-    cache: "no-store",
-  });
+  );
 
   if (!response.ok) {
-    throw new Error(`Platega status request failed with status ${response.status}`);
+    throw new Error(
+      `Platega status request failed with status ${response.status}`,
+    );
   }
 
   const payload = await response.json();
@@ -95,9 +172,13 @@ export function verifyWebhook(headers: Headers, payload: unknown) {
   return plategaCallbackSchema.parse(payload);
 }
 
-export async function grantEntitlement(userId: string, planId: string, periodDays: number, sourcePaymentId?: string) {
-  const startsAt = new Date();
-  const endsAt = new Date(startsAt.getTime() + periodDays * 24 * 60 * 60 * 1000);
+export async function grantEntitlement(
+  userId: string,
+  planId: string,
+  periodDays: number,
+  sourcePaymentId?: string,
+) {
+  const { startsAt, endsAt } = buildEntitlementWindow(periodDays);
 
   return prisma.entitlement.create({
     data: {
@@ -111,64 +192,85 @@ export async function grantEntitlement(userId: string, planId: string, periodDay
 }
 
 export async function handlePaymentConfirmed(transactionId: string) {
-  const payment = await prisma.payment.findUniqueOrThrow({
-    where: { providerTransactionId: transactionId },
-    include: { plan: true },
+  return prisma.$transaction(async (tx) => {
+    await acquireTransactionLock(tx, `billing:webhook:${transactionId}`);
+
+    const payment = await tx.payment.findUniqueOrThrow({
+      where: { providerTransactionId: transactionId },
+      include: { plan: true },
+    });
+
+    const updated =
+      payment.status === "confirmed"
+        ? payment
+        : await tx.payment.update({
+            where: { id: payment.id },
+            data: {
+              status: "confirmed",
+              confirmedAt: new Date(),
+            },
+          });
+
+    const { startsAt, endsAt } = buildEntitlementWindow(
+      payment.plan.durationDays,
+    );
+
+    await tx.entitlement.upsert({
+      where: {
+        sourcePaymentId: payment.id,
+      },
+      update: {},
+      create: {
+        userId: payment.userId,
+        planId: payment.planId,
+        startsAt,
+        endsAt,
+        sourcePaymentId: payment.id,
+      },
+    });
+
+    return updated;
   });
-
-  if (payment.status === "confirmed") {
-    return payment;
-  }
-
-  const updated = await prisma.payment.update({
-    where: { id: payment.id },
-    data: {
-      status: "confirmed",
-      confirmedAt: new Date(),
-    },
-  });
-
-  const existingEntitlement = await prisma.entitlement.findFirst({
-    where: { sourcePaymentId: payment.id },
-  });
-
-  if (!existingEntitlement) {
-    await grantEntitlement(payment.userId, payment.planId, payment.plan.durationDays, payment.id);
-  }
-
-  return updated;
 }
 
 export async function handlePaymentCanceled(transactionId: string) {
-  return prisma.payment.update({
-    where: { providerTransactionId: transactionId },
-    data: {
-      status: "canceled",
-      canceledAt: new Date(),
-    },
+  return prisma.$transaction(async (tx) => {
+    await acquireTransactionLock(tx, `billing:webhook:${transactionId}`);
+
+    return tx.payment.update({
+      where: { providerTransactionId: transactionId },
+      data: {
+        status: "canceled",
+        canceledAt: new Date(),
+      },
+    });
   });
 }
 
 export async function handleChargeback(transactionId: string) {
-  const payment = await prisma.payment.update({
-    where: { providerTransactionId: transactionId },
-    data: {
-      status: "chargebacked",
-      chargebackedAt: new Date(),
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    await acquireTransactionLock(tx, `billing:webhook:${transactionId}`);
 
-  await prisma.entitlement.updateMany({
-    where: {
-      sourcePaymentId: payment.id,
-      status: "active",
-    },
-    data: {
-      status: "revoked",
-    },
-  });
+    const payment = await tx.payment.update({
+      where: { providerTransactionId: transactionId },
+      data: {
+        status: "chargebacked",
+        chargebackedAt: new Date(),
+      },
+    });
 
-  return payment;
+    await tx.entitlement.updateMany({
+      where: {
+        sourcePaymentId: payment.id,
+        status: "active",
+      },
+      data: {
+        status: "revoked",
+      },
+    });
+
+    return payment;
+  });
 }
 
 export async function expireEntitlements() {
@@ -187,11 +289,45 @@ export async function expireEntitlements() {
   return result.count;
 }
 
+export async function listActivePlans() {
+  return prisma.plan.findMany({
+    where: {
+      active: true,
+    },
+    orderBy: [
+      {
+        priceRub: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  });
+}
+
+export async function listUserEntitlements(userId: string) {
+  return prisma.entitlement.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      plan: true,
+      payment: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
 export async function startCheckout(userId: string, planId: string) {
   return createPaymentLink(userId, planId);
 }
 
-export async function handleProviderWebhook(payload: unknown, headers: Headers) {
+export async function handleProviderWebhook(
+  payload: unknown,
+  headers: Headers,
+) {
   const callback = verifyWebhook(headers, payload);
 
   switch (mapProviderStatus(callback.status)) {

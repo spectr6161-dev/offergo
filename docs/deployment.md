@@ -3,6 +3,7 @@
 ## Default deployment shape
 
 - `web` container
+- `api` container
 - `worker` container
 - `postgres`
 - `redis`
@@ -14,7 +15,7 @@ The repository includes a root `docker-compose.yml` for this monorepo subtree.
 
 - current Dockerfiles install and build from the monorepo root context
 - webhook routes require a public URL reachable by providers
-- Better Auth base URL must match the deployed application URL
+- Better Auth base URL must match the deployed API URL
 - S3 env vars must point to the actual storage backend used in the environment
 
 ## Current limitation

@@ -1,0 +1,69 @@
+import { Controller, Get, UseGuards } from "@nestjs/common";
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  ApiOperation,
+} from "@nestjs/swagger";
+import { CurrentUser } from "./current-user.decorator";
+import { ApiAuthGuard } from "./auth.guard";
+import { Roles } from "./roles.decorator";
+import { RolesGuard } from "./roles.guard";
+import {
+  AdminPingResponseDto,
+  AuthMeResponseDto,
+} from "../docs/swagger.models";
+
+@ApiTags("auth")
+@Controller("auth")
+export class AuthController {
+  @Get("me")
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({
+    summary: "Получение текущего аутентифицированного пользователя платформы",
+  })
+  @ApiBearerAuth("bearer")
+  @ApiCookieAuth("session")
+  @ApiOkResponse({
+    description:
+      "Аутентифицированный пользователь, определённый по browser session cookie или bearer-токену.",
+    type: AuthMeResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: "Отсутствуют или невалидны session/bearer credentials.",
+  })
+  getCurrentUser(@CurrentUser() user: unknown) {
+    return {
+      user,
+    };
+  }
+
+  @Get("admin/ping")
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @Roles("admin", "support")
+  @ApiOperation({
+    summary: "Проверка admin-only доступа",
+  })
+  @ApiBearerAuth("bearer")
+  @ApiCookieAuth("session")
+  @ApiOkResponse({
+    description: "Тестовый admin-only endpoint, защищённый ролями.",
+    type: AdminPingResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: "Отсутствуют или невалидны session/bearer credentials.",
+  })
+  @ApiForbiddenResponse({
+    description: "У аутентифицированного пользователя нет роли admin/support.",
+  })
+  getAdminPing(@CurrentUser() user: unknown) {
+    return {
+      ok: true,
+      scope: "admin",
+      user,
+    };
+  }
+}

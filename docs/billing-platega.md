@@ -14,12 +14,12 @@ Assumptions:
 ## Ownership
 
 - adapter and state mapping: `packages/billing`
-- webhook route: `apps/web/app/api/billing/platega/route.ts`
+- API checkout + webhook routes: `apps/api`
 - UI route placeholder: `/billing`
 
 ## Current state
 
-The adapter and webhook contract exist.
+The adapter, API checkout contract, and webhook contract exist.
 The user-facing billing page is intentionally still a placeholder.
 
 That means:

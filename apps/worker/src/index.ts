@@ -3,7 +3,12 @@ import { getQueueConnection, queues, type QueueJobName } from "@offergo/queue";
 import { prisma } from "@offergo/db";
 import { analyzeResume, rewriteResume, runTrainerTurn } from "@offergo/ai";
 import { expireEntitlements } from "@offergo/billing";
-import { env } from "@offergo/shared";
+import { createServerLogger, env } from "@offergo/shared";
+
+const logger = createServerLogger({
+  service: "worker",
+  captureConsole: true,
+});
 
 type WorkerHandler = (job: Job) => Promise<unknown>;
 
@@ -47,7 +52,11 @@ async function upsertJobState(
   return created.id;
 }
 
-async function appendAttempt(jobId: string, status: "running" | "completed" | "failed", error?: string) {
+async function appendAttempt(
+  jobId: string,
+  status: "running" | "completed" | "failed",
+  error?: string,
+) {
   await prisma.jobAttempt.create({
     data: {
       jobId,
@@ -84,14 +93,20 @@ const handlers: Record<QueueJobName, WorkerHandler> = {
       return { skipped: true, reason: "Playwright automation disabled" };
     }
 
-    return { skipped: true, reason: "Playwright runtime scaffolded, implementation deferred" };
+    return {
+      skipped: true,
+      reason: "Playwright runtime scaffolded, implementation deferred",
+    };
   },
   "automation.playwright.sync": async () => {
     if (!env.ENABLE_PLAYWRIGHT_AUTOMATION) {
       return { skipped: true, reason: "Playwright automation disabled" };
     }
 
-    return { skipped: true, reason: "Playwright runtime scaffolded, implementation deferred" };
+    return {
+      skipped: true,
+      reason: "Playwright runtime scaffolded, implementation deferred",
+    };
   },
 };
 
@@ -117,7 +132,8 @@ async function main() {
           await appendAttempt(jobId, "completed");
           return result;
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown job failure";
+          const message =
+            error instanceof Error ? error.message : "Unknown job failure";
           await upsertJobState(job, "failed", undefined, message);
           await appendAttempt(jobId, "failed", message);
           throw error;
@@ -129,18 +145,18 @@ async function main() {
     );
 
     worker.on("completed", (job) => {
-      console.log(`[worker] completed ${job.queueName}:${job.id}`);
+      logger.info(`[worker] completed ${job.queueName}:${job.id}`);
     });
 
     worker.on("failed", (job, error) => {
-      console.error(`[worker] failed ${job?.queueName}:${job?.id}`, error);
+      logger.error(`[worker] failed ${job?.queueName}:${job?.id}`, error);
     });
   }
 
-  console.log("[worker] ready");
+  logger.info("[worker] ready");
 }
 
 void main().catch((error) => {
-  console.error("[worker] fatal", error);
+  logger.error("[worker] fatal", error);
   process.exit(1);
 });
