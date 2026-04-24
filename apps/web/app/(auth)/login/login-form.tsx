@@ -7,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { authClient } from "@offergo/auth/client";
 import { loginToAuthEmail, normalizeLogin } from "@/lib/auth-login";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TelegramLoginWidget } from "@/components/telegram-login-widget";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -79,14 +80,26 @@ export function LoginForm() {
     router.refresh();
   }
 
-  function handleSocialClick(provider: "telegram" | "google") {
-    setStatus({
-      tone: "default",
-      message:
-        provider === "telegram"
-          ? "Вход через Telegram пока не подключен."
-          : "Вход через Google пока не подключен.",
+  async function handleGoogleClick() {
+    setStatus(undefined);
+    setIsSubmitting(true);
+
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: new URL("/dashboard", window.location.origin).toString(),
+      errorCallbackURL: new URL(
+        "/login?error=google",
+        window.location.origin,
+      ).toString(),
     });
+
+    if (error) {
+      setStatus({
+        tone: "destructive",
+        message: error.message ?? "Не удалось перейти ко входу через Google.",
+      });
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -174,30 +187,15 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button
-          type="button"
-          size="lg"
-          variant="outline"
-          className="h-[3.1rem] w-full rounded-xl border-white/10 bg-[#090909] text-[1.02rem] font-medium text-white hover:bg-[#111111] hover:text-white"
-          onClick={() => handleSocialClick("telegram")}
-        >
-          <Image
-            src="/brands/telegram.svg"
-            alt=""
-            width={20}
-            height={20}
-            data-icon="inline-start"
-            className="size-5"
-          />
-          Продолжить через Telegram
-        </Button>
+        <TelegramLoginWidget />
 
         <Button
           type="button"
           size="lg"
           variant="outline"
+          disabled={isSubmitting}
           className="h-[3.1rem] w-full rounded-xl border-white/10 bg-[#090909] text-[1.02rem] font-medium text-white hover:bg-[#111111] hover:text-white"
-          onClick={() => handleSocialClick("google")}
+          onClick={handleGoogleClick}
         >
           <Image
             src="/brands/google.svg"

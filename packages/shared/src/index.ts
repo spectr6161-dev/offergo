@@ -76,6 +76,10 @@ const envSchema = z.object({
     .min(16)
     .default("offergo-dev-secret-please-change"),
   AUTH_COOKIE_DOMAIN: z.string().default(""),
+  GOOGLE_CLIENT_ID: z.string().optional().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
+  TELEGRAM_BOT_TOKEN: z.string().optional().default(""),
+  TELEGRAM_AUTH_MAX_AGE_SECONDS: z.coerce.number().default(86400),
   SMTP_HOST: z.string().min(1).default("localhost"),
   SMTP_PORT: z.coerce.number().default(1025),
   SMTP_SECURE: z
@@ -125,6 +129,10 @@ export const env = envSchema.parse({
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   AUTH_COOKIE_DOMAIN: process.env.AUTH_COOKIE_DOMAIN,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+  TELEGRAM_AUTH_MAX_AGE_SECONDS: process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS,
   SMTP_HOST: process.env.SMTP_HOST,
   SMTP_PORT: process.env.SMTP_PORT,
   SMTP_SECURE: process.env.SMTP_SECURE,

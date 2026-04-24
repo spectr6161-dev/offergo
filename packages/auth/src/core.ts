@@ -4,10 +4,23 @@ import { bearer, jwt } from "better-auth/plugins";
 import { prisma } from "@offergo/db";
 import { env } from "@offergo/shared";
 import { sendTransactionalEmail } from "./email";
+import { telegramLoginWidget } from "./telegram";
 
 const appOrigin = new URL(env.APP_URL).origin;
 const apiOrigin = new URL(env.API_URL).origin;
 const authCookieDomain = env.AUTH_COOKIE_DOMAIN.trim();
+const googleClientId = env.GOOGLE_CLIENT_ID.trim();
+const googleClientSecret = env.GOOGLE_CLIENT_SECRET.trim();
+
+const socialProviders =
+  googleClientId && googleClientSecret
+    ? {
+        google: {
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+        },
+      }
+    : {};
 
 function buildTrustedOrigins() {
   const origins = new Set([appOrigin, apiOrigin]);
@@ -56,7 +69,8 @@ export const auth = betterAuth({
         }
       : {}),
   },
-  plugins: [bearer(), jwt()],
+  plugins: [bearer(), jwt(), telegramLoginWidget()],
+  socialProviders,
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
