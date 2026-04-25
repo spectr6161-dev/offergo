@@ -22,7 +22,7 @@ pnpm install
 If Docker is available:
 
 ```bash
-docker compose up -d postgres redis minio mailpit
+docker compose up -d postgres redis minio
 ```
 
 Default ports:
@@ -31,8 +31,6 @@ Default ports:
 - Redis: `6379`
 - MinIO API: `9000`
 - MinIO console: `9001`
-- Mailpit SMTP: `1025`
-- Mailpit UI: `8025`
 
 ## Prisma
 
@@ -44,6 +42,8 @@ pnpm db:seed
 
 The seed currently creates:
 
-- a default admin user
+- an admin user only when `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` are set
 - baseline plans
 - minimal question tags and demo questions
+
+Production deploy does not run seed automatically. Use `make seed` / `scripts/project.sh seed` explicitly.

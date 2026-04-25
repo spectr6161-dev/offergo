@@ -1,4 +1,4 @@
-.PHONY: setup dev build deploy restart logs clean clean-volumes ps health
+.PHONY: setup dev build seed deploy restart logs clean clean-volumes ps health
 
 setup:
 	sh scripts/project.sh setup
@@ -8,6 +8,9 @@ dev:
 
 build:
 	sh scripts/project.sh build
+
+seed:
+	sh scripts/project.sh seed
 
 deploy:
 	sh scripts/project.sh deploy

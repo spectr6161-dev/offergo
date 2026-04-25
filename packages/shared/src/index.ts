@@ -65,6 +65,7 @@ export const createPaymentLinkResponseSchema = z.object({
 });
 
 const envSchema = z.object({
+  APP_ENV: z.enum(["development", "test", "production"]).default("development"),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -90,15 +91,6 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
   TELEGRAM_BOT_TOKEN: z.string().optional().default(""),
   TELEGRAM_AUTH_MAX_AGE_SECONDS: z.coerce.number().default(86400),
-  SMTP_HOST: z.string().min(1).default("localhost"),
-  SMTP_PORT: z.coerce.number().default(1025),
-  SMTP_SECURE: z
-    .string()
-    .transform((value) => value === "true")
-    .default(false),
-  SMTP_USER: z.string().optional().default(""),
-  SMTP_PASS: z.string().optional().default(""),
-  SMTP_FROM: z.string().email().default("offergo-dev@example.com"),
   PLATEGA_BASE_URL: z.string().url().default("https://app.platega.io/"),
   PLATEGA_MERCHANT_ID: z.string().optional().default(""),
   PLATEGA_SECRET: z.string().optional().default(""),
@@ -120,14 +112,24 @@ const envSchema = z.object({
     .transform((value) => value === "true")
     .default(true),
   GEMINI_API_KEY: z.string().optional().default(""),
-  GEMINI_MODEL_TEXT: z.string().default("gemini-2.5-flash"),
+  GEMINI_MODEL_TEXT: z.string().default("gemini-3.1-pro-preview"),
+  SEED_ADMIN_EMAIL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().email().optional(),
+  ),
+  SEED_ADMIN_PASSWORD: z.string().optional().default(""),
+  RUN_DEMO_SEED: z
+    .string()
+    .transform((value) => value === "true")
+    .default(false),
   ENABLE_PLAYWRIGHT_AUTOMATION: z
     .string()
     .transform((value) => value === "true")
     .default(false),
 });
 
-export const env = envSchema.parse({
+const parsedEnv = envSchema.parse({
+  APP_ENV: process.env.APP_ENV,
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
   API_PORT: process.env.API_PORT,
@@ -143,12 +145,6 @@ export const env = envSchema.parse({
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   TELEGRAM_AUTH_MAX_AGE_SECONDS: process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS,
-  SMTP_HOST: process.env.SMTP_HOST,
-  SMTP_PORT: process.env.SMTP_PORT,
-  SMTP_SECURE: process.env.SMTP_SECURE,
-  SMTP_USER: process.env.SMTP_USER,
-  SMTP_PASS: process.env.SMTP_PASS,
-  SMTP_FROM: process.env.SMTP_FROM,
   PLATEGA_BASE_URL: process.env.PLATEGA_BASE_URL,
   PLATEGA_MERCHANT_ID: process.env.PLATEGA_MERCHANT_ID,
   PLATEGA_SECRET: process.env.PLATEGA_SECRET,
@@ -162,7 +158,87 @@ export const env = envSchema.parse({
   S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GEMINI_MODEL_TEXT: process.env.GEMINI_MODEL_TEXT,
+  SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL,
+  SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD,
+  RUN_DEMO_SEED: process.env.RUN_DEMO_SEED,
   ENABLE_PLAYWRIGHT_AUTOMATION: process.env.ENABLE_PLAYWRIGHT_AUTOMATION,
 });
+
+const developmentAuthSecrets = new Set([
+  "offergo-dev-secret-please-change",
+  "replace-with-a-long-random-string",
+]);
+
+function isDefaultDatabaseUrl(value: string) {
+  try {
+    const url = new URL(value);
+
+    return (
+      url.username === "offergo" &&
+      url.password === "offergo" &&
+      url.pathname.includes("offergo_app")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function hasValue(value: string | undefined) {
+  return Boolean(value?.trim());
+}
+
+function validateProductionEnv(config: typeof parsedEnv) {
+  if (
+    config.APP_ENV !== "production" ||
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.npm_lifecycle_event === "build"
+  ) {
+    return;
+  }
+
+  const errors: string[] = [];
+
+  if (
+    developmentAuthSecrets.has(config.BETTER_AUTH_SECRET) ||
+    config.BETTER_AUTH_SECRET.length < 32
+  ) {
+    errors.push(
+      "BETTER_AUTH_SECRET must be a non-default production secret with at least 32 characters.",
+    );
+  }
+
+  if (isDefaultDatabaseUrl(config.DATABASE_URL)) {
+    errors.push(
+      "DATABASE_URL must not use the default offergo/offergo development credentials in production.",
+    );
+  }
+
+  if (
+    !hasValue(config.PLATEGA_MERCHANT_ID) ||
+    !hasValue(config.PLATEGA_SECRET)
+  ) {
+    errors.push(
+      "PLATEGA_MERCHANT_ID and PLATEGA_SECRET are required in production.",
+    );
+  }
+
+  if (
+    hasValue(config.GOOGLE_CLIENT_ID) !== hasValue(config.GOOGLE_CLIENT_SECRET)
+  ) {
+    errors.push(
+      "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together.",
+    );
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `Invalid production environment configuration:\n- ${errors.join("\n- ")}`,
+    );
+  }
+}
+
+validateProductionEnv(parsedEnv);
+
+export const env = parsedEnv;
 
 export * from "./logger";

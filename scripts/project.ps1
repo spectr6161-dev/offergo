@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet("setup", "dev", "build", "deploy", "restart", "logs", "clean", "clean-volumes", "ps", "health")]
+  [ValidateSet("setup", "dev", "build", "seed", "deploy", "restart", "logs", "clean", "clean-volumes", "ps", "health")]
   [string] $Command = "setup"
 )
 
@@ -49,7 +49,7 @@ switch ($Command) {
   "setup" {
     Ensure-EnvFile
     Invoke-Compose @("build")
-    Invoke-Compose @("up", "-d", "postgres", "redis", "minio", "mailpit")
+    Invoke-Compose @("up", "-d", "postgres", "redis", "minio")
     Sync-Database
     Seed-Database
     Invoke-Compose @("up", "-d", "api", "web", "worker")
@@ -67,15 +67,18 @@ switch ($Command) {
   "build" {
     Invoke-Compose @("build")
   }
+  "seed" {
+    Ensure-EnvFile
+    Seed-Database
+  }
   "deploy" {
     if (Test-Path ".git") {
       Invoke-Step "git" @("pull", "--ff-only")
     }
 
     Invoke-Compose @("build")
-    Invoke-Compose @("up", "-d", "postgres", "redis", "minio", "mailpit")
+    Invoke-Compose @("up", "-d", "postgres", "redis", "minio")
     Sync-Database
-    Seed-Database
     Invoke-Compose @("up", "-d", "api", "web", "worker")
     Invoke-Compose @("ps")
   }

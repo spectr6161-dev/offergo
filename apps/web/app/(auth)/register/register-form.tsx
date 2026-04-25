@@ -6,7 +6,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { authClient } from "@offergo/auth/client";
-import { deriveNameFromLogin, loginToAuthEmail, normalizeLogin } from "@/lib/auth-login";
+import { getAuthClientErrorMessage } from "@/lib/auth-errors";
+import {
+  deriveNameFromLogin,
+  loginToAuthEmail,
+  normalizeLogin,
+} from "@/lib/auth-login";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TelegramLoginWidget } from "@/components/telegram-login-widget";
 import { Button } from "@/components/ui/button";
@@ -95,23 +100,34 @@ export function RegisterForm() {
 
     setIsSubmitting(true);
 
-    const { error } = await authClient.signUp.email({
-      name: deriveNameFromLogin(normalizedLogin),
-      email: loginToAuthEmail(normalizedLogin),
-      password,
-    });
+    try {
+      const { error } = await authClient.signUp.email({
+        name: deriveNameFromLogin(normalizedLogin),
+        email: loginToAuthEmail(normalizedLogin),
+        password,
+      });
 
-    if (error) {
+      if (error) {
+        setStatus({
+          tone: "destructive",
+          message: error.message ?? "Не удалось зарегистрироваться.",
+        });
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
       setStatus({
         tone: "destructive",
-        message: error.message ?? "Не удалось зарегистрироваться.",
+        message: getAuthClientErrorMessage(
+          error,
+          "Не удалось зарегистрироваться.",
+        ),
       });
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   async function handleGoogleClick() {
@@ -135,21 +151,33 @@ export function RegisterForm() {
 
     setIsSubmitting(true);
 
-    const { error } = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: new URL("/dashboard", window.location.origin).toString(),
-      errorCallbackURL: new URL(
-        "/login?error=google",
-        window.location.origin,
-      ).toString(),
-      requestSignUp: true,
-    });
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: new URL("/dashboard", window.location.origin).toString(),
+        errorCallbackURL: new URL(
+          "/login?error=google",
+          window.location.origin,
+        ).toString(),
+        requestSignUp: true,
+      });
 
-    if (error) {
+      if (error) {
+        setStatus({
+          tone: "destructive",
+          message:
+            error.message ?? "Не удалось перейти к регистрации через Google.",
+        });
+      }
+    } catch (error) {
       setStatus({
         tone: "destructive",
-        message: error.message ?? "Не удалось перейти к регистрации через Google.",
+        message: getAuthClientErrorMessage(
+          error,
+          "Не удалось перейти к регистрации через Google.",
+        ),
       });
+    } finally {
       setIsSubmitting(false);
     }
   }

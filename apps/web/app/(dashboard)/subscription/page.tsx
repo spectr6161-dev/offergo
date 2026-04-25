@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getApiErrorMessage } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type ApiPlan = {
@@ -164,9 +164,14 @@ async function getEntitlements() {
       "/api/v1/billing/entitlements",
     );
 
-    return response.items;
-  } catch {
-    return [];
+    return {
+      items: response.items,
+    };
+  } catch (error) {
+    return {
+      items: [],
+      error: getApiErrorMessage(error),
+    };
   }
 }
 
@@ -176,9 +181,14 @@ async function getPayments() {
       "/api/v1/billing/payments",
     );
 
-    return response.items;
-  } catch {
-    return [];
+    return {
+      items: response.items,
+    };
+  } catch (error) {
+    return {
+      items: [],
+      error: getApiErrorMessage(error),
+    };
   }
 }
 
@@ -293,10 +303,27 @@ function UsageItem({ metric }: { metric: UsageMetric }) {
 }
 
 export default async function SubscriptionPage() {
-  const [entitlements, payments] = await Promise.all([
+  const [entitlementsResult, paymentsResult] = await Promise.all([
     getEntitlements(),
     getPayments(),
   ]);
+  const errorMessage = entitlementsResult.error ?? paymentsResult.error;
+
+  if (errorMessage) {
+    return (
+      <main className="w-full p-4 md:p-6">
+        <div
+          className="w-full rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive"
+          role="alert"
+        >
+          Не удалось загрузить подписку: {errorMessage}
+        </div>
+      </main>
+    );
+  }
+
+  const entitlements = entitlementsResult.items;
+  const payments = paymentsResult.items;
   const activeEntitlement = getActiveEntitlement(entitlements);
   const paymentRows = getPaymentRows(payments);
   const confirmedPayments = paymentRows.filter(

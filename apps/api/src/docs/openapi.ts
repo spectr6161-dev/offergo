@@ -437,7 +437,6 @@ export function enhanceOpenApiDocument(document: OpenAPIObject) {
       summary: "Отправка письма подтверждения email",
       description:
         "Отправляет или повторно отправляет письмо подтверждения email для аккаунта.",
-      operationId: "BetterAuth_sendVerificationEmail",
       requestBody: {
         required: true,
         content: {

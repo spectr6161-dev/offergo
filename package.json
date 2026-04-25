@@ -17,6 +17,7 @@
     "docker:setup": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 setup",
     "docker:dev": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 dev",
     "docker:build": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 build",
+    "docker:seed": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 seed",
     "docker:deploy": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 deploy",
     "docker:restart": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 restart",
     "docker:logs": "powershell -ExecutionPolicy Bypass -File scripts/project.ps1 logs",

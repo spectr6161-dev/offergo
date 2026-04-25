@@ -10,7 +10,7 @@ import { prisma, Prisma, prismaClientModule } from "@offergo/db";
 import { env, type AppRole } from "@offergo/shared";
 
 const rootPath = "/adminjs";
-const adminRoles = new Set<AppRole>(["admin", "support"]);
+const adminRoles = new Set<AppRole>(["admin"]);
 const useSecureCookies = new URL(env.API_URL).protocol === "https:";
 const PgSessionStore = connectPgSimple(session);
 
@@ -45,6 +45,25 @@ const sensitivePropertiesByModel: Record<string, string[]> = {
   PasswordResetToken: ["token"],
 };
 
+const readOnlyModelNames = new Set([
+  "User",
+  "Session",
+  "Account",
+  "Verification",
+  "Jwks",
+  "PasswordResetToken",
+  "RoleAssignment",
+  "Payment",
+  "Entitlement",
+]);
+
+const readOnlyActions = {
+  new: { isAccessible: false },
+  edit: { isAccessible: false },
+  delete: { isAccessible: false },
+  bulkDelete: { isAccessible: false },
+};
+
 function buildHiddenProperties(modelName: string) {
   return Object.fromEntries(
     (sensitivePropertiesByModel[modelName] ?? []).map((propertyName) => [
@@ -68,6 +87,11 @@ function buildResourceOptions(modelName: string) {
       name: navigationByModel[modelName] ?? "Данные",
     },
     properties,
+    ...(readOnlyModelNames.has(modelName)
+      ? {
+          actions: readOnlyActions,
+        }
+      : {}),
   };
 
   if (modelName !== "Plan") {
@@ -200,7 +224,7 @@ export async function mountDataAdmin(app: INestApplication) {
           loginWelcome: "Управление данными offerGO",
         },
         messages: {
-          loginWelcome: "Войдите под пользователем с ролью admin или support.",
+          loginWelcome: "Войдите под пользователем с ролью admin.",
         },
       },
     },

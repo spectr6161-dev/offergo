@@ -32,7 +32,7 @@ case "$command_name" in
   setup)
     ensure_env_file
     compose build
-    compose up -d postgres redis minio mailpit
+    compose up -d postgres redis minio
     sync_database
     seed_database
     compose up -d api web worker
@@ -50,15 +50,18 @@ case "$command_name" in
   build)
     compose build
     ;;
+  seed)
+    ensure_env_file
+    seed_database
+    ;;
   deploy)
     if [ -d .git ]; then
       echo "> git pull --ff-only"
       git pull --ff-only
     fi
     compose build
-    compose up -d postgres redis minio mailpit
+    compose up -d postgres redis minio
     sync_database
-    seed_database
     compose up -d api web worker
     compose ps
     ;;
@@ -87,7 +90,7 @@ case "$command_name" in
     ;;
   *)
     echo "Unknown command: $command_name" >&2
-    echo "Usage: scripts/project.sh setup|dev|build|deploy|restart|logs|ps|health|clean|clean-volumes" >&2
+    echo "Usage: scripts/project.sh setup|dev|build|seed|deploy|restart|logs|ps|health|clean|clean-volumes" >&2
     exit 1
     ;;
 esac

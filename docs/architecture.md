@@ -6,7 +6,7 @@
 - `apps/api` - NestJS + Express API for auth, billing, RBAC, and external clients
 - `apps/worker` - BullMQ worker runtime with Playwright-ready queue scaffold
 - `packages/db` - Prisma schema, generated client, migrations, seed
-- `packages/auth` - Better Auth core config, shared session helpers, Next-facing guards, SMTP transport, client helpers
+- `packages/auth` - Better Auth core config, shared session helpers, Next-facing guards, client helpers
 - `packages/ui` - shared lightweight UI primitives, shells, tables, and toast provider
 - `packages/ai` - Gemini-first adapter and use-case entrypoints
 - `packages/billing` - Platega adapter and entitlement orchestration

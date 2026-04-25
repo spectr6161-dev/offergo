@@ -14,9 +14,9 @@ Implemented auth routes:
 
 - `/login`
 - `/register`
-- `/forgot-password`
-- `/reset-password`
-- `/verify-email`
+- `/forgot-password` - placeholder, email delivery is not enabled in the base
+- `/reset-password` - placeholder, email delivery is not enabled in the base
+- `/verify-email` - placeholder, email delivery is not enabled in the base
 
 Mounted auth handler:
 
@@ -28,7 +28,7 @@ Supported auth modes:
 - bearer token for mobile, bot, and non-browser clients
 - JWT/JWKS for downstream service verification
 - optional cross-subdomain session cookies via `AUTH_COOKIE_DOMAIN`
-- email verification is supported but not required for sign-up/sign-in
+- email verification and password reset email delivery are intentionally not enabled in the base
 
 ## Roles
 

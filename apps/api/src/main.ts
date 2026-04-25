@@ -11,6 +11,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "@offergo/auth/core";
 import { createServerLogger, env } from "@offergo/shared";
 import { AppModule } from "./app.module";
+import { ApiExceptionFilter } from "./api-exception.filter";
 import { mountDataAdmin } from "./data-admin";
 import { enhanceOpenApiDocument } from "./docs/openapi";
 
@@ -82,6 +83,7 @@ async function bootstrap() {
   });
 
   const dataAdminPath = await mountDataAdmin(app);
+  app.useGlobalFilters(new ApiExceptionFilter(serverLogger));
   app.use("/api/auth", toNodeHandler(auth));
   app.use(json({ limit: "10mb" }));
   app.use(urlencoded({ extended: true }));

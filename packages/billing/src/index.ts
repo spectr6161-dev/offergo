@@ -8,6 +8,7 @@ import {
 } from "@offergo/shared";
 
 const checkoutTimeoutMs = 15 * 60 * 1000;
+const providerTimeoutMs = 10 * 1000;
 
 function mapProviderStatus(
   status: "PENDING" | "CONFIRMED" | "CANCELED" | "CHARGEBACK" | "CHARGEBACKED",
@@ -63,13 +64,33 @@ function getPaymentUrl(
   return paymentUrl;
 }
 
+async function fetchWithTimeout(input: URL, init: RequestInit = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), providerTimeoutMs);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Platega request timeout after ${providerTimeoutMs}ms`);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function requestPaymentLink(
   userId: string,
   planId: string,
   paymentId: string,
-  plan: { name: string; priceRub: number },
+  plan: { name: string; priceRub: number; durationDays: number },
 ) {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     new URL("v2/transaction/process", env.PLATEGA_BASE_URL),
     {
       method: "POST",
@@ -124,9 +145,16 @@ export async function createPaymentLink(userId: string, planId: string) {
     await acquireTransactionLock(tx, checkoutLockKey);
     const now = new Date();
 
-    const plan = await tx.plan.findUniqueOrThrow({
-      where: { id: planId },
+    const plan = await tx.plan.findFirstOrThrow({
+      where: {
+        id: planId,
+        active: true,
+      },
     });
+
+    if (plan.priceRub <= 0 || plan.durationDays <= 0) {
+      throw new Error("Invalid billing plan configuration");
+    }
 
     await tx.payment.updateMany({
       where: {
@@ -237,7 +265,7 @@ export async function createPaymentLink(userId: string, planId: string) {
 }
 
 export async function getTransactionStatus(transactionId: string) {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     new URL(`transaction/${transactionId}`, env.PLATEGA_BASE_URL),
     {
       headers: {
@@ -300,6 +328,77 @@ export async function handlePaymentConfirmed(transactionId: string) {
       where: { providerTransactionId: transactionId },
       include: { plan: true },
     });
+
+    if (payment.status === "chargebacked") {
+      return payment;
+    }
+
+    const updated =
+      payment.status === "confirmed"
+        ? payment
+        : await tx.payment.update({
+            where: { id: payment.id },
+            data: {
+              status: "confirmed",
+              confirmedAt: new Date(),
+            },
+          });
+
+    const { startsAt, endsAt } = buildEntitlementWindow(
+      payment.plan.durationDays,
+    );
+
+    await tx.entitlement.upsert({
+      where: {
+        sourcePaymentId: payment.id,
+      },
+      update: {},
+      create: {
+        userId: payment.userId,
+        planId: payment.planId,
+        startsAt,
+        endsAt,
+        sourcePaymentId: payment.id,
+      },
+    });
+
+    return updated;
+  });
+}
+
+function verifyPaymentAmountAndCurrency(
+  payment: { amountRub: number; currency: string },
+  expected?: { amount: number; currency: string },
+) {
+  if (!expected) {
+    return;
+  }
+
+  const expectedAmount = Math.round(expected.amount);
+
+  if (
+    payment.amountRub !== expectedAmount ||
+    payment.currency.toUpperCase() !== expected.currency.toUpperCase()
+  ) {
+    throw new Error(
+      `Platega webhook amount mismatch: expected ${payment.amountRub} ${payment.currency}, received ${expected.amount} ${expected.currency}`,
+    );
+  }
+}
+
+export async function handlePaymentConfirmedWithProviderPayload(
+  transactionId: string,
+  expected?: { amount: number; currency: string },
+) {
+  return prisma.$transaction(async (tx) => {
+    await acquireTransactionLock(tx, `billing:webhook:${transactionId}`);
+
+    const payment = await tx.payment.findUniqueOrThrow({
+      where: { providerTransactionId: transactionId },
+      include: { plan: true },
+    });
+
+    verifyPaymentAmountAndCurrency(payment, expected);
 
     if (payment.status === "chargebacked") {
       return payment;
@@ -401,6 +500,7 @@ export async function expirePayment(paymentId: string) {
 }
 
 export async function getUserPaymentStatus(userId: string, paymentId: string) {
+  let providerSyncError: string | undefined;
   let payment = await prisma.payment.findFirstOrThrow({
     where: {
       id: paymentId,
@@ -412,15 +512,24 @@ export async function getUserPaymentStatus(userId: string, paymentId: string) {
   });
 
   if (payment.status !== "pending") {
-    return payment;
+    return {
+      payment,
+      providerSyncError,
+    };
   }
 
   if (payment.expiresAt && payment.expiresAt.getTime() <= Date.now()) {
-    return expirePayment(payment.id);
+    return {
+      payment: await expirePayment(payment.id),
+      providerSyncError,
+    };
   }
 
   if (!payment.providerTransactionId) {
-    return payment;
+    return {
+      payment,
+      providerSyncError,
+    };
   }
 
   try {
@@ -452,17 +561,29 @@ export async function getUserPaymentStatus(userId: string, paymentId: string) {
         },
       });
     }
-  } catch {
-    return payment;
+  } catch (error) {
+    providerSyncError =
+      error instanceof Error ? error.message : "Failed to sync provider status";
+
+    return {
+      payment,
+      providerSyncError,
+    };
   }
 
   if (payment.status === "pending" && payment.expiresAt) {
     if (payment.expiresAt.getTime() <= Date.now()) {
-      return expirePayment(payment.id);
+      return {
+        payment: await expirePayment(payment.id),
+        providerSyncError,
+      };
     }
   }
 
-  return payment;
+  return {
+    payment,
+    providerSyncError,
+  };
 }
 
 export async function expireEntitlements() {
@@ -547,7 +668,10 @@ export async function handleProviderWebhook(
 
   switch (mapProviderStatus(callback.status)) {
     case "confirmed":
-      await handlePaymentConfirmed(callback.id);
+      await handlePaymentConfirmedWithProviderPayload(callback.id, {
+        amount: callback.amount,
+        currency: callback.currency,
+      });
       break;
     case "canceled":
       await handlePaymentCanceled(callback.id);

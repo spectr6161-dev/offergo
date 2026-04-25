@@ -20,6 +20,7 @@
     "@offergo/auth": "workspace:*",
     "@offergo/billing": "workspace:*",
     "@offergo/db": "workspace:*",
+    "@offergo/queue": "workspace:*",
     "@offergo/shared": "workspace:*",
     "@prisma/client": "^6.19.3",
     "adminjs": "^7.8.17",

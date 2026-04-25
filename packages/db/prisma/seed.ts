@@ -1,8 +1,26 @@
 import { prisma } from "../src/client";
 import { auth } from "@offergo/auth/core";
+import { env } from "@offergo/shared";
 
 async function ensureAdmin() {
-  const adminEmail = "admin@offergo.local";
+  const adminEmail = env.SEED_ADMIN_EMAIL;
+  const adminPassword = env.SEED_ADMIN_PASSWORD;
+
+  if (!adminEmail && !adminPassword) {
+    console.info("SEED_ADMIN_EMAIL/PASSWORD are not set. Admin seed skipped.");
+    return;
+  }
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      "SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD must be provided together.",
+    );
+  }
+
+  if (adminPassword.length < 12) {
+    throw new Error("SEED_ADMIN_PASSWORD must contain at least 12 characters.");
+  }
+
   const existing = await prisma.user.findUnique({
     where: { email: adminEmail },
   });
@@ -12,7 +30,7 @@ async function ensureAdmin() {
       body: {
         name: "Offergo Admin",
         email: adminEmail,
-        password: "Admin12345!",
+        password: adminPassword,
       },
     });
 
@@ -134,8 +152,13 @@ async function ensureQuestions() {
 }
 
 async function main() {
-  await ensurePlans();
-  await ensureQuestions();
+  if (env.RUN_DEMO_SEED || env.NODE_ENV !== "production") {
+    await ensurePlans();
+    await ensureQuestions();
+  } else {
+    console.info("RUN_DEMO_SEED is not enabled. Demo seed skipped.");
+  }
+
   await ensureAdmin();
 }
 

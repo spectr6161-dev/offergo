@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   CircleHelpIcon,
+  BotIcon,
   CommandIcon,
   CreditCardIcon,
   DumbbellIcon,
@@ -94,6 +95,17 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & {
   user: WebAppUser;
 }) {
+  const navSecondary = user.roles.includes("admin")
+    ? [
+        {
+          title: "AI-песочница",
+          url: "/admin/ai-playground",
+          icon: <BotIcon />,
+        },
+        ...data.navSecondary,
+      ]
+    : data.navSecondary;
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -114,7 +126,7 @@ export function AppSidebar({
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavDocuments items={data.documents} />
-        <NavSecondary className="mt-auto" items={data.navSecondary} />
+        <NavSecondary className="mt-auto" items={navSecondary} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={{ name: user.name, email: user.email }} />

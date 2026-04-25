@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   HttpCode,
-  NotFoundException,
   Param,
   Post,
   Req,
@@ -106,8 +105,7 @@ export class BillingController {
     type: PaymentsResponseDto,
   })
   @ApiUnauthorizedResponse({
-    description:
-      "Отсутствуют или невалидны session/bearer credentials.",
+    description: "Отсутствуют или невалидны session/bearer credentials.",
   })
   async getPayments(@CurrentUser() user: { id: string }) {
     const payments = await listUserPayments(user.id);
@@ -181,19 +179,17 @@ export class BillingController {
   ) {
     const paymentId = paymentIdSchema.parse(paymentIdParam);
 
-    try {
-      const payment = await getUserPaymentStatus(user.id, paymentId);
+    const result = await getUserPaymentStatus(user.id, paymentId);
+    const { payment, providerSyncError } = result;
 
-      return {
-        status: payment.status,
-        payment,
-        plan: payment.plan,
-        paymentUrl: payment.paymentUrl,
-        expiresAt: payment.expiresAt,
-      };
-    } catch {
-      throw new NotFoundException("Payment not found");
-    }
+    return {
+      status: payment.status,
+      payment,
+      plan: payment.plan,
+      paymentUrl: payment.paymentUrl,
+      expiresAt: payment.expiresAt,
+      providerSyncError,
+    };
   }
 
   @Post("platega")

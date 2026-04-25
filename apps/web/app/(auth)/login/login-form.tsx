@@ -5,11 +5,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { authClient } from "@offergo/auth/client";
+import { getAuthClientErrorMessage } from "@/lib/auth-errors";
 import { loginToAuthEmail, normalizeLogin } from "@/lib/auth-login";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TelegramLoginWidget } from "@/components/telegram-login-widget";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
@@ -62,42 +68,61 @@ export function LoginForm() {
 
     setIsSubmitting(true);
 
-    const { error } = await authClient.signIn.email({
-      email: loginToAuthEmail(normalizedLogin),
-      password,
-    });
+    try {
+      const { error } = await authClient.signIn.email({
+        email: loginToAuthEmail(normalizedLogin),
+        password,
+      });
 
-    if (error) {
+      if (error) {
+        setStatus({
+          tone: "destructive",
+          message: error.message ?? "Не удалось войти.",
+        });
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error) {
       setStatus({
         tone: "destructive",
-        message: error.message ?? "Не удалось войти.",
+        message: getAuthClientErrorMessage(error, "Не удалось войти."),
       });
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   async function handleGoogleClick() {
     setStatus(undefined);
     setIsSubmitting(true);
 
-    const { error } = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: new URL("/dashboard", window.location.origin).toString(),
-      errorCallbackURL: new URL(
-        "/login?error=google",
-        window.location.origin,
-      ).toString(),
-    });
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: new URL("/dashboard", window.location.origin).toString(),
+        errorCallbackURL: new URL(
+          "/login?error=google",
+          window.location.origin,
+        ).toString(),
+      });
 
-    if (error) {
+      if (error) {
+        setStatus({
+          tone: "destructive",
+          message: error.message ?? "Не удалось перейти ко входу через Google.",
+        });
+      }
+    } catch (error) {
       setStatus({
         tone: "destructive",
-        message: error.message ?? "Не удалось перейти ко входу через Google.",
+        message: getAuthClientErrorMessage(
+          error,
+          "Не удалось перейти ко входу через Google.",
+        ),
       });
+    } finally {
       setIsSubmitting(false);
     }
   }

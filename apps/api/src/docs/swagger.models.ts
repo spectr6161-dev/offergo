@@ -187,6 +187,9 @@ export class PaymentStatusResponseDto {
 
   @ApiPropertyOptional({ type: String, format: "date-time", nullable: true })
   expiresAt!: string | null;
+
+  @ApiPropertyOptional({ type: String, nullable: true })
+  providerSyncError?: string | null;
 }
 
 export class PlategaWebhookBodyDto {
@@ -221,6 +224,25 @@ export class PlategaWebhookResponseDto {
   status!: string;
 }
 
+export class HealthDependencyCheckDto {
+  @ApiProperty({ type: Boolean })
+  ok!: boolean;
+
+  @ApiPropertyOptional({ type: String })
+  error?: string;
+}
+
+export class HealthChecksDto {
+  @ApiProperty({ type: () => HealthDependencyCheckDto })
+  db!: HealthDependencyCheckDto;
+
+  @ApiProperty({ type: () => HealthDependencyCheckDto })
+  redis!: HealthDependencyCheckDto;
+
+  @ApiProperty({ type: String, format: "date-time" })
+  timestamp!: string;
+}
+
 export class HealthResponseDto {
   @ApiProperty({ type: Boolean })
   ok!: boolean;
@@ -239,6 +261,9 @@ export class HealthResponseDto {
 
   @ApiProperty({ type: String, example: "http://localhost:3001" })
   apiUrl!: string;
+
+  @ApiProperty({ type: () => HealthChecksDto })
+  checks!: HealthChecksDto;
 }
 
 export class StorageUploadResponseDto {

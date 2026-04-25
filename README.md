@@ -29,36 +29,36 @@
 
 ## Что Уже Есть
 
-| Блок | Что внутри |
-| --- | --- |
-| Web client | `Next.js 16`, App Router, TypeScript, Tailwind, shadcn/ui, страницы auth-flow |
-| API backend | `NestJS + Express`, REST API, Swagger/OpenAPI, единая точка для web/mobile/bot |
-| Auth | Better Auth, cookie/session для web, bearer/JWT для non-web клиентов |
-| RBAC | Глобальные роли `user`, `admin`, `support`, guard/policy слой в API |
-| AdminJS | Data admin на `/adminjs`, все Prisma models подключаются автоматически |
-| Billing | Platega payment links, webhook, entitlements foundation |
-| Database | PostgreSQL + pgvector, Prisma schema/client/seed |
-| Queue | Redis + BullMQ worker runtime |
-| Storage | MinIO/S3-compatible integration shape |
-| AI | Gemini-first adapter и слой под AI use-cases |
-| Docker | Production-like compose, dev compose, build cache, healthchecks, restart policy |
-| Logs | Единый server log в Docker volume `server-logs` |
+| Блок        | Что внутри                                                                      |
+| ----------- | ------------------------------------------------------------------------------- |
+| Web client  | `Next.js 16`, App Router, TypeScript, Tailwind, shadcn/ui, страницы auth-flow   |
+| API backend | `NestJS + Express`, REST API, Swagger/OpenAPI, единая точка для web/mobile/bot  |
+| Auth        | Better Auth, cookie/session для web, bearer/JWT для non-web клиентов            |
+| RBAC        | Глобальные роли `user`, `admin`, `support`, guard/policy слой в API             |
+| AdminJS     | Data admin на `/adminjs`, все Prisma models подключаются автоматически          |
+| Billing     | Platega payment links, webhook, entitlements foundation                         |
+| Database    | PostgreSQL + pgvector, Prisma schema/client/seed                                |
+| Queue       | Redis + BullMQ worker runtime                                                   |
+| Storage     | MinIO/S3-compatible integration shape                                           |
+| AI          | Gemini-first adapter и слой под AI use-cases                                    |
+| Docker      | Production-like compose, dev compose, build cache, healthchecks, restart policy |
+| Logs        | Единый server log в Docker volume `server-logs`                                 |
 
 <a id="stack"></a>
 
 ## Стек
 
-| Layer | Technology |
-| --- | --- |
-| Frontend | Next.js, React, TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | NestJS, Express, Better Auth, Zod |
-| Data | PostgreSQL, pgvector, Prisma |
-| Admin | AdminJS + Prisma adapter |
-| Background jobs | Redis, BullMQ |
-| Storage | MinIO locally, S3-compatible provider in production |
-| Payments | Platega |
-| Tooling | pnpm, Turbo, ESLint, Prettier |
-| Runtime | Docker, Docker Compose |
+| Layer           | Technology                                          |
+| --------------- | --------------------------------------------------- |
+| Frontend        | Next.js, React, TypeScript, Tailwind CSS, shadcn/ui |
+| Backend         | NestJS, Express, Better Auth, Zod                   |
+| Data            | PostgreSQL, pgvector, Prisma                        |
+| Admin           | AdminJS + Prisma adapter                            |
+| Background jobs | Redis, BullMQ                                       |
+| Storage         | MinIO locally, S3-compatible provider in production |
+| Payments        | Platega                                             |
+| Tooling         | pnpm, Turbo, ESLint, Prettier                       |
+| Runtime         | Docker, Docker Compose                              |
 
 ## Архитектура
 
@@ -111,7 +111,7 @@ apps/
   worker/     BullMQ workers and automation runtime
 
 packages/
-  auth/       Better Auth core, session helpers, guards, SMTP transport
+  auth/       Better Auth core, session helpers, guards
   db/         Prisma schema, generated client, seed
   billing/    Platega adapter and entitlement logic
   queue/      Queue names, payload schemas, worker contracts
@@ -156,29 +156,26 @@ powershell -ExecutionPolicy Bypass -File scripts/project.ps1 setup
 
 - создаст `.env` из `.env.example`, если файла нет;
 - соберёт Docker images;
-- поднимет Postgres, Redis, MinIO, Mailpit;
+- поднимет Postgres, Redis, MinIO;
 - выполнит Prisma sync через Docker job;
 - выполнит seed через Docker job;
 - запустит `api`, `web`, `worker`.
 
 ## URL После Запуска
 
-| Сервис | URL |
-| --- | --- |
-| Web | `http://localhost:3000` |
-| API health | `http://localhost:3001/api/v1/health` |
-| Swagger UI | `http://localhost:3001/api/docs` |
-| OpenAPI JSON | `http://localhost:3001/api/docs-json` |
-| AdminJS | `http://localhost:3001/adminjs` |
-| Mailpit | `http://localhost:8025` |
-| MinIO console | `http://localhost:9001` |
+| Сервис              | URL                                         |
+| ------------------- | ------------------------------------------- |
+| Web                 | `http://localhost:3000`                     |
+| API health          | `http://localhost:3001/api/v1/health`       |
+| Swagger UI          | `http://localhost:3001/api/docs`            |
+| OpenAPI JSON        | `http://localhost:3001/api/docs-json`       |
+| AdminJS             | `http://localhost:3001/adminjs`             |
+| Admin AI Playground | `http://localhost:3000/admin/ai-playground` |
+| MinIO console       | `http://localhost:9001`                     |
 
-Seed-администратор:
+Seed-администратор не создаётся автоматически. Для первого admin-пользователя задайте `SEED_ADMIN_EMAIL` и `SEED_ADMIN_PASSWORD`, затем выполните `make seed`.
 
-```text
-admin@offergo.local
-Admin12345!
-```
+Для production укажите `APP_ENV=production`; локальный Docker по умолчанию использует `APP_ENV=development`.
 
 ## Основные Команды
 
@@ -186,7 +183,8 @@ Admin12345!
 make setup       # первый запуск с нуля
 make dev         # локальная разработка полностью в Docker
 make build       # собрать Docker images
-make deploy      # git pull + build + db-sync + seed + restart
+make seed        # seed demo-данных и опционального admin из SEED_ADMIN_*
+make deploy      # git pull + build + db-sync + restart
 make restart     # перезапустить app-сервисы
 make logs        # смотреть логи compose
 make health      # проверить состояние контейнеров и API
@@ -236,9 +234,8 @@ make deploy
 2. `docker compose build`
 3. старт infra-контейнеров
 4. `db-sync`
-5. `db-seed`
-6. restart `api`, `web`, `worker`
-7. `docker compose ps`
+5. restart `api`, `web`, `worker`
+6. `docker compose ps`
 
 На сервере не нужен локальный Node.js/pnpm. Все команды выполняются внутри Docker.
 
@@ -252,7 +249,7 @@ make deploy
 - bearer/JWT flow для mobile, bot и API clients;
 - global roles: `user`, `admin`, `support`;
 - guards в API для protected/admin endpoints;
-- seed admin для первого входа.
+- seed admin только через явные `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
 
 ## AdminJS
 
@@ -265,7 +262,7 @@ http://localhost:3001/adminjs
 Особенности:
 
 - авторизация через текущую user/account систему;
-- доступ только для `admin` и `support`;
+- доступ только для `admin`;
 - все Prisma models регистрируются автоматически из Prisma DMMF;
 - чувствительные поля вроде tokens/password/privateKey скрыты;
 - сессии AdminJS хранятся в Postgres-таблице `adminjs_session`.
@@ -301,19 +298,18 @@ API является главным backend-контуром для web/mobile/b
 
 ## Docker Services
 
-| Service | Назначение |
-| --- | --- |
-| `postgres` | PostgreSQL + pgvector |
-| `redis` | Redis для очередей |
-| `minio` | S3-compatible storage |
-| `mailpit` | SMTP/UI для локальной почты |
-| `api` | NestJS API + Swagger + AdminJS |
-| `web` | Next.js frontend |
-| `worker` | BullMQ worker runtime |
-| `db-sync` | one-off job для Prisma db push |
-| `db-seed` | one-off job для seed |
+| Service    | Назначение                     |
+| ---------- | ------------------------------ |
+| `postgres` | PostgreSQL + pgvector          |
+| `redis`    | Redis для очередей             |
+| `minio`    | S3-compatible storage          |
+| `api`      | NestJS API + Swagger + AdminJS |
+| `web`      | Next.js frontend               |
+| `worker`   | BullMQ worker runtime          |
+| `db-sync`  | one-off job для Prisma db push |
+| `db-seed`  | one-off job для seed           |
 
-Infra-порты привязаны к `127.0.0.1`, чтобы Postgres/Redis/MinIO/Mailpit не открывались наружу на сервере. Публичными остаются `web` и `api`.
+Infra-порты привязаны к `127.0.0.1`, чтобы Postgres/Redis/MinIO не открывались наружу на сервере. Публичными остаются `web` и `api`.
 
 ## Логи
 

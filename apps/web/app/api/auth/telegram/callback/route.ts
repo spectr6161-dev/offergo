@@ -13,6 +13,7 @@ const HOP_BY_HOP_HEADERS = new Set([
   "transfer-encoding",
   "upgrade",
 ]);
+const telegramProxyTimeoutMs = 10 * 1000;
 
 function getApiBaseUrl() {
   return process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? env.API_URL;
@@ -43,12 +44,29 @@ function copyResponseHeaders(headers: Headers) {
 }
 
 export async function GET(request: NextRequest) {
-  const response = await fetch(buildApiCallbackUrl(request), {
-    method: "GET",
-    headers: copyProxyHeaders(request.headers),
-    redirect: "manual",
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), telegramProxyTimeoutMs);
+
+  let response: Response;
+
+  try {
+    response = await fetch(buildApiCallbackUrl(request), {
+      method: "GET",
+      headers: copyProxyHeaders(request.headers),
+      redirect: "manual",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? "Telegram auth proxy timeout"
+        : "Telegram auth proxy failed";
+
+    return Response.json({ error: { message } }, { status: 502 });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   return new Response(response.body, {
     status: response.status,

@@ -7,11 +7,13 @@ export const queues = {
   "resume.analysis": z.object({
     resumeId: z.string().cuid(),
     userId: z.string().cuid(),
+    text: z.string().min(1),
   }),
   "resume.rewrite": z.object({
     resumeId: z.string().cuid(),
     versionId: z.string().cuid(),
     userId: z.string().cuid(),
+    text: z.string().min(1),
   }),
   "trainer.followup": z.object({
     trainerSessionId: z.string().cuid(),
@@ -39,16 +41,31 @@ export const queues = {
 
 export type QueueJobName = keyof typeof queues;
 
+let redisConnection: IORedis | undefined;
+const queueInstances = new Map<QueueJobName, Queue>();
+
 export function getQueueConnection() {
-  return new IORedis(env.REDIS_URL, {
+  redisConnection ??= new IORedis(env.REDIS_URL, {
+    connectTimeout: 5_000,
     maxRetriesPerRequest: null,
   });
+
+  return redisConnection;
 }
 
 export function getQueue(name: QueueJobName) {
-  return new Queue(name, {
+  const existing = queueInstances.get(name);
+
+  if (existing) {
+    return existing;
+  }
+
+  const queue = new Queue(name, {
     connection: getQueueConnection(),
   });
+
+  queueInstances.set(name, queue);
+  return queue;
 }
 
 export async function enqueueJob<TName extends QueueJobName>(
@@ -67,4 +84,14 @@ export async function enqueueJob<TName extends QueueJobName>(
     removeOnComplete: 100,
     removeOnFail: 100,
   });
+}
+
+export async function closeQueueResources() {
+  await Promise.all([...queueInstances.values()].map((queue) => queue.close()));
+  queueInstances.clear();
+
+  if (redisConnection) {
+    await redisConnection.quit();
+    redisConnection = undefined;
+  }
 }
