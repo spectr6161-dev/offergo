@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet("setup", "dev", "build", "seed", "deploy", "restart", "logs", "clean", "clean-volumes", "ps", "health")]
+  [ValidateSet("setup", "dev", "build", "seed", "deploy", "restart", "prod-restart", "logs", "clean", "clean-volumes", "ps", "health")]
   [string] $Command = "setup"
 )
 
@@ -83,7 +83,15 @@ switch ($Command) {
     Invoke-Compose @("ps")
   }
   "restart" {
-    Invoke-Compose @("up", "-d", "api", "web", "worker")
+    Ensure-EnvFile
+    Invoke-DevCompose @("build", "api", "web", "worker")
+    Invoke-DevCompose @("run", "--rm", "api", "pnpm", "install", "--frozen-lockfile", "--prefer-offline")
+    Invoke-DevCompose @("run", "--rm", "api", "pnpm", "--filter", "@offergo/db", "db:generate")
+    Invoke-DevCompose @("up", "-d", "api", "web", "worker")
+    Invoke-DevCompose @("ps")
+  }
+  "prod-restart" {
+    Invoke-Compose @("up", "-d", "--build", "api", "web", "worker")
     Invoke-Compose @("ps")
   }
   "logs" {

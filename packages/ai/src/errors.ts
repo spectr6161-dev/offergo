@@ -109,9 +109,15 @@ function isRetryable(status: number | undefined, code: string) {
 function redactSensitiveText(value: string) {
   return value
     .replace(/AIza[0-9A-Za-z_-]{20,}/g, "[REDACTED_GEMINI_API_KEY]")
+    .replace(/AQVN[0-9A-Za-z_-]{20,}/g, "[REDACTED_YANDEX_API_KEY]")
+    .replace(/t1\.[0-9A-Za-z_-]{20,}/g, "[REDACTED_YANDEX_IAM_TOKEN]")
     .replace(
       /x-goog-api-key['":=\s]+[0-9A-Za-z_-]+/gi,
       "x-goog-api-key [REDACTED]",
+    )
+    .replace(
+      /Authorization['":=\s]+(Api-Key|Bearer)\s+[0-9A-Za-z_.-]+/gi,
+      "Authorization [REDACTED]",
     )
     .slice(0, 2_000);
 }

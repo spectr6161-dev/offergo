@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { Button } from "@/components/ui/button";
 import { RegisterForm } from "./register-form";
 
@@ -6,15 +7,7 @@ export default function RegisterPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
       <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-7 py-4 sm:px-8 sm:py-5">
-        <Link href="/" aria-label="offerGO" className="inline-flex">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 20 18"
-            className="h-[1.15rem] w-[1.15rem] fill-white"
-          >
-            <path d="M10 0 20 18H0z" />
-          </svg>
-        </Link>
+        <BrandWordmark href="/" size="sm" />
 
         <Button
           asChild

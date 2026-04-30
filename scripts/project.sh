@@ -66,7 +66,7 @@ case "$command_name" in
     compose ps
     ;;
   restart)
-    compose up -d api web worker
+    compose up -d --build api web worker
     compose ps
     ;;
   logs)

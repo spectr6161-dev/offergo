@@ -6,7 +6,12 @@ type MeResponse = {
     id: string;
     name: string;
     email: string;
+    image?: string | null;
     roles: string[];
+    accounts?: Array<{
+      providerId: string;
+      accountId: string;
+    }>;
   };
 };
 
@@ -49,7 +54,7 @@ export async function requireAdminUser() {
     }
 
     if (status === 403) {
-      redirect("/dashboard");
+      redirect("/resumes");
     }
 
     throw error;

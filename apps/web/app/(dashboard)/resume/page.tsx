@@ -1,5 +1,5 @@
-import { UiResetPage } from "@/components/ui-reset-page";
+import { ResumeWorkflowRunner } from "@/components/resume-studio/resume-workflow-runner"
 
 export default function ResumePage() {
-  return <UiResetPage title="Resume screen removed" />;
+  return <ResumeWorkflowRunner />
 }

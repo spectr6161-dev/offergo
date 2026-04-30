@@ -6,6 +6,11 @@ import { StorageController } from "./storage.controller";
 import { AdminController } from "./admin/admin.controller";
 import { ApiAuthGuard } from "./auth/auth.guard";
 import { RolesGuard } from "./auth/roles.guard";
+import { ResumeAnalysisController } from "./workflows/resume-analysis.controller";
+import { ResumesController } from "./resumes/resumes.controller";
+import { EmployersController } from "./employers/employers.controller";
+import { WorkflowController } from "./workflows/workflow.controller";
+import { WorkflowService } from "./workflows/workflow.service";
 
 @Module({
   controllers: [
@@ -14,7 +19,11 @@ import { RolesGuard } from "./auth/roles.guard";
     HealthController,
     StorageController,
     AdminController,
+    EmployersController,
+    ResumeAnalysisController,
+    ResumesController,
+    WorkflowController,
   ],
-  providers: [ApiAuthGuard, RolesGuard],
+  providers: [ApiAuthGuard, RolesGuard, WorkflowService],
 })
 export class AppModule {}

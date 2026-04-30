@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { OffergoProviders, ToastProvider } from "@offergo/ui";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -20,15 +21,22 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <OffergoProviders>
-      <ToastProvider>
-        <TooltipProvider>
-          <QueryClientProvider client={queryClient}>
-            {children}
-            <Toaster richColors />
-          </QueryClientProvider>
-        </TooltipProvider>
-      </ToastProvider>
-    </OffergoProviders>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      disableTransitionOnChange
+      enableSystem
+    >
+      <OffergoProviders>
+        <ToastProvider>
+          <TooltipProvider>
+            <QueryClientProvider client={queryClient}>
+              {children}
+              <Toaster richColors />
+            </QueryClientProvider>
+          </TooltipProvider>
+        </ToastProvider>
+      </OffergoProviders>
+    </ThemeProvider>
   );
 }

@@ -16,6 +16,8 @@ import {
   AdminPingResponseDto,
   AuthMeResponseDto,
 } from "../docs/swagger.models";
+import { prisma } from "@offergo/db";
+import type { AuthenticatedAppUser } from "@offergo/auth/session";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -35,9 +37,31 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: "Отсутствуют или невалидны session/bearer credentials.",
   })
-  getCurrentUser(@CurrentUser() user: unknown) {
+  async getCurrentUser(@CurrentUser() user: AuthenticatedAppUser) {
+    const profile = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        image: true,
+        accounts: {
+          orderBy: {
+            createdAt: "asc",
+          },
+          select: {
+            providerId: true,
+            accountId: true,
+          },
+        },
+      },
+    });
+
     return {
-      user,
+      user: {
+        ...user,
+        image: profile?.image ?? user.image ?? null,
+        accounts: profile?.accounts ?? [],
+      },
     };
   }
 

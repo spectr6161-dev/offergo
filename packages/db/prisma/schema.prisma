@@ -75,11 +75,31 @@ enum JobAttemptStatus {
   failed
 }
 
+enum WorkflowRunStatus {
+  pending
+  running
+  success
+  error
+}
+
+enum WorkflowNodeStatus {
+  pending
+  running
+  success
+  error
+  skipped
+}
+
 enum FilePurpose {
   resume_source
   resume_export
   screenshot
   temp_ai_output
+}
+
+enum EmployerStatus {
+  published
+  hidden
 }
 
 model User {
@@ -97,7 +117,10 @@ model User {
   payments            Payment[]
   entitlements        Entitlement[]
   resumes             Resume[]
+  resumeAnalyses      ResumeAnalysisArtifact[]
+  resumeFolders       ResumeFolder[]
   trainerSessions     TrainerSession[]
+  workflowRuns        WorkflowRun[]
   files               FileAsset[]
   auditLogs           AuditLog[]           @relation("AuditActor")
 }
@@ -231,15 +254,26 @@ model Entitlement {
 model Resume {
   id               String          @id @default(cuid())
   userId           String
+  folderId         String?
   title            String
   status           ResumeStatus    @default(draft)
   originalFileId   String?
   currentVersionId String?
+  sortOrder        Int             @default(0)
+  lastOpenedAt     DateTime?
+  processingError  String?
+  deletedAt        DateTime?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   versions         ResumeVersion[]
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder           ResumeFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
   originalFile     FileAsset?      @relation("ResumeOriginalFile", fields: [originalFileId], references: [id])
+  sourceAnalyses   ResumeAnalysisArtifact[] @relation("ResumeAnalysisSource")
+  derivedAnalyses  ResumeAnalysisArtifact[] @relation("ResumeAnalysisDerived")
+
+  @@index([userId, folderId, deletedAt])
+  @@index([userId, updatedAt])
 }
 
 model ResumeVersion {
@@ -251,6 +285,46 @@ model ResumeVersion {
   summary   String?
   createdAt DateTime            @default(now())
   resume    Resume              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model ResumeFolder {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  resumes   Resume[]
+  analyses  ResumeAnalysisArtifact[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId, sortOrder])
+}
+
+model ResumeAnalysisArtifact {
+  id              String       @id @default(cuid())
+  userId          String
+  folderId        String?
+  sourceResumeId  String
+  derivedResumeId String?
+  workflowRunId   String       @unique
+  title           String
+  finalResult     Json
+  studioData      Json?
+  sortOrder       Int          @default(0)
+  deletedAt       DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder          ResumeFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  sourceResume    Resume       @relation("ResumeAnalysisSource", fields: [sourceResumeId], references: [id], onDelete: Cascade)
+  derivedResume   Resume?      @relation("ResumeAnalysisDerived", fields: [derivedResumeId], references: [id], onDelete: SetNull)
+  workflowRun     WorkflowRun  @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+
+  @@index([userId, folderId, deletedAt])
+  @@index([userId, updatedAt])
+  @@index([sourceResumeId])
 }
 
 model Question {
@@ -320,6 +394,54 @@ model JobAttempt {
   job        Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }
 
+model WorkflowRun {
+  id              String            @id @default(cuid())
+  type            String
+  status          WorkflowRunStatus @default(pending)
+  input           Json
+  output          Json?
+  error           String?
+  currentNodeKey  String?
+  nextNodeKey     String?
+  finalResult     Json?
+  savedAnalysisId String?
+  derivedResumeId String?
+  createdByUserId String
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdBy       User              @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  analysisArtifact ResumeAnalysisArtifact?
+  nodes           WorkflowNodeRun[]
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([type])
+}
+
+model WorkflowNodeRun {
+  id         String             @id @default(cuid())
+  runId      String
+  key        String
+  label      String
+  status     WorkflowNodeStatus @default(pending)
+  input      Json?
+  output     Json?
+  debug      Json?
+  error      String?
+  order      Int
+  startedAt  DateTime?
+  finishedAt DateTime?
+  durationMs Int?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  run        WorkflowRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, key])
+  @@index([runId, order])
+}
+
 model FileAsset {
   id            String      @id @default(cuid())
   ownerId       String?
@@ -343,6 +465,44 @@ model AuditLog {
   metadata    Json?
   createdAt   DateTime @default(now())
   actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+}
+
+model Employer {
+  id                String                 @id @default(cuid())
+  name              String
+  normalizedName    String
+  website           String?
+  normalizedWebsite String?                @unique
+  status            EmployerStatus         @default(published)
+  source            String                 @default("workspace")
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  categories        EmployerCategoryLink[]
+
+  @@index([status, name])
+  @@index([normalizedName])
+}
+
+model EmployerCategory {
+  id        String                 @id @default(cuid())
+  name      String                 @unique
+  slug      String                 @unique
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  employers EmployerCategoryLink[]
+
+  @@index([name])
+}
+
+model EmployerCategoryLink {
+  employerId String
+  categoryId String
+  createdAt  DateTime         @default(now())
+  employer   Employer         @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  category   EmployerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([employerId, categoryId])
+  @@index([categoryId])
 }
 
 model AdminJsSession {

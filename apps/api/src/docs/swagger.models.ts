@@ -6,6 +6,14 @@ import {
   plategaStatusSchema,
 } from "@offergo/shared";
 
+export class AuthenticatedUserAccountDto {
+  @ApiProperty({ type: String })
+  providerId!: string;
+
+  @ApiProperty({ type: String })
+  accountId!: string;
+}
+
 export class AuthenticatedUserDto {
   @ApiProperty({ type: String })
   id!: string;
@@ -16,8 +24,17 @@ export class AuthenticatedUserDto {
   @ApiProperty({ type: String })
   email!: string;
 
+  @ApiPropertyOptional({ type: String, nullable: true })
+  image!: string | null;
+
   @ApiProperty({ type: String, enum: appRoles, isArray: true })
   roles!: string[];
+
+  @ApiPropertyOptional({
+    type: () => AuthenticatedUserAccountDto,
+    isArray: true,
+  })
+  accounts!: AuthenticatedUserAccountDto[];
 }
 
 export class AuthMeResponseDto {

@@ -13,7 +13,7 @@ type TelegramLoginWidgetProps = {
 
 function buildAuthUrl(origin: string) {
   const url = new URL("/api/auth/telegram/callback", origin);
-  url.searchParams.set("callbackURL", "/dashboard");
+  url.searchParams.set("callbackURL", "/resumes");
   url.searchParams.set("errorCallbackURL", "/login?error=telegram");
   return url.toString();
 }

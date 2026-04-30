@@ -18,6 +18,7 @@
  */
 
 export * from "./gemini-provider";
+export * from "./yandex-provider";
 export * from "./errors";
 export * from "./model-catalog";
 export * from "./types";

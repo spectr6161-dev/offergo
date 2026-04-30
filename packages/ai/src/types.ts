@@ -13,6 +13,7 @@ export type AiTextInput = {
   modelId?: AiTextModelId;
   system?: string;
   temperature?: number;
+  maxOutputTokens?: number;
 };
 
 export type AiChatInput = {
@@ -20,6 +21,7 @@ export type AiChatInput = {
   modelId?: AiTextModelId;
   system?: string;
   temperature?: number;
+  maxOutputTokens?: number;
 };
 
 export type AiObjectInput<Schema extends z.ZodType> = AiTextInput & {

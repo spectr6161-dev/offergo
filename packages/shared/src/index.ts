@@ -113,6 +113,17 @@ const envSchema = z.object({
     .default(true),
   GEMINI_API_KEY: z.string().optional().default(""),
   GEMINI_MODEL_TEXT: z.string().default("gemini-3.1-pro-preview"),
+  RESUME_ANALYSIS_MODEL_ID: z.string().optional().default(""),
+  YANDEX_AI_STUDIO_API_KEY: z.string().optional().default(""),
+  YANDEX_AI_STUDIO_IAM_TOKEN: z.string().optional().default(""),
+  YANDEX_AI_STUDIO_FOLDER_ID: z.string().optional().default(""),
+  YANDEX_AI_STUDIO_BASE_URL: z
+    .string()
+    .url()
+    .default("https://ai.api.cloud.yandex.net/v1"),
+  YANDEX_MODEL_TEXT: z.string().optional().default(""),
+  YANDEX_CLOUD_FOLDER: z.string().optional().default(""),
+  YANDEX_CLOUD_MODEL: z.string().optional().default(""),
   SEED_ADMIN_EMAIL: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.string().email().optional(),
@@ -158,6 +169,14 @@ const parsedEnv = envSchema.parse({
   S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   GEMINI_MODEL_TEXT: process.env.GEMINI_MODEL_TEXT,
+  RESUME_ANALYSIS_MODEL_ID: process.env.RESUME_ANALYSIS_MODEL_ID,
+  YANDEX_AI_STUDIO_API_KEY: process.env.YANDEX_AI_STUDIO_API_KEY,
+  YANDEX_AI_STUDIO_IAM_TOKEN: process.env.YANDEX_AI_STUDIO_IAM_TOKEN,
+  YANDEX_AI_STUDIO_FOLDER_ID: process.env.YANDEX_AI_STUDIO_FOLDER_ID,
+  YANDEX_AI_STUDIO_BASE_URL: process.env.YANDEX_AI_STUDIO_BASE_URL,
+  YANDEX_MODEL_TEXT: process.env.YANDEX_MODEL_TEXT,
+  YANDEX_CLOUD_FOLDER: process.env.YANDEX_CLOUD_FOLDER,
+  YANDEX_CLOUD_MODEL: process.env.YANDEX_CLOUD_MODEL,
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL,
   SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD,
   RUN_DEMO_SEED: process.env.RUN_DEMO_SEED,

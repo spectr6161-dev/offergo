@@ -1,8 +1,41 @@
 @import "tailwindcss";
+
+@plugin "tailwind-scrollbar-hide";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@xyflow/react/dist/style.css";
+@import "react-pdf/dist/Page/TextLayer.css";
+@import "react-pdf/dist/Page/AnnotationLayer.css";
 
 @custom-variant dark (&:is(.dark *));
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes employer-category-collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes employer-category-collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
 
 :root {
   color-scheme: light;
@@ -54,12 +87,24 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary: #3045f5;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --offergo-sidebar-bg: #f5f6f8;
+  --offergo-sidebar-fg: #09090b;
+  --offergo-sidebar-muted: #52525b;
+  --offergo-sidebar-hover: #ffffff;
+  --offergo-sidebar-active: #3045f5;
+  --offergo-sidebar-active-fg: #ffffff;
+  --offergo-sidebar-border: #d4d4d8;
+  --offergo-sidebar-card: #ffffff;
+  --offergo-sidebar-lime: #d9ff66;
+  --offergo-sidebar-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  --highlight: oklch(0.852 0.199 91.936);
+  --brand: oklch(0.623 0.214 259.815);
 }
 
 * {
@@ -805,9 +850,20 @@ select {
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --color-brand: var(--brand);
+  --color-highlight: var(--highlight);
 }
 
 .dark {
+  color-scheme: dark;
+  --bg: #09090b;
+  --surface: rgba(24, 24, 27, 0.94);
+  --surface-strong: #18181b;
+  --surface-muted: #27272a;
+  --border-strong: #3f3f46;
+  --text: #fafafa;
+  --primary-strong: #818cf8;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -833,12 +889,24 @@ select {
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: #4056ff;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --offergo-sidebar-bg: #18181b;
+  --offergo-sidebar-fg: #fafafa;
+  --offergo-sidebar-muted: #a1a1aa;
+  --offergo-sidebar-hover: #27272a;
+  --offergo-sidebar-active: #4056ff;
+  --offergo-sidebar-active-fg: #ffffff;
+  --offergo-sidebar-border: #3f3f46;
+  --offergo-sidebar-card: #27272a;
+  --offergo-sidebar-lime: #bef264;
+  --offergo-sidebar-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  --highlight: oklch(0.852 0.199 91.936);
+  --brand: oklch(0.707 0.165 254.624);
 }
 
 @layer base {

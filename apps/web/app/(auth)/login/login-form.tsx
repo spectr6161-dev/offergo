@@ -82,7 +82,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/resumes");
       router.refresh();
     } catch (error) {
       setStatus({
@@ -101,7 +101,7 @@ export function LoginForm() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: new URL("/dashboard", window.location.origin).toString(),
+        callbackURL: new URL("/resumes", window.location.origin).toString(),
         errorCallbackURL: new URL(
           "/login?error=google",
           window.location.origin,

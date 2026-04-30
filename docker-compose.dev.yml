@@ -28,7 +28,9 @@ services:
       target: dev
     environment:
       NODE_ENV: development
-    command: pnpm --filter @offergo/web dev --hostname 0.0.0.0
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    command: pnpm --filter @offergo/web exec next dev --hostname 0.0.0.0
     volumes: *app-volumes
 
   worker:

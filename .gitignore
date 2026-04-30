@@ -12,3 +12,6 @@ coverage
 
 packages/db/generated
 logs
+*.log
+*.out.log
+*.err.log

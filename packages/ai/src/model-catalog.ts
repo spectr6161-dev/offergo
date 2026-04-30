@@ -16,6 +16,9 @@
 export const AI_PLAYGROUND_DEFAULT_TEXT_MODEL = "gemini-3.1-pro-preview";
 export const AI_PLAYGROUND_FAST_TEXT_MODEL = "gemini-3-flash-preview";
 export const AI_PLAYGROUND_CHEAP_TEXT_MODEL = "gemini-3.1-flash-lite-preview";
+export const YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL = "yandex/aliceai-llm";
+export const YANDEX_AI_STUDIO_PRO_TEXT_MODEL = "yandex/yandexgpt-5.1";
+export const YANDEX_AI_STUDIO_FAST_TEXT_MODEL = "yandex/yandexgpt-5-lite";
 export const AI_PLAYGROUND_DEFAULT_IMAGE_MODEL =
   "gemini-3.1-flash-image-preview";
 export const AI_PLAYGROUND_DEFAULT_TTS_MODEL = "gemini-3.1-flash-tts-preview";
@@ -64,6 +67,55 @@ export const aiTextModels = [
     id: "gemini-2.5-flash-lite",
     name: "Gemini 2.5 Flash-Lite",
     description: "Production-safe дешёвый вариант.",
+    tier: "stable",
+  },
+  {
+    id: YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL,
+    name: "Yandex Alice AI LLM Latest",
+    description:
+      "Yandex AI Studio model aliceai-llm/latest. Requires Yandex auth.",
+    tier: "stable",
+  },
+  {
+    id: YANDEX_AI_STUDIO_PRO_TEXT_MODEL,
+    name: "YandexGPT Pro 5.1",
+    description: "YandexGPT Pro 5.1 for complex text analysis and extraction.",
+    tier: "stable",
+  },
+  {
+    id: "yandex/yandexgpt-5-pro",
+    name: "YandexGPT Pro 5",
+    description: "Stable YandexGPT Pro 5 model.",
+    tier: "stable",
+  },
+  {
+    id: YANDEX_AI_STUDIO_FAST_TEXT_MODEL,
+    name: "YandexGPT Lite 5",
+    description: "Fast and cheaper YandexGPT Lite 5 model.",
+    tier: "stable",
+  },
+  {
+    id: "yandex/deepseek-v32",
+    name: "Yandex DeepSeek V3.2",
+    description: "OpenAI-compatible DeepSeek V3.2 hosted by Yandex AI Studio.",
+    tier: "stable",
+  },
+  {
+    id: "yandex/qwen3-235b-a22b-fp8",
+    name: "Yandex Qwen3 235B",
+    description: "OpenAI-compatible Qwen3 235B hosted by Yandex AI Studio.",
+    tier: "stable",
+  },
+  {
+    id: "yandex/gpt-oss-120b",
+    name: "Yandex gpt-oss-120b",
+    description: "OpenAI-compatible gpt-oss-120b hosted by Yandex AI Studio.",
+    tier: "stable",
+  },
+  {
+    id: "yandex/gpt-oss-20b",
+    name: "Yandex gpt-oss-20b",
+    description: "OpenAI-compatible gpt-oss-20b hosted by Yandex AI Studio.",
     tier: "stable",
   },
 ] as const satisfies readonly AiModelDefinition[];

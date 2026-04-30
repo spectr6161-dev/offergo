@@ -40,6 +40,9 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  account: {
+    skipStateCookieCheck: env.APP_ENV !== "production",
+  },
   advanced: {
     cookiePrefix: "offergo",
     ...(authCookieDomain
