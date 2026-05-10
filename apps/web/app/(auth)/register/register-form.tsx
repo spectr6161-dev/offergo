@@ -59,15 +59,29 @@ function validate(
   }
 
   if (!termsAccepted) {
-    errors.termsAccepted = "Подтвердите правила пользования сервисом.";
+    errors.termsAccepted = "Подтвердите пользовательское соглашение.";
   }
 
   if (!privacyAccepted) {
     errors.privacyAccepted =
-      "Подтвердите согласие с политикой обработки персональных данных.";
+      "Подтвердите согласие с обработкой персональных данных.";
   }
 
   return errors;
+}
+
+async function acceptLegalDocuments(source: string) {
+  const response = await fetch("/api/legal/consents/accept", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ source }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Не удалось сохранить юридические согласия.");
+  }
 }
 
 export function RegisterForm() {
@@ -115,6 +129,7 @@ export function RegisterForm() {
         return;
       }
 
+      await acceptLegalDocuments("register_email");
       router.push("/resumes");
       router.refresh();
     } catch (error) {
@@ -134,12 +149,12 @@ export function RegisterForm() {
     const nextErrors: FieldErrors = {};
 
     if (!termsAccepted) {
-      nextErrors.termsAccepted = "Подтвердите правила пользования сервисом.";
+      nextErrors.termsAccepted = "Подтвердите пользовательское соглашение.";
     }
 
     if (!privacyAccepted) {
       nextErrors.privacyAccepted =
-        "Подтвердите согласие с политикой обработки персональных данных.";
+        "Подтвердите согласие с обработкой персональных данных.";
     }
 
     setErrors((current) => ({ ...current, ...nextErrors }));
@@ -154,7 +169,10 @@ export function RegisterForm() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: new URL("/resumes", window.location.origin).toString(),
+        callbackURL: new URL(
+          "/legal/accept?next=/resumes",
+          window.location.origin,
+        ).toString(),
         errorCallbackURL: new URL(
           "/login?error=google",
           window.location.origin,
@@ -166,7 +184,8 @@ export function RegisterForm() {
         setStatus({
           tone: "destructive",
           message:
-            error.message ?? "Не удалось перейти к регистрации через Google.",
+            error.message ??
+            "Не удалось перейти к регистрации через Google.",
         });
       }
     } catch (error) {
@@ -284,7 +303,7 @@ export function RegisterForm() {
                 className="text-white underline underline-offset-4 hover:text-white/80"
                 onClick={(event) => event.stopPropagation()}
               >
-                правила пользования сервисом
+                пользовательское соглашение
               </Link>
             </FieldLabel>
             <FieldError>{errors.termsAccepted}</FieldError>
@@ -318,6 +337,14 @@ export function RegisterForm() {
             >
               Я согласен с{" "}
               <Link
+                href="/personal-data-consent"
+                className="text-white underline underline-offset-4 hover:text-white/80"
+                onClick={(event) => event.stopPropagation()}
+              >
+                согласием на обработку персональных данных
+              </Link>{" "}
+              и{" "}
+              <Link
                 href="/privacy-policy"
                 className="text-white underline underline-offset-4 hover:text-white/80"
                 onClick={(event) => event.stopPropagation()}
@@ -345,7 +372,7 @@ export function RegisterForm() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <TelegramLoginWidget />
+        <TelegramLoginWidget callbackURL="/legal/accept?next=/resumes" />
 
         <Button
           type="button"

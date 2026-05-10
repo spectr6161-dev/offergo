@@ -10,8 +10,23 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import type {
+  BillingSubscriptionSummary,
+  BillingUsageLimit,
+} from "@/components/pricing-section";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemFooter,
+  ItemGroup,
+  ItemMedia,
+  ItemSeparator,
+  ItemTitle,
+} from "@/components/ui/item";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   Table,
@@ -22,7 +37,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiFetch, getApiErrorMessage } from "@/lib/api";
-import { cn } from "@/lib/utils";
 
 type ApiPlan = {
   id: string;
@@ -49,127 +63,32 @@ type ApiPayment = {
   plan?: ApiPlan;
 };
 
-type ApiEntitlement = {
-  id: string;
-  status: string;
-  startsAt: string;
-  endsAt: string;
-  plan: ApiPlan;
-  payment?: ApiPayment | null;
-};
-
 type ApiListResponse<T> = {
   items: T[];
 };
 
-type UsageMetric = {
-  label: string;
-  valueLabel: string;
-  percent: number;
-  Icon: LucideIcon;
-  accent?: boolean;
+type SubscriptionResponse = BillingSubscriptionSummary & {
+  entitlement: {
+    id: string;
+    startsAt: string;
+    endsAt: string;
+  } | null;
 };
 
-const usageProfiles: Record<string, UsageMetric[]> = {
-  "starter-monthly": [
-    {
-      label: "Хранилище",
-      valueLabel: "18.2 из 50 ГБ",
-      percent: 36,
-      Icon: HardDriveIcon,
-    },
-    {
-      label: "AI-запросы",
-      valueLabel: "64K из 100K",
-      percent: 64,
-      Icon: ZapIcon,
-      accent: true,
-    },
-    {
-      label: "Места",
-      valueLabel: "1 из 3",
-      percent: 33,
-      Icon: UsersIcon,
-    },
-  ],
-  "pro-monthly": [
-    {
-      label: "Хранилище",
-      valueLabel: "38.2 из 100 ГБ",
-      percent: 38,
-      Icon: HardDriveIcon,
-    },
-    {
-      label: "AI-запросы",
-      valueLabel: "847K из 1M",
-      percent: 85,
-      Icon: ZapIcon,
-      accent: true,
-    },
-    {
-      label: "Места",
-      valueLabel: "8 из 15",
-      percent: 53,
-      Icon: UsersIcon,
-    },
-  ],
-  "max-monthly": [
-    {
-      label: "Хранилище",
-      valueLabel: "124 из 300 ГБ",
-      percent: 41,
-      Icon: HardDriveIcon,
-    },
-    {
-      label: "AI-запросы",
-      valueLabel: "2.4M из 3M",
-      percent: 80,
-      Icon: ZapIcon,
-      accent: true,
-    },
-    {
-      label: "Места",
-      valueLabel: "18 из 30",
-      percent: 60,
-      Icon: UsersIcon,
-    },
-  ],
+const featureIcons: Record<string, LucideIcon> = {
+  wpf_audio_seconds: ZapIcon,
+  wpf_screenshot: HardDriveIcon,
+  wpf_text_request: ZapIcon,
+  resume_slot: UsersIcon,
+  resume_analysis: BadgeCheckIcon,
+  individual_response: CreditCardIcon,
 };
 
-const emptyUsage: UsageMetric[] = [
-  {
-    label: "Хранилище",
-    valueLabel: "0 из 0 ГБ",
-    percent: 0,
-    Icon: HardDriveIcon,
-  },
-  {
-    label: "AI-запросы",
-    valueLabel: "0 из 0",
-    percent: 0,
-    Icon: ZapIcon,
-    accent: true,
-  },
-  {
-    label: "Места",
-    valueLabel: "0 из 0",
-    percent: 0,
-    Icon: UsersIcon,
-  },
-];
-
-async function getEntitlements() {
+async function getSubscription() {
   try {
-    const response = await apiFetch<ApiListResponse<ApiEntitlement>>(
-      "/api/v1/billing/entitlements",
-    );
-
-    return {
-      items: response.items,
-    };
+    return await apiFetch<SubscriptionResponse>("/api/v1/billing/subscription");
   } catch (error) {
     return {
-      items: [],
       error: getApiErrorMessage(error),
     };
   }
@@ -193,7 +112,7 @@ async function getPayments() {
 }
 
 function formatMoney(value: number) {
-  return `${value.toLocaleString("ru-RU")} ₽`;
+  return value === 0 ? "0 ₽" : `${value.toLocaleString("ru-RU")} ₽`;
 }
 
 function formatDate(value?: string | null) {
@@ -208,18 +127,36 @@ function formatDate(value?: string | null) {
   }).format(new Date(value));
 }
 
-function getPaymentDate(payment: ApiPayment) {
-  return payment.confirmedAt ?? payment.createdAt;
+function formatLimitValue(feature: string, value: number | null) {
+  if (value === null) {
+    return "Безлимит";
+  }
+
+  if (feature === "wpf_audio_seconds") {
+    const minutes = Math.floor(value / 60);
+
+    if (minutes >= 60) {
+      return `${Math.floor(minutes / 60)} ч${minutes % 60 ? ` ${minutes % 60} мин` : ""}`;
+    }
+
+    return `${minutes} мин`;
+  }
+
+  return value.toLocaleString("ru-RU");
 }
 
-function getActiveEntitlement(entitlements: ApiEntitlement[]) {
-  const now = Date.now();
+function getUsageProgress(item: BillingUsageLimit) {
+  const total = item.enforcementLimit ?? item.limit;
 
-  return entitlements.find(
-    (entitlement) =>
-      entitlement.status === "active" &&
-      new Date(entitlement.endsAt).getTime() > now,
-  );
+  if (total === null || total <= 0) {
+    return item.unlimited ? 0 : 100;
+  }
+
+  return Math.min(100, Math.round(((item.used + item.reserved) / total) * 100));
+}
+
+function getPaymentDate(payment: ApiPayment) {
+  return payment.confirmedAt ?? payment.createdAt;
 }
 
 function getPaymentRows(payments: ApiPayment[]) {
@@ -243,14 +180,8 @@ function getStatusLabel(status: string) {
 }
 
 function getStatusVariant(status: string) {
-  if (status === "confirmed") {
-    return "default" as const;
-  }
-
-  if (status === "pending") {
-    return "secondary" as const;
-  }
-
+  if (status === "confirmed") return "default" as const;
+  if (status === "pending") return "secondary" as const;
   if (status === "canceled" || status === "chargebacked") {
     return "destructive" as const;
   }
@@ -263,55 +194,71 @@ function getInvoiceNumber(payment: ApiPayment, index: number) {
   return `INV-${year}-${String(index + 1).padStart(3, "0")}`;
 }
 
-function getYearToDateSpend(payments: ApiPayment[]) {
-  const currentYear = new Date().getFullYear();
-
-  return payments
-    .filter((payment) => payment.status === "confirmed")
-    .filter(
-      (payment) =>
-        new Date(getPaymentDate(payment)).getFullYear() === currentYear,
-    )
-    .reduce((total, payment) => total + payment.amountRub, 0);
-}
-
-function UsageItem({ metric }: { metric: UsageMetric }) {
-  const { Icon } = metric;
+function UsageItem({
+  item,
+  isLast,
+}: {
+  item: BillingUsageLimit;
+  isLast: boolean;
+}) {
+  const Icon = featureIcons[item.feature] ?? ZapIcon;
+  const used = item.used + item.reserved;
+  const progress = getUsageProgress(item);
+  const enforcementLimit = item.enforcementLimit ?? item.limit;
+  const isExhausted = enforcementLimit !== null && used >= enforcementLimit;
+  const limitLabel = item.unlimited
+    ? "Безлимит"
+    : formatLimitValue(item.feature, item.limit);
 
   return (
-    <div className="min-w-0">
-      <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-        <div className="flex min-w-0 items-center gap-1.5 font-medium">
-          <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
-          <span className="truncate">{metric.label}</span>
-        </div>
-        <span
-          className={cn(
-            "text-xs text-muted-foreground",
-            metric.accent && "text-orange-600",
-          )}
-        >
-          {metric.percent}%
-        </span>
-      </div>
-      <Progress className="h-1 bg-border" value={metric.percent} />
-      <div className="mt-2 text-xs text-muted-foreground">
-        {metric.valueLabel}
-      </div>
-    </div>
+    <>
+      <Item className="px-0 py-4" variant="default">
+        <ItemMedia variant="icon">
+          <Icon />
+        </ItemMedia>
+        <ItemContent className="min-w-0">
+          <ItemTitle className="text-base">{item.label}</ItemTitle>
+          {item.unlimited && item.fairUseLimit ? (
+            <div className="text-xs text-muted-foreground">
+              Fair use: {formatLimitValue(item.feature, item.fairUseLimit)}
+            </div>
+          ) : null}
+        </ItemContent>
+        <ItemActions className="basis-full justify-between sm:basis-auto sm:justify-end">
+          <span className="text-sm font-semibold">
+            {formatLimitValue(item.feature, used)} / {limitLabel}
+          </span>
+          {isExhausted ? (
+            <Badge variant="destructive">Исчерпан</Badge>
+          ) : item.unlimited ? (
+            <Badge variant="secondary">Безлимит</Badge>
+          ) : null}
+        </ItemActions>
+        <ItemFooter className="mt-1 flex-col items-stretch gap-2">
+          <Progress
+            className="bg-sidebar-primary/10 [&_[data-slot=progress-indicator]]:bg-sidebar-primary"
+            value={progress}
+          />
+        </ItemFooter>
+      </Item>
+      {!isLast ? <ItemSeparator className="my-0" /> : null}
+    </>
   );
 }
 
 export default async function SubscriptionPage() {
-  const [entitlementsResult, paymentsResult] = await Promise.all([
-    getEntitlements(),
+  const [subscriptionResult, paymentsResult] = await Promise.all([
+    getSubscription(),
     getPayments(),
   ]);
-  const errorMessage = entitlementsResult.error ?? paymentsResult.error;
+  const errorMessage =
+    "error" in subscriptionResult
+      ? subscriptionResult.error
+      : paymentsResult.error;
 
-  if (errorMessage) {
+  if (errorMessage || "error" in subscriptionResult) {
     return (
-      <main className="w-full p-4 md:p-6">
+      <main className="min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background p-4 text-foreground md:p-6">
         <div
           className="w-full rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive"
           role="alert"
@@ -322,187 +269,161 @@ export default async function SubscriptionPage() {
     );
   }
 
-  const entitlements = entitlementsResult.items;
-  const payments = paymentsResult.items;
-  const activeEntitlement = getActiveEntitlement(entitlements);
-  const paymentRows = getPaymentRows(payments);
-  const confirmedPayments = paymentRows.filter(
-    (payment) => payment.status === "confirmed",
-  );
-  const ytdSpend = getYearToDateSpend(confirmedPayments);
-  const activePrice = activeEntitlement?.plan.priceRub ?? 0;
-  const usage = usageProfiles[activeEntitlement?.plan.code ?? ""] ?? emptyUsage;
+  const subscription = subscriptionResult;
+  const paymentRows = getPaymentRows(paymentsResult.items);
+  const activePrice = subscription.currentPlan.priceRub;
+  const isFreePlan =
+    subscription.currentPlan.code === "free" || activePrice === 0;
 
   return (
-    <main className="w-full p-4 md:p-6">
-      <section className="w-full overflow-hidden bg-background">
-        <div className="flex flex-col gap-4 px-4 py-3 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-base font-semibold">
-                {activeEntitlement?.plan.name ?? "Нет активной подписки"}
-              </h1>
-              <span
-                className={cn(
-                  "inline-flex h-6 items-center gap-1 rounded-full px-2.5 text-xs font-medium",
-                  activeEntitlement
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                <BadgeCheckIcon aria-hidden="true" className="size-3.5" />
-                {activeEntitlement ? "Активна" : "Нет доступа"}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {activeEntitlement
-                ? `Доступ до ${formatDate(activeEntitlement.endsAt)}`
-                : "Выберите тариф, чтобы открыть доступ"}
-            </p>
-          </div>
-
-          <div className="shrink-0 text-left md:text-right">
-            <span className="text-3xl font-semibold tracking-tight">
-              {formatMoney(activePrice)}
-            </span>
-            <span className="text-sm text-muted-foreground">/мес</span>
-          </div>
-        </div>
-
-        <div className="grid gap-3 px-4 pb-4 text-sm md:grid-cols-3">
-          <div>
-            <span className="text-muted-foreground">Продление: </span>
-            <span className="font-semibold">{formatMoney(activePrice)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">За год: </span>
-            <span className="font-semibold">{formatMoney(ytdSpend)}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Оценка за год: </span>
-            <span className="font-semibold">
-              {formatMoney(activePrice * 12)}
-            </span>
-          </div>
-        </div>
-
-        <div className="border-t px-4 py-4">
-          <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-            Использование за период
-          </h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {usage.map((metric) => (
-              <UsageItem key={metric.label} metric={metric} />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 border-t px-4 py-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <CreditCardIcon
-              aria-hidden="true"
-              className="mt-1 size-5 text-muted-foreground"
-            />
-            <div className="min-w-0">
+    <main className="min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background p-4 text-foreground [--primary-foreground:#ffffff] [--primary:#3045f5] [--ring:#3045f5] md:p-6">
+      <section className="flex w-full flex-col gap-6">
+        <ItemGroup className="gap-0">
+          <Item className="p-5" variant="outline">
+            <ItemMedia variant="icon">
+              <BadgeCheckIcon />
+            </ItemMedia>
+            <ItemContent className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="text-base font-semibold">Platega</div>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                  По умолчанию
-                </span>
+                <ItemTitle className="text-2xl font-black tracking-tight">
+                  {subscription.currentPlan.name}
+                </ItemTitle>
+                {subscription.entitlement ? (
+                  <Badge className="gap-1">
+                    <BadgeCheckIcon />
+                    Активна
+                  </Badge>
+                ) : null}
               </div>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Платёжная ссылка создаётся при продлении
+              <div className="text-sm text-muted-foreground">
+                Период лимитов: {formatDate(subscription.periodStart)} -{" "}
+                {formatDate(subscription.periodEnd)}
+              </div>
+            </ItemContent>
+            <ItemActions className="basis-full justify-start sm:basis-auto sm:justify-end">
+              {isFreePlan ? (
+                <form action="/billing">
+                  <Button size="lg" type="submit">
+                    Увеличить лимиты
+                  </Button>
+                </form>
+              ) : (
+                <div className="sm:text-right">
+                  <div className="text-4xl font-black tracking-tight">
+                    {formatMoney(activePrice)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">в месяц</div>
+                </div>
+              )}
+            </ItemActions>
+          </Item>
+        </ItemGroup>
+
+        <section className="flex w-full flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-2xl font-bold">Использование лимитов</h2>
+            <form action="/billing" className="w-fit">
+              <Button type="submit">Изменить тариф</Button>
+            </form>
+          </div>
+          <ItemGroup className="gap-0">
+            {subscription.limits.map((item, index) => (
+              <UsageItem
+                item={item}
+                isLast={index === subscription.limits.length - 1}
+                key={item.feature}
+              />
+            ))}
+          </ItemGroup>
+        </section>
+
+        <Card>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle>Платежи</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Последние операции по подписке.
               </p>
             </div>
-          </div>
-          <Button asChild size="sm" variant="ghost">
-            <Link href="/billing">Изменить</Link>
-          </Button>
-        </div>
-
-        <div className="border-t px-4 py-4">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-sm font-medium text-muted-foreground">
-              Последние счета
-            </h2>
             <Button asChild size="sm" variant="outline">
               <Link href="/billing">
-                Добавить ручной платеж
+                Перейти к тарифам
                 <ExternalLinkIcon aria-hidden="true" data-icon="inline-end" />
               </Link>
             </Button>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-11 px-3">Счёт</TableHead>
-                  <TableHead className="h-11 px-3">Дата</TableHead>
-                  <TableHead className="h-11 px-3">Сумма</TableHead>
-                  <TableHead className="h-11 px-3">Статус</TableHead>
-                  <TableHead className="h-11 px-3 text-right">
-                    Действие
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paymentRows.length > 0 ? (
-                  paymentRows.slice(0, 5).map((payment, index) => {
-                    const canContinuePayment =
-                      payment.status === "pending" && payment.paymentUrl;
-
-                    return (
-                      <TableRow key={payment.id}>
-                        <TableCell className="px-3 py-3 font-medium">
-                          {getInvoiceNumber(payment, index)}
-                        </TableCell>
-                        <TableCell className="px-3 py-3 text-muted-foreground">
-                          {formatDate(getPaymentDate(payment))}
-                        </TableCell>
-                        <TableCell className="px-3 py-3 font-semibold">
-                          {formatMoney(payment.amountRub)}
-                        </TableCell>
-                        <TableCell className="px-3 py-3">
-                          <Badge variant={getStatusVariant(payment.status)}>
-                            {getStatusLabel(payment.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="px-3 py-3 text-right">
-                          {canContinuePayment ? (
-                            <Button asChild size="sm" variant="outline">
-                              <a href={payment.paymentUrl ?? undefined}>
-                                Оплатить
-                                <ExternalLinkIcon
-                                  aria-hidden="true"
-                                  data-icon="inline-end"
-                                />
-                              </a>
-                            </Button>
-                          ) : (
-                            <Button disabled size="icon-sm" variant="ghost">
-                              <DownloadIcon aria-hidden="true" />
-                              <span className="sr-only">Скачать PDF</span>
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      className="h-24 text-center text-muted-foreground"
-                      colSpan={5}
-                    >
-                      Платежей пока нет
-                    </TableCell>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Счёт</TableHead>
+                    <TableHead>Дата</TableHead>
+                    <TableHead>Тариф</TableHead>
+                    <TableHead>Сумма</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead className="text-right">Действие</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {paymentRows.length > 0 ? (
+                    paymentRows.slice(0, 6).map((payment, index) => {
+                      const canContinuePayment =
+                        payment.status === "pending" && payment.paymentUrl;
+
+                      return (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium">
+                            {getInvoiceNumber(payment, index)}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {formatDate(getPaymentDate(payment))}
+                          </TableCell>
+                          <TableCell>{payment.plan?.name ?? "Подписка"}</TableCell>
+                          <TableCell className="font-semibold">
+                            {formatMoney(payment.amountRub)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusVariant(payment.status)}>
+                              {getStatusLabel(payment.status)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {canContinuePayment ? (
+                              <Button asChild size="sm" variant="outline">
+                                <a href={payment.paymentUrl ?? undefined}>
+                                  Оплатить
+                                  <ExternalLinkIcon
+                                    aria-hidden="true"
+                                    data-icon="inline-end"
+                                  />
+                                </a>
+                              </Button>
+                            ) : (
+                              <Button disabled size="icon-sm" variant="ghost">
+                                <DownloadIcon aria-hidden="true" />
+                                <span className="sr-only">Скачать счёт</span>
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        className="h-24 text-center text-muted-foreground"
+                        colSpan={6}
+                      >
+                        Платежей пока нет
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </section>
     </main>
   );

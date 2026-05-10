@@ -26,6 +26,7 @@ import { fromNodeHeaders } from "better-auth/node";
 import { z } from "zod";
 import {
   getUserPaymentStatus,
+  getUsageOverview,
   handleProviderWebhook,
   listActivePlans,
   listUserEntitlements,
@@ -89,6 +90,28 @@ export class BillingController {
 
     return {
       items: entitlements,
+    };
+  }
+
+  @Get("subscription")
+  @UseGuards(ApiAuthGuard)
+  @ApiBearerAuth("bearer")
+  @ApiCookieAuth("session")
+  async getSubscription(@CurrentUser() user: { id: string }) {
+    const [overview, plans] = await Promise.all([
+      getUsageOverview(user.id),
+      listActivePlans(),
+    ]);
+
+    return {
+      currentPlan: overview.plan,
+      entitlement: overview.entitlement,
+      periodStart: overview.periodStart,
+      periodEnd: overview.periodEnd,
+      limits: overview.items,
+      upgradeOptions: plans.filter(
+        (plan) => plan.checkoutEnabled && plan.rank > overview.plan.rank,
+      ),
     };
   }
 

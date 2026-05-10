@@ -9,16 +9,20 @@ const botUsername =
 
 type TelegramLoginWidgetProps = {
   className?: string;
+  callbackURL?: string;
 };
 
-function buildAuthUrl(origin: string) {
+function buildAuthUrl(origin: string, callbackURL: string) {
   const url = new URL("/api/auth/telegram/callback", origin);
-  url.searchParams.set("callbackURL", "/resumes");
+  url.searchParams.set("callbackURL", callbackURL);
   url.searchParams.set("errorCallbackURL", "/login?error=telegram");
   return url.toString();
 }
 
-export function TelegramLoginWidget({ className }: TelegramLoginWidgetProps) {
+export function TelegramLoginWidget({
+  className,
+  callbackURL = "/legal/accept?next=/resumes",
+}: TelegramLoginWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [origin, setOrigin] = useState("");
 
@@ -43,14 +47,14 @@ export function TelegramLoginWidget({ className }: TelegramLoginWidgetProps) {
     script.setAttribute("data-radius", "12");
     script.setAttribute("data-userpic", "false");
     script.setAttribute("data-request-access", "write");
-    script.setAttribute("data-auth-url", buildAuthUrl(origin));
+    script.setAttribute("data-auth-url", buildAuthUrl(origin, callbackURL));
 
     container.appendChild(script);
 
     return () => {
       container.innerHTML = "";
     };
-  }, [origin]);
+  }, [callbackURL, origin]);
 
   if (!botUsername) {
     return (

@@ -219,8 +219,18 @@ export function enhanceOpenApiDocument(document: OpenAPIObject) {
       description: "Прикладные аутентифицированные endpoints под /api/v1/auth.",
     },
     {
+      name: "mobile-auth",
+      description:
+        "Нативная email/password авторизация для мобильного клиента с bearer-токеном Better Auth.",
+    },
+    {
       name: "auth-engine",
       description: "Endpoints движка Better Auth, смонтированные под /api/auth.",
+    },
+    {
+      name: "legal",
+      description:
+        "Legal-документы, статусы и фиксация пользовательских согласий.",
     },
     {
       name: "billing",

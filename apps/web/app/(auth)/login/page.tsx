@@ -3,10 +3,18 @@ import { BrandWordmark } from "@/components/brand-wordmark";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "./login-form";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{
+    callbackUrl?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { callbackUrl } = await searchParams;
+
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black text-white">
-      <header className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-7 py-4 sm:px-8 sm:py-5">
+    <main className="flex min-h-[100svh] flex-col overflow-x-hidden bg-black text-white">
+      <header className="relative z-10 flex shrink-0 items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
         <BrandWordmark href="/" size="sm" />
 
         <Button
@@ -18,12 +26,12 @@ export default function LoginPage() {
         </Button>
       </header>
 
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center px-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-start px-6 pt-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:justify-center sm:pt-12 sm:pb-12">
         <div className="w-full max-w-[20.125rem]">
           <h1 className="mb-7 text-center text-[2.05rem] font-semibold tracking-[-0.06em] text-white sm:text-[2.35rem]">
             Войти в аккаунт
           </h1>
-          <LoginForm />
+          <LoginForm callbackUrl={callbackUrl} />
         </div>
       </div>
     </main>

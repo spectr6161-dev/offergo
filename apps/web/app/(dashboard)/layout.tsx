@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app-shell";
-import { requireUser } from "@/lib/auth";
+import { requireAcceptedLegalDocuments, requireUser } from "@/lib/auth";
 
 export default async function ProductLayout({
   children,
@@ -7,6 +7,7 @@ export default async function ProductLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
+  await requireAcceptedLegalDocuments();
 
   return (
     <AppShell user={user}>

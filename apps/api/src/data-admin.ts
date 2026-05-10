@@ -15,26 +15,30 @@ const useSecureCookies = new URL(env.API_URL).protocol === "https:";
 const PgSessionStore = connectPgSimple(session);
 
 const navigationByModel: Record<string, string> = {
-  User: "Доступ",
-  Session: "Доступ",
-  Account: "Доступ",
-  Verification: "Доступ",
-  Jwks: "Доступ",
-  PasswordResetToken: "Доступ",
-  RoleAssignment: "Доступ",
-  Plan: "Биллинг",
-  Payment: "Биллинг",
-  Entitlement: "Биллинг",
-  Resume: "Продукт",
-  ResumeVersion: "Продукт",
-  Question: "Продукт",
-  QuestionTag: "Продукт",
-  TrainerSession: "Продукт",
-  TrainerMessage: "Продукт",
-  FileAsset: "Файлы",
-  Job: "Очереди",
-  JobAttempt: "Очереди",
-  AuditLog: "Аудит",
+  User: "Access",
+  Session: "Access",
+  Account: "Access",
+  Verification: "Access",
+  Jwks: "Access",
+  PasswordResetToken: "Access",
+  RoleAssignment: "Access",
+  Plan: "Billing",
+  Payment: "Billing",
+  Entitlement: "Billing",
+  Resume: "Product",
+  ResumeVersion: "Product",
+  Question: "Product",
+  QuestionTag: "Product",
+  TrainerSession: "Product",
+  TrainerMessage: "Product",
+  LiveAiPrompt: "AI / WPF",
+  LegalDocumentVersion: "Legal",
+  UserConsentAcceptance: "Legal",
+  UserPrivacyRequest: "Legal",
+  FileAsset: "Files",
+  Job: "Queue",
+  JobAttempt: "Queue",
+  AuditLog: "Audit",
 };
 
 const sensitivePropertiesByModel: Record<string, string[]> = {
@@ -55,6 +59,7 @@ const readOnlyModelNames = new Set([
   "RoleAssignment",
   "Payment",
   "Entitlement",
+  "UserConsentAcceptance",
 ]);
 
 const readOnlyActions = {
@@ -84,7 +89,7 @@ function buildResourceOptions(modelName: string) {
   const properties = buildHiddenProperties(modelName);
   const options = {
     navigation: {
-      name: navigationByModel[modelName] ?? "Данные",
+      name: navigationByModel[modelName] ?? "Data",
     },
     properties,
     ...(readOnlyModelNames.has(modelName)
@@ -93,6 +98,107 @@ function buildResourceOptions(modelName: string) {
         }
       : {}),
   };
+
+  if (modelName === "LiveAiPrompt") {
+    return {
+      ...options,
+      listProperties: ["key", "category", "title", "updatedAt"],
+      editProperties: ["category", "title", "description", "content"],
+      showProperties: [
+        "key",
+        "category",
+        "title",
+        "description",
+        "content",
+        "createdAt",
+        "updatedAt",
+      ],
+      filterProperties: ["key", "category", "title"],
+      properties: {
+        ...properties,
+        key: {
+          isVisible: {
+            list: true,
+            filter: true,
+            show: true,
+            edit: false,
+          },
+        },
+        content: {
+          type: "textarea" as const,
+          props: {
+            rows: 18,
+          },
+        },
+      },
+    };
+  }
+
+  if (modelName === "LegalDocumentVersion") {
+    return {
+      ...options,
+      listProperties: ["slug", "title", "version", "active", "updatedAt"],
+      editProperties: [
+        "kind",
+        "slug",
+        "version",
+        "title",
+        "summary",
+        "content",
+        "active",
+        "publishedAt",
+      ],
+      showProperties: [
+        "id",
+        "kind",
+        "slug",
+        "version",
+        "title",
+        "summary",
+        "content",
+        "active",
+        "publishedAt",
+        "createdAt",
+        "updatedAt",
+      ],
+      filterProperties: ["kind", "slug", "version", "active"],
+      properties: {
+        ...properties,
+        content: {
+          type: "textarea" as const,
+          props: {
+            rows: 24,
+          },
+        },
+        summary: {
+          type: "textarea" as const,
+          props: {
+            rows: 4,
+          },
+        },
+      },
+    };
+  }
+
+  if (modelName === "UserPrivacyRequest") {
+    return {
+      ...options,
+      listProperties: ["kind", "status", "userId", "createdAt", "updatedAt"],
+      editProperties: ["status", "message", "metadata", "completedAt"],
+      showProperties: [
+        "id",
+        "userId",
+        "kind",
+        "status",
+        "message",
+        "metadata",
+        "createdAt",
+        "updatedAt",
+        "completedAt",
+      ],
+      filterProperties: ["kind", "status", "userId", "createdAt"],
+    };
+  }
 
   if (modelName !== "Plan") {
     return options;
@@ -218,13 +324,13 @@ export async function mountDataAdmin(app: INestApplication) {
       withMadeWithLove: false,
     },
     locale: {
-      language: "ru",
+      language: "en",
       translations: {
         labels: {
-          loginWelcome: "Управление данными offerGO",
+          loginWelcome: "offerGO Data Admin",
         },
         messages: {
-          loginWelcome: "Войдите под пользователем с ролью admin.",
+          loginWelcome: "Sign in as a user with the admin role.",
         },
       },
     },

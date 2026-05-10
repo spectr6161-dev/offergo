@@ -15,3 +15,12 @@ logs
 *.log
 *.out.log
 *.err.log
+*.tgz
+*.tar.gz
+*.bak
+*.pem
+*.crx
+deploy-archives
+aset
+/icon/
+workspace-contractors*.csv

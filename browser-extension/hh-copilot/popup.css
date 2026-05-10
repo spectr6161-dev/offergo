@@ -1,0 +1,128 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 360px;
+  margin: 0;
+  background: #0f172a;
+  color: #e5e7eb;
+  font: 13px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+main,
+.auth-view,
+.app-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+main {
+  padding: 14px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.note {
+  color: #94a3b8;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #cbd5e1;
+  font-weight: 650;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #111827;
+  color: #f8fafc;
+  padding: 10px;
+  outline: none;
+}
+
+.auth-view input {
+  height: 48px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+button {
+  min-height: 40px;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #1e293b;
+  color: #f8fafc;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.auth-view button {
+  min-height: 48px;
+  font-size: 15px;
+}
+
+button:hover {
+  background: #334155;
+}
+
+button.primary {
+  border-color: #0284c7;
+  background: #0284c7;
+}
+
+button.primary:hover {
+  background: #0369a1;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.status {
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #cbd5e1;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.auth-view .status:empty {
+  display: none;
+}
+
+.note {
+  margin: 0;
+  font-size: 12px;
+}

@@ -45,8 +45,21 @@ function validate(login: string, password: string): FieldErrors {
   return errors;
 }
 
-export function LoginForm() {
+type LoginFormProps = {
+  callbackUrl?: string;
+};
+
+function normalizeCallbackUrl(value: string | undefined) {
+  if (!value?.startsWith("/") || value.startsWith("//")) {
+    return "/resumes";
+  }
+
+  return value;
+}
+
+export function LoginForm({ callbackUrl }: LoginFormProps) {
   const router = useRouter();
+  const redirectTo = normalizeCallbackUrl(callbackUrl);
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -82,7 +95,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/resumes");
+      router.push(redirectTo);
       router.refresh();
     } catch (error) {
       setStatus({
@@ -101,7 +114,7 @@ export function LoginForm() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: new URL("/resumes", window.location.origin).toString(),
+        callbackURL: new URL(redirectTo, window.location.origin).toString(),
         errorCallbackURL: new URL(
           "/login?error=google",
           window.location.origin,

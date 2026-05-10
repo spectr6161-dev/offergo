@@ -1,22 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { PDFDocumentLoadingTask, RenderTask } from "pdfjs-dist";
 
 import { cn } from "@/lib/utils";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+type PdfJsModule = typeof import("pdfjs-dist");
+type PreviewStatus = "loading" | "ready" | "error";
 
-const pdfOptions = {
-  disableRange: true,
-  disableStream: true,
-  withCredentials: true,
-};
+let pdfJsPromise: Promise<PdfJsModule> | null = null;
 
-type SourceFileStatus = "checking" | "ready" | "missing";
+function loadPdfJs() {
+  if (!pdfJsPromise) {
+    pdfJsPromise = import("pdfjs-dist/legacy/build/pdf.mjs").then((pdfjs) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+        "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+        import.meta.url,
+      ).toString();
+
+      return pdfjs;
+    });
+  }
+
+  return pdfJsPromise;
+}
 
 export function PdfResumePreview({
   resumeId,
@@ -25,49 +32,20 @@ export function PdfResumePreview({
 }: {
   resumeId: string;
   className?: string;
-  fallback?: React.ReactNode;
+  fallback?: ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [width, setWidth] = useState(0);
-  const [sourceStatus, setSourceStatus] =
-    useState<SourceFileStatus>("checking");
-  const sourceUrl = `/api/resumes/${resumeId}/source-file`;
-  const file = useMemo(
-    () => ({
-      url: sourceUrl,
-    }),
-    [sourceUrl]
-  );
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    setSourceStatus("checking");
-
-    fetch(sourceUrl, {
-      cache: "no-store",
-      credentials: "include",
-      method: "HEAD",
-      signal: controller.signal,
-    })
-      .then((response) => {
-        setSourceStatus(response.ok ? "ready" : "missing");
-      })
-      .catch((error) => {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-
-        setSourceStatus("missing");
-      });
-
-    return () => controller.abort();
-  }, [sourceUrl]);
+  const [status, setStatus] = useState<PreviewStatus>("loading");
+  const sourceUrl = `/api/resumes/${resumeId}/source-file?disposition=inline`;
 
   useEffect(() => {
     const element = containerRef.current;
 
-    if (!element) return;
+    if (!element) {
+      return;
+    }
 
     const observer = new ResizeObserver(([entry]) => {
       setWidth(Math.floor(entry.contentRect.width));
@@ -78,45 +56,116 @@ export function PdfResumePreview({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (width <= 0) {
+      return;
+    }
+
+    let cancelled = false;
+    let loadingTask: PDFDocumentLoadingTask | null = null;
+    let renderTask: RenderTask | null = null;
+
+    setStatus("loading");
+
+    async function renderFirstPage() {
+      try {
+        const pdfjs = await loadPdfJs();
+
+        if (cancelled) {
+          return;
+        }
+
+        loadingTask = pdfjs.getDocument({
+          disableRange: true,
+          disableStream: true,
+          url: sourceUrl,
+          withCredentials: true,
+        });
+
+        const document = await loadingTask.promise;
+        const page = await document.getPage(1);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = width / baseViewport.width;
+        const viewport = page.getViewport({ scale });
+        const canvas = canvasRef.current;
+
+        if (cancelled || !canvas) {
+          return;
+        }
+
+        const context = canvas.getContext("2d", { alpha: false });
+
+        if (!context) {
+          throw new Error("Canvas context is unavailable.");
+        }
+
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = Math.floor(viewport.width * pixelRatio);
+        canvas.height = Math.floor(viewport.height * pixelRatio);
+
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        context.fillStyle = "#fff";
+        context.fillRect(0, 0, viewport.width, viewport.height);
+
+        renderTask = page.render({
+          canvas,
+          canvasContext: context,
+          viewport,
+        });
+
+        await renderTask.promise;
+
+        if (!cancelled) {
+          setStatus("ready");
+        }
+      } catch (error) {
+        if (
+          cancelled ||
+          (error instanceof Error &&
+            (error.name === "AbortException" ||
+              error.name === "RenderingCancelledException"))
+        ) {
+          return;
+        }
+
+        setStatus("error");
+      }
+    }
+
+    void renderFirstPage();
+
+    return () => {
+      cancelled = true;
+      renderTask?.cancel();
+      void loadingTask?.destroy();
+    };
+  }, [sourceUrl, width]);
+
   return (
     <div
       className={cn(
         "aspect-[210/297] w-full overflow-hidden rounded-sm border bg-background shadow-sm",
-        className
+        className,
       )}
       ref={containerRef}
     >
-      {sourceStatus !== "ready" ? (
-        sourceStatus === "checking" ? (
-          <PdfPreviewFallback text="Готовим PDF-превью..." />
-        ) : (
-          fallback ?? (
-            <PdfPreviewFallback text="PDF-файл недоступен в текущем окружении." />
-          )
+      {status === "loading" ? (
+        <PdfPreviewFallback text="Готовим PDF-превью..." />
+      ) : null}
+      {status === "error" ? (
+        fallback ?? (
+          <PdfPreviewFallback text="Не удалось отобразить PDF-превью." />
         )
-      ) : (
-      <Document
-        error={
-          fallback ?? (
-            <PdfPreviewFallback text="Не удалось отобразить PDF-превью." />
-          )
-        }
-        file={file}
-        loading={<PdfPreviewFallback text="Готовим PDF-превью..." />}
-        noData={fallback ?? <PdfPreviewFallback text="PDF-файл недоступен." />}
-        options={pdfOptions}
-      >
-        {width > 0 ? (
-          <Page
-            className="flex justify-center"
-            pageNumber={1}
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-            width={width}
-          />
-        ) : null}
-      </Document>
-      )}
+      ) : null}
+      <canvas
+        aria-label="PDF-превью резюме"
+        className={cn(
+          "h-full w-full bg-white object-contain",
+          status === "ready" ? "block" : "hidden",
+        )}
+        ref={canvasRef}
+      />
     </div>
   );
 }

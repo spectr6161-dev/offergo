@@ -1,0 +1,939 @@
+<Window x:Class="TutorOverlay.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:TutorOverlay.Client.Controls"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="offerGO"
+        Width="400"
+        Height="540"
+        MinWidth="380"
+        MinHeight="500"
+        WindowStartupLocation="Manual"
+        Left="32"
+        Top="32"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        TextElement.Foreground="#FFF5F5F5"
+        TextElement.FontSize="14">
+    <Window.Resources>
+        <SolidColorBrush x:Key="StopBrush" Color="#FFEF4444" />
+        <SolidColorBrush x:Key="SoftStrokeBrush" Color="#FF243047" />
+        <SolidColorBrush x:Key="PanelOverlayBrush" Color="#EE080C14" />
+        <SolidColorBrush x:Key="MutedStrongBrush" Color="#FFD8E6F8" />
+
+        <Style x:Key="ResizeThumbStyle" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="Transparent" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="OverlayButtonBaseStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.46" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="WindowActionButtonStyle" TargetType="Button" BasedOn="{StaticResource OverlayButtonBaseStyle}">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinWidth" Value="32" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="{StaticResource CardSurfaceAltBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftStrokeBrush}" />
+        </Style>
+
+        <Style x:Key="BarPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource OverlayButtonBaseStyle}">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="{StaticResource AccentGreenBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentGreenBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="BarGhostButtonStyle" TargetType="Button" BasedOn="{StaticResource OverlayButtonBaseStyle}">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="{StaticResource CardSurfaceAltBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftStrokeBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="BarIconButtonStyle" TargetType="Button" BasedOn="{StaticResource OverlayButtonBaseStyle}">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="MinWidth" Value="36" />
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Background" Value="{StaticResource CardSurfaceAltBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftStrokeBrush}" />
+        </Style>
+
+        <Style x:Key="ChatSendButtonStyle" TargetType="Button" BasedOn="{StaticResource BarPrimaryButtonStyle}">
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="MinWidth" Value="42" />
+            <Setter Property="MinHeight" Value="42" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="10,12,0,10" />
+        </Style>
+
+        <Style x:Key="ModeToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="MinHeight" Value="34" />
+            <Setter Property="MinWidth" Value="100" />
+            <Setter Property="Background" Value="{StaticResource CardSurfaceAltBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftStrokeBrush}" />
+            <Setter Property="Foreground" Value="#FFFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="ToggleBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="#1A3B82F6" />
+                                <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{StaticResource AccentGreenBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#70FFFFFF" />
+                                <Setter TargetName="ToggleBorder" Property="Opacity" Value="0.6" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChatListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="ChatEntryTemplate">
+            <Border Margin="0,0,0,10"
+                    Padding="12"
+                    CornerRadius="6"
+                    Background="{StaticResource CardSurfaceAltBrush}"
+                    BorderBrush="{StaticResource SoftStrokeBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Foreground="{StaticResource MutedBrush}"
+                               FontSize="10.5"
+                               Text="{Binding TimeLabel}" />
+                    <controls:MarkdownTextBlock Margin="0,6,0,0"
+                                                FontSize="15.5"
+                                                LineHeight="24"
+                                                Foreground="#FFF6F6F6"
+                                                Markdown="{Binding Message}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
+        <Grid Margin="14">
+        <Grid x:Name="AuthView">
+            <Border x:Name="AuthRootBorder"
+                    CornerRadius="6"
+                    Background="{StaticResource WindowSurfaceBrush}"
+                    BorderBrush="{StaticResource AccentGreenSoftBrush}"
+                    BorderThickness="1.4"
+                    Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0"
+                            Background="Transparent"
+                            Padding="6,6,6,14"
+                            Cursor="SizeAll"
+                            MouseLeftButtonDown="TitleBar_OnMouseLeftButtonDown">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Orientation="Horizontal"
+                                        VerticalAlignment="Center">
+                                <TextBlock VerticalAlignment="Center"
+                                           Foreground="{StaticResource SoftTextBrush}"
+                                           FontSize="15"
+                                           FontStyle="Italic"
+                                           FontWeight="SemiBold"
+                                           Text="offer" />
+                                <Border Margin="8,0,0,0"
+                                        Padding="9,3,9,3"
+                                        Background="{StaticResource AccentGreenBrush}"
+                                        CornerRadius="6"
+                                        RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform>
+                                        <SkewTransform AngleX="-10" />
+                                    </Border.RenderTransform>
+                                    <TextBlock Foreground="#FFFFFFFF"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Text="GO" />
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Style="{StaticResource WindowActionButtonStyle}"
+                                        Margin="0,0,8,0"
+                                        ToolTip="&#x41A;&#x430;&#x43D;&#x430;&#x43B;"
+                                        Click="TelegramButton_OnClick">
+                                    <materialDesign:PackIcon Kind="Send" Width="16" Height="16" />
+                                </Button>
+                                <Button Style="{StaticResource WindowActionButtonStyle}"
+                                        ToolTip="&#x417;&#x430;&#x43A;&#x440;&#x44B;&#x442;&#x44C;"
+                                        Click="CloseWindowButton_OnClick">
+                                    <materialDesign:PackIcon Kind="Close" Width="16" Height="16" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border x:Name="AuthCardBorder"
+                            Grid.Row="1"
+                            Padding="18"
+                            CornerRadius="6"
+                            Background="{StaticResource CardSurfaceBrush}"
+                            BorderBrush="{StaticResource SoftStrokeBrush}"
+                            BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Text="&#x410;&#x432;&#x442;&#x43E;&#x440;&#x438;&#x437;&#x430;&#x446;&#x438;&#x44F;" />
+                            <Button Margin="0,14,0,10"
+                                    Height="44"
+                                    Padding="18,10"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    FontSize="14"
+                                    Foreground="#FFFFFFFF"
+                                    Background="{StaticResource AccentGreenBrush}"
+                                    BorderBrush="{StaticResource AccentGreenBrush}"
+                                    Click="BrowserAuthorizeButton_OnClick"
+                                    Content="&#x410;&#x432;&#x442;&#x43E;&#x440;&#x438;&#x437;&#x43E;&#x432;&#x430;&#x442;&#x44C;&#x441;&#x44F; &#x432; &#x431;&#x440;&#x430;&#x443;&#x437;&#x435;&#x440;&#x435;" />
+                            <Button x:Name="ToggleFallbackLoginButton"
+                                    Margin="0,0,0,10"
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="{StaticResource MutedBrush}"
+                                    Click="ToggleFallbackLoginButton_OnClick"
+                                    Content="&#x412;&#x43E;&#x439;&#x442;&#x438; &#x43F;&#x440;&#x44F;&#x43C;&#x43E; &#x432; &#x43F;&#x440;&#x438;&#x43B;&#x43E;&#x436;&#x435;&#x43D;&#x438;&#x438;" />
+                            <StackPanel x:Name="FallbackLoginPanel"
+                                        Visibility="Collapsed">
+                                <TextBox x:Name="FallbackEmailTextBox"
+                                         Margin="0,0,0,12"
+                                         materialDesign:HintAssist.Hint="&#x420;&#x430;&#x431;&#x43E;&#x447;&#x430;&#x44F; &#x43F;&#x43E;&#x447;&#x442;&#x430;"
+                                         materialDesign:HintAssist.IsFloating="True" />
+                                <PasswordBox x:Name="FallbackPasswordBox"
+                                             Margin="0,0,0,12"
+                                             materialDesign:HintAssist.Hint="&#x41F;&#x430;&#x440;&#x43E;&#x43B;&#x44C;"
+                                             materialDesign:HintAssist.IsFloating="True" />
+                                <Button x:Name="LoginButton"
+                                    Height="44"
+                                    Margin="0,0,0,4"
+                                    Padding="18,10"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalContentAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    FontSize="14"
+                                    Foreground="#FFFFFFFF"
+                                    Click="AppLoginButton_OnClick"
+                                    Content="&#x412;&#x43E;&#x439;&#x442;&#x438;" />
+                            </StackPanel>
+                            <TextBlock x:Name="AuthHintTextBlock"
+                                       Margin="0,2,0,0"
+                                       Foreground="{StaticResource MutedStrongBrush}"
+                                       FontSize="11.5"
+                                       TextWrapping="Wrap"
+                                       Text="&#x41E;&#x442;&#x43A;&#x440;&#x43E;&#x435;&#x442;&#x441;&#x44F; &#x441;&#x430;&#x439;&#x442;. &#x412;&#x43E;&#x439;&#x434;&#x438;&#x442;&#x435; &#x438;&#x43B;&#x438; &#x43F;&#x43E;&#x434;&#x442;&#x432;&#x435;&#x440;&#x434;&#x438;&#x442;&#x435; &#x432;&#x445;&#x43E;&#x434;." />
+                            <TextBlock x:Name="AuthStatusTextBlock"
+                                       Margin="0,12,0,0"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Text="" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="VersionTextBlock"
+                               Grid.Row="2"
+                               HorizontalAlignment="Right"
+                               Margin="0,16,0,0"
+                               Foreground="{StaticResource MutedBrush}"
+                               FontSize="11"
+                               Text="v0.0.0" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="OverlayView" Visibility="Collapsed">
+            <Grid x:Name="OverlayStackPanel"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border x:Name="TopBarBorder"
+                        Grid.Row="0"
+                        Width="448"
+                        HorizontalAlignment="Center"
+                        Padding="14,12"
+                        CornerRadius="6"
+                        Background="{StaticResource WindowSurfaceBrush}"
+                        BorderBrush="{StaticResource AccentGreenSoftBrush}"
+                        BorderThickness="1.2"
+                        MouseLeftButtonDown="TitleBar_OnMouseLeftButtonDown">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0"
+                                    Margin="0,0,12,0"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="OverlayTitleTextBlock"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource SoftTextBrush}"
+                                       FontSize="13"
+                                       FontStyle="Italic"
+                                       FontWeight="SemiBold"
+                                       Text="offer" />
+                            <Border Margin="8,0,0,0"
+                                    Padding="8,2,8,2"
+                                    Background="{StaticResource AccentGreenBrush}"
+                                    CornerRadius="6"
+                                    RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <SkewTransform AngleX="-10" />
+                                </Border.RenderTransform>
+                                <TextBlock Foreground="#FFFFFFFF"
+                                           FontSize="11.5"
+                                           FontWeight="Bold"
+                                           Text="GO" />
+                            </Border>
+                        </StackPanel>
+
+                        <Button x:Name="SessionToggleButton"
+                                Grid.Column="1"
+                                Style="{StaticResource BarPrimaryButtonStyle}"
+                                Click="SessionToggleButton_OnClick"
+                                Content="&#x41D;&#x430;&#x447;&#x430;&#x442;&#x44C; &#x441;&#x435;&#x441;&#x441;&#x438;&#x44E;" />
+
+                        <Border x:Name="ActivityIndicatorBorder"
+                                Grid.Column="2"
+                                Margin="0,0,8,0"
+                                Padding="10,6"
+                                CornerRadius="6"
+                                Background="{StaticResource CardSurfaceAltBrush}"
+                                BorderBrush="{StaticResource SoftStrokeBrush}"
+                                BorderThickness="1"
+                                Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                    <Rectangle x:Name="SignalBar1" Width="4" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource AccentGreenBrush}" Margin="0,0,3,0" />
+                                    <Rectangle x:Name="SignalBar2" Width="4" Height="11" RadiusX="2" RadiusY="2" Fill="{StaticResource AccentGreenBrush}" Margin="0,0,3,0" />
+                                    <Rectangle x:Name="SignalBar3" Width="4" Height="14" RadiusX="2" RadiusY="2" Fill="{StaticResource AccentGreenBrush}" Margin="0,0,3,0" />
+                                    <Rectangle x:Name="SignalBar4" Width="4" Height="17" RadiusX="2" RadiusY="2" Fill="{StaticResource AccentGreenBrush}" />
+                                </StackPanel>
+                                <TextBlock x:Name="SignalPercentTextBlock"
+                                           Margin="8,0,0,0"
+                                           VerticalAlignment="Center"
+                                           FontSize="11.5"
+                                           FontWeight="SemiBold"
+                                           Text="0%" />
+                            </StackPanel>
+                        </Border>
+
+                        <Button x:Name="MicrophoneButton"
+                                Grid.Column="3"
+                                Style="{StaticResource BarIconButtonStyle}"
+                                Visibility="Collapsed"
+                                ToolTip="&#x41C;&#x438;&#x43A;&#x440;&#x43E;&#x444;&#x43E;&#x43D; (Ctrl+Shift+P)"
+                                Click="MicrophoneButton_OnClick">
+                            <materialDesign:PackIcon x:Name="MicrophoneButtonIcon"
+                                                     Kind="MicrophoneOutline"
+                                                     Width="16"
+                                                     Height="16" />
+                        </Button>
+
+                        <Button x:Name="AnswerButton"
+                                Grid.Column="4"
+                                Style="{StaticResource BarGhostButtonStyle}"
+                                Click="OpenAnswerButton_OnClick"
+                                ToolTip="&#x421;&#x43A;&#x440;&#x44B;&#x442;&#x44C;/&#x43F;&#x43E;&#x43A;&#x430;&#x437;&#x430;&#x442;&#x44C; &#x447;&#x430;&#x442; (Ctrl+Shift+T), &#x43D;&#x43E;&#x432;&#x43E;&#x435; &#x441;&#x43E;&#x43E;&#x431;&#x449;&#x435;&#x43D;&#x438;&#x435; (Ctrl+Shift+N)"
+                                Content="&#x41E;&#x442;&#x432;&#x435;&#x442; AI" />
+
+                        <Button x:Name="ScreenshotButton"
+                                Grid.Column="5"
+                                Style="{StaticResource BarGhostButtonStyle}"
+                                Click="TopScreenshotButton_OnClick"
+                                ToolTip="&#x421;&#x43A;&#x440;&#x438;&#x43D;&#x448;&#x43E;&#x442; (Ctrl+Shift+S)"
+                                Content="&#x421;&#x43A;&#x440;&#x438;&#x43D;&#x448;&#x43E;&#x442;" />
+
+                        <Button x:Name="HelpButton"
+                                Grid.Column="6"
+                                Style="{StaticResource BarIconButtonStyle}"
+                                ToolTip="&#x413;&#x43E;&#x440;&#x44F;&#x447;&#x438;&#x435; &#x43A;&#x43B;&#x430;&#x432;&#x438;&#x448;&#x438;"
+                                Click="HelpButton_OnClick">
+                            <TextBlock FontSize="15"
+                                       FontWeight="Bold"
+                                       Text="?" />
+                        </Button>
+
+                        <Button x:Name="SettingsButton"
+                                Grid.Column="7"
+                                Style="{StaticResource BarIconButtonStyle}"
+                                Margin="0"
+                                ToolTip="&#x41D;&#x430;&#x441;&#x442;&#x440;&#x43E;&#x439;&#x43A;&#x438;"
+                                Click="SettingsButton_OnClick">
+                            <materialDesign:PackIcon Kind="CogOutline" Width="16" Height="16" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <Border x:Name="ChatOverlayBorder"
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Padding="16"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        CornerRadius="6"
+                        Background="{StaticResource PanelOverlayBrush}"
+                        BorderBrush="{StaticResource AccentGreenSoftBrush}"
+                        BorderThickness="1.2"
+                        Visibility="Collapsed">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Text="&#x41E;&#x442;&#x432;&#x435;&#x442;&#x44B;" />
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource WindowActionButtonStyle}"
+                                    ToolTip="&#x421;&#x43A;&#x440;&#x44B;&#x442;&#x44C; &#x447;&#x430;&#x442; (Esc)"
+                                    Click="CloseChatButton_OnClick">
+                                <TextBlock FontSize="16"
+                                           FontWeight="Bold"
+                                           Text="&#x2500;" />
+                            </Button>
+                        </Grid>
+
+                        <Grid Grid.Row="1">
+                            <TextBlock x:Name="ChatEmptyStateTextBlock"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource MutedStrongBrush}"
+                                       Text="&#x417;&#x434;&#x435;&#x441;&#x44C; &#x43F;&#x43E;&#x44F;&#x432;&#x44F;&#x442;&#x441;&#x44F; &#x43E;&#x442;&#x432;&#x435;&#x442;&#x44B;." />
+                            <ListBox x:Name="ChatListBox"
+                                     Visibility="Collapsed"
+                                     BorderThickness="0"
+                                     Background="Transparent"
+                                     ItemTemplate="{StaticResource ChatEntryTemplate}"
+                                     ItemContainerStyle="{StaticResource ChatListItemStyle}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                     ScrollViewer.CanContentScroll="False" />
+                        </Grid>
+
+                        <TextBlock x:Name="ThinkingTextBlock"
+                                   Grid.Row="2"
+                                   Margin="4,8,0,0"
+                                   Foreground="{StaticResource MutedStrongBrush}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   Visibility="Collapsed"
+                                   Text="&#x414;&#x443;&#x43C;&#x430;&#x44E;..." />
+
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ManualPromptTextBox"
+                                     Grid.Column="0"
+                                     Margin="0,12,0,10"
+                                     materialDesign:HintAssist.Hint="&#x41A;&#x43E;&#x440;&#x43E;&#x442;&#x43A;&#x438;&#x439; &#x437;&#x430;&#x43F;&#x440;&#x43E;&#x441;"
+                                     materialDesign:HintAssist.IsFloating="True"
+                                     KeyDown="ManualPromptTextBox_OnKeyDown" />
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource ChatSendButtonStyle}"
+                                    ToolTip="&#x41E;&#x442;&#x43F;&#x440;&#x430;&#x432;&#x438;&#x442;&#x44C;"
+                                    Click="SendManualPromptButton_OnClick">
+                                <TextBlock FontSize="15"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           Text="&#x27A4;" />
+                            </Button>
+                        </Grid>
+
+                        <StackPanel Grid.Row="4" Orientation="Horizontal">
+                            <ToggleButton x:Name="SmartModelToggleButton"
+                                          Style="{StaticResource ModeToggleStyle}"
+                                          MinWidth="142"
+                                          Click="SmartModelToggleButton_OnClick"
+                                          >
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               FontSize="13.5"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Text="&#x2726;" />
+                                    <TextBlock Grid.Column="1"
+                                               Margin="6,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Text="&#x423;&#x43C;&#x43D;&#x430;&#x44F; &#x43C;&#x43E;&#x434;&#x435;&#x43B;&#x44C;" />
+                                </Grid>
+                            </ToggleButton>
+                            <ToggleButton x:Name="AutoModeToggleButton"
+                                          Style="{StaticResource ModeToggleStyle}"
+                                          Margin="0,0,8,0"
+                                          MinWidth="88"
+                                          ToolTip="&#x410;&#x432;&#x442;&#x43E;&#x440;&#x435;&#x436;&#x438;&#x43C; (Ctrl+Shift+A)"
+                                          Click="AutoModeToggleButton_OnClick"
+                                          >
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               FontSize="13.5"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Text="&#x21BB;" />
+                                    <TextBlock Grid.Column="1"
+                                               Margin="6,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Text="&#x410;&#x432;&#x442;&#x43E;" />
+                                </Grid>
+                            </ToggleButton>
+                            <ToggleButton x:Name="LiveCodingModeToggleButton"
+                                          Style="{StaticResource ModeToggleStyle}"
+                                          Margin="0"
+                                          MinWidth="132"
+                                          ToolTip="&#x41B;&#x430;&#x439;&#x432;-&#x43A;&#x43E;&#x434;&#x438;&#x43D;&#x433; (Ctrl+Shift+K)"
+                                          Click="LiveCodingModeToggleButton_OnClick"
+                                          >
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="24" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               FontSize="12"
+                                               FontWeight="Bold"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               Text="&lt;/&gt;" />
+                                    <TextBlock Grid.Column="1"
+                                               Margin="6,0,0,0"
+                                               VerticalAlignment="Center"
+                                               Text="&#x41B;&#x430;&#x439;&#x432;-&#x43A;&#x43E;&#x434;&#x438;&#x43D;&#x433;" />
+                                </Grid>
+                            </ToggleButton>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="SettingsBackdrop"
+              Visibility="Collapsed"
+              Width="410"
+              MaxHeight="560"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Background="Transparent"
+              MouseLeftButtonDown="SettingsBackdrop_OnMouseLeftButtonDown">
+            <Border x:Name="SettingsPanelBorder"
+                    Width="410"
+                    MaxHeight="560"
+                    Margin="0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top"
+                    Padding="18"
+                    CornerRadius="6"
+                    Background="{StaticResource WindowSurfaceBrush}"
+                    BorderBrush="{StaticResource AccentGreenSoftBrush}"
+                    BorderThickness="1.2"
+                    MouseLeftButtonDown="SettingsPanel_OnMouseLeftButtonDown">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Text="&#x41D;&#x430;&#x441;&#x442;&#x440;&#x43E;&#x439;&#x43A;&#x438;" />
+                        <Button Grid.Column="1"
+                                Style="{StaticResource WindowActionButtonStyle}"
+                                ToolTip="&#x417;&#x430;&#x43A;&#x440;&#x44B;&#x442;&#x44C;"
+                                Click="CloseSettingsButton_OnClick">
+                            <materialDesign:PackIcon Kind="Close" Width="16" Height="16" />
+                        </Button>
+                    </Grid>
+
+                        <ScrollViewer Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto"
+                                  MaxHeight="400">
+                        <StackPanel>
+                            <TextBlock Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Text="&#x410;&#x43A;&#x43A;&#x430;&#x443;&#x43D;&#x442;" />
+                            <Border Margin="0,8,0,16"
+                                    Padding="14"
+                                    CornerRadius="6"
+                                    Background="#12000000"
+                                    BorderBrush="{StaticResource SoftStrokeBrush}"
+                                    BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock x:Name="SettingsAccountNameTextBlock"
+                                               FontSize="13.5"
+                                               FontWeight="SemiBold"
+                                               Text="offerGO" />
+                                    <TextBlock x:Name="SettingsAccountEmailTextBlock"
+                                               Margin="0,4,0,0"
+                                               Foreground="{StaticResource MutedBrush}"
+                                               Text="-" />
+                                    <TextBlock x:Name="SettingsAccountStateTextBlock"
+                                               Margin="0,6,0,0"
+                                               Foreground="{StaticResource MutedStrongBrush}"
+                                               FontSize="11.5"
+                                               TextWrapping="Wrap"
+                                               Text="&#x41A;&#x43B;&#x438;&#x435;&#x43D;&#x442; &#x430;&#x432;&#x442;&#x43E;&#x440;&#x438;&#x437;&#x43E;&#x432;&#x430;&#x43D;." />
+                                    <WrapPanel Margin="0,12,0,0">
+                                        <Button x:Name="OpenWebAccountButton"
+                                                Margin="0,0,8,8"
+                                                Padding="12,8"
+                                                Style="{StaticResource BarGhostButtonStyle}"
+                                                Click="OpenWebAccountButton_OnClick"
+                                                Content="&#x410;&#x43A;&#x43A;&#x430;&#x443;&#x43D;&#x442; &#x432; &#x431;&#x440;&#x430;&#x443;&#x437;&#x435;&#x440;&#x435;" />
+                                        <Button x:Name="ReconnectAccountButton"
+                                                Margin="0,0,8,8"
+                                                Padding="12,8"
+                                                Style="{StaticResource BarGhostButtonStyle}"
+                                                Click="ReconnectAccountButton_OnClick"
+                                                Content="&#x41F;&#x435;&#x440;&#x435;&#x43F;&#x43E;&#x434;&#x43A;&#x43B;&#x44E;&#x447;&#x438;&#x442;&#x44C;" />
+                                        <Button x:Name="LogoutAccountButton"
+                                                Margin="0,0,0,8"
+                                                Padding="12,8"
+                                                Foreground="#FFFFDFDF"
+                                                Background="#24BE4B4B"
+                                                BorderBrush="{StaticResource StopBrush}"
+                                                Style="{StaticResource BarGhostButtonStyle}"
+                                                Click="LogoutAccountButton_OnClick"
+                                                Content="&#x412;&#x44B;&#x439;&#x442;&#x438;" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Text="&#x417;&#x432;&#x443;&#x43A;" />
+                            <ComboBox x:Name="AudioCaptureModeComboBox"
+                                      Margin="0,8,0,12"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Id"
+                                      materialDesign:HintAssist.Hint="&#x422;&#x438;&#x43F; &#x437;&#x430;&#x445;&#x432;&#x430;&#x442;&#x430; &#x430;&#x443;&#x434;&#x438;&#x43E;" />
+                            <ComboBox x:Name="MicDeviceComboBox"
+                                      Margin="0,0,0,12"
+                                      DisplayMemberPath="DisplayLabel"
+                                      SelectedValuePath="Id"
+                                      materialDesign:HintAssist.Hint="&#x41C;&#x438;&#x43A;&#x440;&#x43E;&#x444;&#x43E;&#x43D;" />
+                            <ComboBox x:Name="OutputDeviceComboBox"
+                                      Margin="0,0,0,12"
+                                      DisplayMemberPath="DisplayLabel"
+                                      SelectedValuePath="Id"
+                                      materialDesign:HintAssist.Hint="&#x417;&#x432;&#x443;&#x43A; &#x441; &#x443;&#x441;&#x442;&#x440;&#x43E;&#x439;&#x441;&#x442;&#x432;&#x430;" />
+                            <ComboBox x:Name="ProcessComboBox"
+                                      Margin="0,0,0,16"
+                                      DisplayMemberPath="DisplayLabel"
+                                      SelectedValuePath="ProcessId"
+                                      materialDesign:HintAssist.Hint="&#x41F;&#x440;&#x43E;&#x446;&#x435;&#x441;&#x441; &#x437;&#x432;&#x43E;&#x43D;&#x43A;&#x430;" />
+
+                            <TextBlock Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Text="&#x421;&#x43A;&#x440;&#x438;&#x43D;&#x448;&#x43E;&#x442;&#x44B;" />
+                            <ComboBox x:Name="ScreenshotModeComboBox"
+                                      Margin="0,8,0,12"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Id"
+                                      materialDesign:HintAssist.Hint="&#x420;&#x435;&#x436;&#x438;&#x43C; &#x441;&#x43A;&#x440;&#x438;&#x43D;&#x448;&#x43E;&#x442;&#x430;" />
+                            <ComboBox x:Name="MonitorComboBox"
+                                      Margin="0,0,0,16"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Index"
+                                      materialDesign:HintAssist.Hint="&#x41C;&#x43E;&#x43D;&#x438;&#x442;&#x43E;&#x440;" />
+
+                            <TextBlock Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Text="&#x41E;&#x442;&#x432;&#x435;&#x442;&#x44B;" />
+                            <ComboBox x:Name="AnswerLengthComboBox"
+                                      Margin="0,8,0,12"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Id"
+                                      materialDesign:HintAssist.Hint="&#x414;&#x43B;&#x438;&#x43D;&#x430; &#x43E;&#x442;&#x432;&#x435;&#x442;&#x430;" />
+                            <ComboBox x:Name="AnswerProviderComboBox"
+                                      Margin="0,0,0,12"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Id"
+                                      materialDesign:HintAssist.Hint="&#x41C;&#x43E;&#x434;&#x435;&#x43B;&#x44C; &#x43E;&#x442;&#x432;&#x435;&#x442;&#x43E;&#x432;" />
+                            <TextBlock Margin="0,0,0,16"
+                                       Foreground="{StaticResource MutedStrongBrush}"
+                                       FontSize="11.5"
+                                       TextWrapping="Wrap"
+                                       Text="Live-&#x440;&#x430;&#x441;&#x43F;&#x43E;&#x437;&#x43D;&#x430;&#x432;&#x430;&#x43D;&#x438;&#x435; &#x432;&#x441;&#x435;&#x433;&#x434;&#x430; &#x438;&#x434;&#x435;&#x442; &#x447;&#x435;&#x440;&#x435;&#x437; Gemini. &#x421;&#x43A;&#x440;&#x438;&#x43D;&#x448;&#x43E;&#x442;&#x44B; &#x432; &#x44D;&#x442;&#x43E;&#x439; &#x432;&#x435;&#x440;&#x441;&#x438;&#x438; &#x430;&#x43D;&#x430;&#x43B;&#x438;&#x437;&#x438;&#x440;&#x443;&#x435;&#x442; Gemini." />
+
+                            <TextBlock Foreground="{StaticResource MutedBrush}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Text="&#x41E;&#x43A;&#x43D;&#x43E;" />
+                            <Grid Margin="0,8,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="OverlayOpacitySlider"
+                                        Minimum="65"
+                                        Maximum="100"
+                                        TickFrequency="5"
+                                        IsSnapToTickEnabled="False"
+                                        ValueChanged="OverlayOpacitySlider_OnValueChanged" />
+                                <TextBlock x:Name="OverlayOpacityValueTextBlock"
+                                           Grid.Column="1"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource SoftTextBrush}"
+                                           FontWeight="SemiBold"
+                                           Text="96%" />
+                            </Grid>
+
+                            <TextBlock x:Name="SettingsStatusTextBlock"
+                                       Margin="0,2,0,0"
+                                       Foreground="{StaticResource MutedStrongBrush}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="BillingStatusTextBlock"
+                                       Margin="0,8,0,0"
+                                       Foreground="{StaticResource MutedBrush}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Grid Grid.Row="2" Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0"
+                                Height="38"
+                                Margin="0,0,8,0"
+                                Style="{StaticResource BarGhostButtonStyle}"
+                                Click="RefreshSettingsButton_OnClick"
+                                Content="&#x41E;&#x431;&#x43D;&#x43E;&#x432;&#x438;&#x442;&#x44C;" />
+                        <Button Grid.Column="1"
+                                Height="38"
+                                Margin="0,0,8,0"
+                                Style="{StaticResource BarGhostButtonStyle}"
+                                Click="TestAudioButton_OnClick"
+                                Content="&#x422;&#x435;&#x441;&#x442;" />
+                        <Button Grid.Column="2"
+                                Height="38"
+                                Style="{StaticResource BarPrimaryButtonStyle}"
+                                Click="SaveSettingsButton_OnClick"
+                                Content="&#x421;&#x43E;&#x445;&#x440;&#x430;&#x43D;&#x438;&#x442;&#x44C;" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Thumb HorizontalAlignment="Left"
+               VerticalAlignment="Stretch"
+               Width="8"
+               Cursor="SizeWE"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="Left" />
+        <Thumb HorizontalAlignment="Right"
+               VerticalAlignment="Stretch"
+               Width="8"
+               Cursor="SizeWE"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="Right" />
+        <Thumb HorizontalAlignment="Stretch"
+               VerticalAlignment="Top"
+               Height="8"
+               Cursor="SizeNS"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="Top" />
+        <Thumb HorizontalAlignment="Stretch"
+               VerticalAlignment="Bottom"
+               Height="8"
+               Cursor="SizeNS"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="Bottom" />
+        <Thumb HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Width="14"
+               Height="14"
+               Cursor="SizeNWSE"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="TopLeft" />
+        <Thumb HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Width="14"
+               Height="14"
+               Cursor="SizeNESW"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="TopRight" />
+        <Thumb HorizontalAlignment="Left"
+               VerticalAlignment="Bottom"
+               Width="14"
+               Height="14"
+               Cursor="SizeNESW"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="BottomLeft" />
+        <Thumb HorizontalAlignment="Right"
+               VerticalAlignment="Bottom"
+               Width="14"
+               Height="14"
+               Cursor="SizeNWSE"
+               Style="{StaticResource ResizeThumbStyle}"
+               DragDelta="ResizeThumb_OnDragDelta"
+               Tag="BottomRight" />
+    </Grid>
+</Window>

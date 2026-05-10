@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
@@ -76,6 +77,84 @@ export async function uploadResumeSourceFile(options: {
   };
 }
 
+export async function uploadResumeExportFile(options: {
+  ownerId: string;
+  fileName: string;
+  contentType: string;
+  body: Buffer;
+}) {
+  const safeFileName = sanitizeFileName(options.fileName) || "resume.pdf";
+  const objectKey = `${options.ownerId}/resume_export/${Date.now()}-${randomUUID()}-${safeFileName}`;
+
+  await ensureBucket();
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: objectKey,
+      Body: options.body,
+      ContentType: options.contentType,
+    }),
+  );
+
+  return {
+    bucket: env.S3_BUCKET,
+    objectKey,
+  };
+}
+
+export async function uploadResumePhotoFile(options: {
+  ownerId: string;
+  fileName: string;
+  contentType: string;
+  body: Buffer;
+}) {
+  const safeFileName = sanitizeFileName(options.fileName) || "photo";
+  const objectKey = `${options.ownerId}/resume_photo/${Date.now()}-${randomUUID()}-${safeFileName}`;
+
+  await ensureBucket();
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: objectKey,
+      Body: options.body,
+      ContentType: options.contentType,
+    }),
+  );
+
+  return {
+    bucket: env.S3_BUCKET,
+    objectKey,
+  };
+}
+
+export async function uploadScreenshotFile(options: {
+  ownerId: string;
+  fileName: string;
+  contentType: string;
+  body: Buffer;
+}) {
+  const safeFileName = sanitizeFileName(options.fileName) || "screenshot.png";
+  const objectKey = `${options.ownerId}/screenshot/${Date.now()}-${randomUUID()}-${safeFileName}`;
+
+  await ensureBucket();
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: objectKey,
+      Body: options.body,
+      ContentType: options.contentType,
+    }),
+  );
+
+  return {
+    bucket: env.S3_BUCKET,
+    objectKey,
+  };
+}
+
 export async function getResumeSourceFile(objectKey: string) {
   const result = await s3.send(
     new GetObjectCommand({
@@ -107,4 +186,23 @@ export async function headResumeSourceFile(objectKey: string) {
     contentType: result.ContentType,
     contentLength: result.ContentLength,
   };
+}
+
+export async function getResumePhotoFile(objectKey: string) {
+  return getResumeSourceFile(objectKey);
+}
+
+export async function headResumePhotoFile(objectKey: string) {
+  return headResumeSourceFile(objectKey);
+}
+
+export async function deleteResumeFileObject(objectKey: string) {
+  await ensureBucket();
+
+  await s3.send(
+    new DeleteObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: objectKey,
+    }),
+  );
 }

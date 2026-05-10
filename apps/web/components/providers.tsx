@@ -4,6 +4,7 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { OffergoProviders, ToastProvider } from "@offergo/ui";
 import { ThemeProvider } from "next-themes";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -32,6 +33,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
           <TooltipProvider>
             <QueryClientProvider client={queryClient}>
               {children}
+              <CookieConsentBanner />
               <Toaster richColors />
             </QueryClientProvider>
           </TooltipProvider>

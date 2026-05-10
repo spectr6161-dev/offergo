@@ -6,6 +6,11 @@ import { Slot } from "radix-ui"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import {
+  cookieConsentChangedEvent,
+  deleteClientCookie,
+  hasAcceptedOptionalCookies,
+} from "@/lib/cookie-consent"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -67,6 +72,26 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [canPersistSidebarState, setCanPersistSidebarState] =
+    React.useState(false)
+
+  React.useEffect(() => {
+    function syncConsentState() {
+      const canPersist = hasAcceptedOptionalCookies()
+
+      setCanPersistSidebarState(canPersist)
+
+      if (!canPersist) {
+        deleteClientCookie(SIDEBAR_COOKIE_NAME)
+      }
+    }
+
+    syncConsentState()
+    window.addEventListener(cookieConsentChangedEvent, syncConsentState)
+
+    return () =>
+      window.removeEventListener(cookieConsentChangedEvent, syncConsentState)
+  }, [])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -81,10 +106,11 @@ function SidebarProvider({
         _setOpen(openState)
       }
 
-      // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      if (canPersistSidebarState) {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      }
     },
-    [setOpenProp, open]
+    [setOpenProp, open, canPersistSidebarState]
   )
 
   // Helper to toggle the sidebar.

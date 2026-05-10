@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { authClient } from "@offergo/auth/client";
 import {
   BotIcon,
+  BriefcaseBusinessIcon,
   Building2Icon,
   CircleUserRoundIcon,
   CreditCardIcon,
@@ -18,7 +19,6 @@ import {
   LogOutIcon,
   MailIcon,
   MenuIcon,
-  UserRoundIcon,
 } from "lucide-react";
 
 import { BrandWordmark } from "@/components/brand-wordmark";
@@ -59,8 +59,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import type { WebAppUser } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 type AppShellProps = {
   children: ReactNode;
@@ -89,30 +89,34 @@ type BreadcrumbEntry = {
   href?: string;
 };
 
-const publicNavItems: NavItem[] = [
-  {
-    title: "Вакансии",
-    href: "/vacancies",
-    activeOn: ["/vacancies"],
-  },
-  {
-    title: "Банк работодателей",
-    href: "/employers-bank",
-    activeOn: ["/employers-bank"],
-  },
-];
-
 const authenticatedNavItems: NavItem[] = [
-  ...publicNavItems,
   {
-    title: "Подписка",
-    href: "/subscription",
-    activeOn: ["/subscription"],
+    title: "Главная",
+    href: "/dashboard",
+    activeOn: ["/dashboard"],
+    match: "exact",
   },
   {
     title: "Тарифы",
     href: "/billing",
     activeOn: ["/billing"],
+  },
+];
+
+const workNavItems: NavGroupItem[] = [
+  {
+    title: "Вакансии",
+    href: "/vacancies",
+    activeOn: ["/vacancies"],
+    description: "Поиск вакансий, фильтры и карточки предложений",
+    icon: BriefcaseBusinessIcon,
+  },
+  {
+    title: "Банк работодателей",
+    href: "/employers-bank",
+    activeOn: ["/employers-bank"],
+    description: "Компании, категории и быстрый переход к работодателям",
+    icon: Building2Icon,
   },
 ];
 
@@ -146,7 +150,7 @@ const coverMaterialsNavItems: NavGroupItem[] = [
     title: "Индивидуальные отклики",
     href: "/cover-materials/individual-responses",
     activeOn: ["/cover-materials/individual-responses"],
-    description: "Персональные сопроводительные материалы под конкретную вакансию",
+    description: "Персональное сопроводительное письмо под конкретную вакансию",
     icon: FileTextIcon,
   },
   {
@@ -187,9 +191,17 @@ const adminNavItems: AdminNavItem[] = [
     description: "Редактирование карточек банка работодателей",
     icon: Building2Icon,
   },
+  {
+    title: "Вакансии",
+    href: "/admin/vacancies",
+    activeOn: ["/admin/vacancies"],
+    description: "Редактирование вакансий и статусов публикации",
+    icon: BriefcaseBusinessIcon,
+  },
 ];
 
 const staticBreadcrumbs: Record<string, BreadcrumbEntry[]> = {
+  "/dashboard": [{ title: "Главная" }],
   "/resumes": [{ title: "Мои резюме" }],
   "/vacancies": [{ title: "Вакансии" }],
   "/employers-bank": [{ title: "Банк работодателей" }],
@@ -209,12 +221,10 @@ const staticBreadcrumbs: Record<string, BreadcrumbEntry[]> = {
     { title: "Сопроводительные материалы" },
     { title: "Автоматические отклики" },
   ],
-  "/admin/ai-playground": [
-    { title: "Админ" },
-    { title: "AI-песочница" },
-  ],
+  "/admin/ai-playground": [{ title: "Админ" }, { title: "AI-песочница" }],
   "/admin/workflows": [{ title: "Админ" }, { title: "Workflow" }],
   "/admin/employers": [{ title: "Админ" }, { title: "Работодатели" }],
+  "/admin/vacancies": [{ title: "Админ" }, { title: "Вакансии" }],
 };
 
 function isRouteActive(pathname: string, item: NavItem) {
@@ -270,6 +280,58 @@ function getBreadcrumbs(pathname: string): BreadcrumbEntry[] {
   return staticBreadcrumbs[pathname] ?? [{ title: "OfferGO" }];
 }
 
+function NavigationGroup({
+  title,
+  items,
+  pathname,
+  widthClassName = "w-80",
+}: {
+  title: string;
+  items: NavGroupItem[];
+  pathname: string;
+  widthClassName?: string;
+}) {
+  const active = items.some((item) => isRouteActive(pathname, item));
+
+  return (
+    <NavigationMenuItem>
+      <NavigationMenuTrigger className={cn(active && "bg-muted text-foreground")}>
+        {title}
+      </NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <ul className={cn("grid gap-1 p-2", widthClassName)}>
+          {items.map((item) => {
+            const Icon = item.icon;
+            const itemActive = isRouteActive(pathname, item);
+
+            return (
+              <li key={`${item.title}-${item.href}`}>
+                <NavigationMenuLink
+                  asChild
+                  className={cn(
+                    "items-start gap-3 p-3",
+                    itemActive && "bg-muted text-foreground"
+                  )}
+                >
+                  <Link href={item.href}>
+                    <Icon className="mt-0.5" />
+                    <span className="flex min-w-0 flex-col gap-1">
+                      <span className="font-medium">{item.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.description}
+                      </span>
+                    </span>
+                  </Link>
+                </NavigationMenuLink>
+              </li>
+            );
+          })}
+        </ul>
+      </NavigationMenuContent>
+    </NavigationMenuItem>
+  );
+}
+
 function DesktopNavigation({
   pathname,
   user,
@@ -277,118 +339,71 @@ function DesktopNavigation({
   pathname: string;
   user?: WebAppUser | null;
 }) {
-  const navItems = user ? authenticatedNavItems : publicNavItems;
   const showAdmin = user?.roles.includes("admin") ?? false;
-  const resumeActive = pathname === "/resumes" || pathname.startsWith("/resumes/");
-  const coverMaterialsActive = pathname.startsWith("/cover-materials/");
-  const adminActive = adminNavItems.some((item) =>
-    isRouteActive(pathname, item)
-  );
+  const adminActive = adminNavItems.some((item) => isRouteActive(pathname, item));
 
   return (
     <NavigationMenu
       viewport={false}
-      className="hidden flex-1 justify-start lg:flex"
+      className="hidden w-full max-w-none flex-1 justify-start lg:flex"
     >
-      <NavigationMenuList className="justify-start gap-1">
-        {user ? (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger
-              className={cn(resumeActive && "bg-muted text-foreground")}
-            >
-              Резюме
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-80 gap-1 p-2">
-                {resumeNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(pathname, item);
+      <NavigationMenuList className="w-full justify-start gap-1">
+        {user
+          ? authenticatedNavItems.slice(0, 1).map((item) => {
+              const active = isRouteActive(pathname, item);
 
-                  return (
-                    <li key={`${item.title}-${item.href}`}>
-                      <NavigationMenuLink
-                        asChild
-                        className={cn(
-                          "items-start gap-3 p-3",
-                          active && "bg-muted text-foreground"
-                        )}
-                      >
-                        <Link href={item.href}>
-                          <Icon className="mt-0.5" />
-                          <span className="flex min-w-0 flex-col gap-1">
-                            <span className="font-medium">{item.title}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {item.description}
-                            </span>
-                          </span>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  );
-                })}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        ) : null}
+              return (
+                <NavigationMenuItem key={item.href}>
+                  <NavigationMenuLink
+                    asChild
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "text-muted-foreground",
+                      active && "bg-muted text-foreground"
+                    )}
+                  >
+                    <Link href={item.href}>{item.title}</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              );
+            })
+          : null}
+
+        <NavigationGroup title="Работа" items={workNavItems} pathname={pathname} />
 
         {user ? (
-          <NavigationMenuItem>
-            <NavigationMenuTrigger
-              className={cn(coverMaterialsActive && "bg-muted text-foreground")}
-            >
-              Сопроводительные материалы
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-96 gap-1 p-2">
-                {coverMaterialsNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(pathname, item);
+          <>
+            <NavigationGroup
+              title="Резюме"
+              items={resumeNavItems}
+              pathname={pathname}
+            />
+            <NavigationGroup
+              title="Сопроводительные материалы"
+              items={coverMaterialsNavItems}
+              pathname={pathname}
+              widthClassName="w-96"
+            />
+            {authenticatedNavItems.slice(1).map((item) => {
+              const active = isRouteActive(pathname, item);
 
-                  return (
-                    <li key={item.href}>
-                      <NavigationMenuLink
-                        asChild
-                        className={cn(
-                          "items-start gap-3 p-3",
-                          active && "bg-muted text-foreground"
-                        )}
-                      >
-                        <Link href={item.href}>
-                          <Icon className="mt-0.5" />
-                          <span className="flex min-w-0 flex-col gap-1">
-                            <span className="font-medium">{item.title}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {item.description}
-                            </span>
-                          </span>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                  );
-                })}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
+              return (
+                <NavigationMenuItem key={item.href}>
+                  <NavigationMenuLink
+                    asChild
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "text-muted-foreground",
+                      active && "bg-muted text-foreground"
+                    )}
+                  >
+                    <Link href={item.href}>{item.title}</Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              );
+            })}
+          </>
         ) : null}
-
-        {navItems.map((item) => {
-          const active = isRouteActive(pathname, item);
-
-          return (
-            <NavigationMenuItem key={item.href}>
-              <NavigationMenuLink
-                asChild
-                className={cn(
-                  navigationMenuTriggerStyle(),
-                  "text-muted-foreground",
-                  active && "bg-muted text-foreground"
-                )}
-              >
-                <Link href={item.href}>{item.title}</Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          );
-        })}
 
         {showAdmin ? (
           <NavigationMenuItem>
@@ -434,6 +449,49 @@ function DesktopNavigation({
   );
 }
 
+function MobileNavLink({
+  item,
+  pathname,
+}: {
+  item: NavItem;
+  pathname: string;
+}) {
+  return (
+    <SheetClose asChild>
+      <Link
+        href={item.href}
+        className={cn(
+          "flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+          isRouteActive(pathname, item) && "bg-muted text-foreground"
+        )}
+      >
+        {item.title}
+      </Link>
+    </SheetClose>
+  );
+}
+
+function MobileGroup({
+  title,
+  items,
+  pathname,
+}: {
+  title: string;
+  items: NavGroupItem[];
+  pathname: string;
+}) {
+  return (
+    <>
+      <div className="px-3 pt-4 pb-1 text-xs font-medium text-muted-foreground">
+        {title}
+      </div>
+      {items.map((item) => (
+        <MobileNavLink item={item} key={item.href} pathname={pathname} />
+      ))}
+    </>
+  );
+}
+
 function MobileNavigation({
   pathname,
   user,
@@ -441,7 +499,6 @@ function MobileNavigation({
   pathname: string;
   user?: WebAppUser | null;
 }) {
-  const navItems = user ? authenticatedNavItems : publicNavItems;
   const showAdmin = user?.roles.includes("admin") ?? false;
 
   return (
@@ -459,7 +516,7 @@ function MobileNavigation({
       </SheetTrigger>
       <SheetContent side="left" className="w-[86vw] max-w-sm gap-0 p-0">
         <SheetHeader className="border-b p-4">
-          <BrandWordmark href={user ? "/resumes" : "/employers-bank"} size="sm" />
+          <BrandWordmark href={user ? "/dashboard" : "/employers-bank"} size="sm" />
           <SheetTitle className="sr-only">Навигация</SheetTitle>
           <SheetDescription className="sr-only">
             Основные разделы OfferGO
@@ -468,80 +525,27 @@ function MobileNavigation({
 
         <nav className="flex flex-col gap-1 p-3">
           {user ? (
-            <>
-              <div className="px-3 pb-1 text-xs font-medium text-muted-foreground">
-                Резюме
-              </div>
-              {resumeNavItems.map((item) => (
-                <SheetClose asChild key={`${item.title}-${item.href}`}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
-                      isRouteActive(pathname, item) && "bg-muted text-foreground"
-                    )}
-                  >
-                    {item.title}
-                  </Link>
-                </SheetClose>
-              ))}
-            </>
+            <MobileNavLink
+              item={authenticatedNavItems[0]}
+              pathname={pathname}
+            />
           ) : null}
-
+          <MobileGroup title="Работа" items={workNavItems} pathname={pathname} />
           {user ? (
             <>
-              <div className="px-3 pt-4 pb-1 text-xs font-medium text-muted-foreground">
-                Сопроводительные материалы
-              </div>
-              {coverMaterialsNavItems.map((item) => (
-                <SheetClose asChild key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
-                      isRouteActive(pathname, item) && "bg-muted text-foreground"
-                    )}
-                  >
-                    {item.title}
-                  </Link>
-                </SheetClose>
+              <MobileGroup title="Резюме" items={resumeNavItems} pathname={pathname} />
+              <MobileGroup
+                title="Сопроводительные материалы"
+                items={coverMaterialsNavItems}
+                pathname={pathname}
+              />
+              {authenticatedNavItems.slice(1).map((item) => (
+                <MobileNavLink item={item} key={item.href} pathname={pathname} />
               ))}
             </>
           ) : null}
-
-          {navItems.map((item) => (
-            <SheetClose asChild key={item.href}>
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
-                  isRouteActive(pathname, item) && "bg-muted text-foreground"
-                )}
-              >
-                {item.title}
-              </Link>
-            </SheetClose>
-          ))}
-
           {showAdmin ? (
-            <>
-              <div className="px-3 pt-4 pb-1 text-xs font-medium text-muted-foreground">
-                Админ
-              </div>
-              {adminNavItems.map((item) => (
-                <SheetClose asChild key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex min-h-10 items-center rounded-lg px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
-                      isRouteActive(pathname, item) && "bg-muted text-foreground"
-                    )}
-                  >
-                    {item.title}
-                  </Link>
-                </SheetClose>
-              ))}
-            </>
+            <MobileGroup title="Админ" items={adminNavItems} pathname={pathname} />
           ) : null}
         </nav>
       </SheetContent>
@@ -640,7 +644,7 @@ function AppBreadcrumbs({
   pathname: string;
   user?: WebAppUser | null;
 }) {
-  const homeHref = user ? "/resumes" : "/employers-bank";
+  const homeHref = user ? "/dashboard" : "/employers-bank";
   const items = getBreadcrumbs(pathname);
   const showHome = pathname !== homeHref;
 
@@ -683,7 +687,7 @@ function AppBreadcrumbs({
 
 export function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
-  const homeHref = user ? "/resumes" : "/employers-bank";
+  const homeHref = user ? "/dashboard" : "/employers-bank";
 
   return (
     <div
@@ -691,11 +695,14 @@ export function AppShell({ children, user }: AppShellProps) {
       style={
         {
           "--header-height": "calc(var(--spacing) * 14)",
+          "--breadcrumb-height": "calc(var(--spacing) * 10)",
+          "--shell-header-height":
+            "calc(var(--header-height) + var(--breadcrumb-height))",
         } as CSSProperties
       }
     >
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex h-(--header-height) w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <div className="flex h-(--header-height) w-full items-center gap-3 px-4 sm:px-6 lg:px-8">
           <MobileNavigation pathname={pathname} user={user} />
           <BrandWordmark href={homeHref} size="sm" className="text-foreground" />
           <DesktopNavigation pathname={pathname} user={user} />
@@ -704,13 +711,13 @@ export function AppShell({ children, user }: AppShellProps) {
           </div>
         </div>
         <div className="border-t bg-background/80">
-          <div className="mx-auto flex min-h-10 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-10 w-full items-center px-4 sm:px-6 lg:px-8">
             <AppBreadcrumbs pathname={pathname} user={user} />
           </div>
         </div>
       </header>
 
-      <main className="min-h-[calc(100vh-var(--header-height))]">
+      <main className="min-h-[calc(100svh-var(--shell-header-height))]">
         {children}
       </main>
     </div>

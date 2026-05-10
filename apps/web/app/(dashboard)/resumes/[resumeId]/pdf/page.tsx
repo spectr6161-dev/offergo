@@ -16,11 +16,9 @@ export default async function ResumePdfPage(
   try {
     const response = await apiFetch<ResumeResponse>(`/api/v1/resumes/${resumeId}`);
     const resume = response.item;
+    const servedFile = resume.exportFile ?? resume.originalFile;
 
-    if (
-      !resume.originalFileId ||
-      resume.originalFile?.mimeType !== "application/pdf"
-    ) {
+    if (servedFile?.mimeType !== "application/pdf") {
       notFound();
     }
 

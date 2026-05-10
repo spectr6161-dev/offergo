@@ -45,6 +45,24 @@ function Seed-Database {
   Invoke-Compose @("run", "--rm", "db-seed")
 }
 
+function Clear-WebNextCache {
+  $webNextCache = Resolve-Path -LiteralPath "apps/web/.next" -ErrorAction SilentlyContinue
+
+  if (-not $webNextCache) {
+    return
+  }
+
+  $workspaceRoot = (Resolve-Path -LiteralPath ".").Path
+  $cachePath = $webNextCache.Path
+
+  if (-not $cachePath.StartsWith($workspaceRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to remove .next cache outside workspace: $cachePath"
+  }
+
+  Write-Host "> Remove-Item -Recurse -Force $cachePath"
+  Remove-Item -LiteralPath $cachePath -Recurse -Force
+}
+
 switch ($Command) {
   "setup" {
     Ensure-EnvFile
@@ -57,6 +75,7 @@ switch ($Command) {
   }
   "dev" {
     Ensure-EnvFile
+    Clear-WebNextCache
     Invoke-DevCompose @("build")
     Invoke-DevCompose @("run", "--rm", "api", "pnpm", "install", "--frozen-lockfile", "--prefer-offline")
     Invoke-DevCompose @("run", "--rm", "api", "pnpm", "--filter", "@offergo/db", "db:generate")
@@ -84,6 +103,7 @@ switch ($Command) {
   }
   "restart" {
     Ensure-EnvFile
+    Clear-WebNextCache
     Invoke-DevCompose @("build", "api", "web", "worker")
     Invoke-DevCompose @("run", "--rm", "api", "pnpm", "install", "--frozen-lockfile", "--prefer-offline")
     Invoke-DevCompose @("run", "--rm", "api", "pnpm", "--filter", "@offergo/db", "db:generate")

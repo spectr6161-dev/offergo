@@ -1,0 +1,22 @@
+﻿<Window x:Class="TutorOverlay.Client.Views.ScreenSelectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="#2203050A"
+        ResizeMode="NoResize"
+        WindowStartupLocation="Manual"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Cursor="Cross">
+    <Canvas x:Name="RootCanvas"
+            MouseLeftButtonDown="RootCanvas_OnMouseLeftButtonDown"
+            MouseMove="RootCanvas_OnMouseMove"
+            MouseLeftButtonUp="RootCanvas_OnMouseLeftButtonUp">
+        <Rectangle x:Name="SelectionRectangle"
+                   Visibility="Collapsed"
+                   Stroke="#FF60A5FA"
+                   StrokeThickness="2"
+                   Fill="#223B82F6" />
+    </Canvas>
+</Window>

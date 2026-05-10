@@ -36,6 +36,22 @@ enum EntitlementStatus {
   revoked
 }
 
+enum BillingFeature {
+  wpf_audio_seconds
+  wpf_screenshot
+  wpf_text_request
+  resume_slot
+  resume_analysis
+  individual_response
+}
+
+enum UsageEventKind {
+  reserve
+  consume
+  release
+  adjust
+}
+
 enum ResumeStatus {
   draft
   uploaded
@@ -47,6 +63,42 @@ enum ResumeVersionSource {
   uploaded
   ai_rewrite
   manual
+  builder
+}
+
+enum ResumeSalaryCurrency {
+  RUB
+  EUR
+  USD
+}
+
+enum ResumeEmploymentType {
+  permanent
+  part_time
+  internship
+  unpaid_internship
+}
+
+enum ResumeWorkFormat {
+  onsite
+  remote
+  hybrid
+}
+
+enum ResumeContractType {
+  employment_contract
+  self_employed
+  individual_entrepreneur
+}
+
+enum ResumeBuilderEducationKind {
+  main
+  additional
+}
+
+enum IndividualResponseDecision {
+  matched
+  mismatch
 }
 
 enum TrainerSessionStatus {
@@ -60,6 +112,45 @@ enum TrainerMessageRole {
   system
   assistant
   user
+}
+
+enum DesktopAuthRequestStatus {
+  pending
+  approved
+  denied
+  expired
+}
+
+enum LiveTranscriptChannel {
+  call
+  mic
+}
+
+enum LiveAudioCaptureMode {
+  device
+  process
+  micOnly
+}
+
+enum LiveAnswerLength {
+  short
+  detailed
+}
+
+enum LiveAssistanceMode {
+  default
+  liveCoding
+}
+
+enum LiveAnswerProvider {
+  yandex
+  gemini
+}
+
+enum LiveAnswerKind {
+  auto
+  manual
+  screenshot
 }
 
 enum JobStatus {
@@ -90,9 +181,33 @@ enum WorkflowNodeStatus {
   skipped
 }
 
+enum LegalDocumentKind {
+  terms
+  privacy_policy
+  personal_data_consent
+  offer
+  refund_policy
+  cookie_policy
+}
+
+enum PrivacyRequestKind {
+  export_data
+  delete_account
+  correct_data
+  restrict_processing
+}
+
+enum PrivacyRequestStatus {
+  submitted
+  processing
+  completed
+  rejected
+}
+
 enum FilePurpose {
   resume_source
   resume_export
+  resume_photo
   screenshot
   temp_ai_output
 }
@@ -102,27 +217,50 @@ enum EmployerStatus {
   hidden
 }
 
+enum VacancyStatus {
+  published
+  hidden
+}
+
+enum VacancyUserEventType {
+  view_detail
+  open_source
+  cover_letter_start
+  application_confirmed
+}
+
 model User {
-  id                  String               @id @default(cuid())
+  id                  String                   @id @default(cuid())
   name                String
-  email               String               @unique
-  emailVerified       Boolean              @default(false)
+  email               String                   @unique
+  emailVerified       Boolean                  @default(false)
   image               String?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
   accounts            Account[]
   sessions            Session[]
   roleAssignments     RoleAssignment[]
   passwordResetTokens PasswordResetToken[]
   payments            Payment[]
   entitlements        Entitlement[]
+  usageCounters       UsageCounter[]
+  usageEvents         UsageEvent[]
   resumes             Resume[]
   resumeAnalyses      ResumeAnalysisArtifact[]
+  individualResponses IndividualResponseArtifact[]
+  autoResponseSettings AutoResponseSettings?
   resumeFolders       ResumeFolder[]
   trainerSessions     TrainerSession[]
+  desktopDevices      DesktopDevice[]
+  desktopAuthRequests DesktopAuthRequest[]
+  liveAssistantSettings LiveAssistantSettings?
+  liveSessions        LiveSession[]
   workflowRuns        WorkflowRun[]
   files               FileAsset[]
-  auditLogs           AuditLog[]           @relation("AuditActor")
+  auditLogs           AuditLog[]               @relation("AuditActor")
+  legalConsents       UserConsentAcceptance[]
+  privacyRequests     UserPrivacyRequest[]
+  vacancyEvents       VacancyUserEvent[]
 }
 
 model Session {
@@ -136,6 +274,7 @@ model Session {
   userId         String
   impersonatedBy String?
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  desktopAuthRequests DesktopAuthRequest[]
 }
 
 model Account {
@@ -207,11 +346,61 @@ model Plan {
   priceRub         Int
   subscriptionType String        @default("custom")
   durationDays     Int           @default(30)
+  rank             Int           @default(0)
+  displayOrder     Int           @default(100)
+  checkoutEnabled  Boolean       @default(true)
   active           Boolean       @default(true)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @default(now()) @updatedAt
   payments         Payment[]
   entitlements     Entitlement[]
+  limits           PlanLimit[]
+}
+
+model PlanLimit {
+  id           String         @id @default(cuid())
+  planId       String
+  feature      BillingFeature
+  limit        Int?
+  fairUseLimit Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  plan         Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, feature])
+  @@index([feature])
+}
+
+model UsageCounter {
+  id          String         @id @default(cuid())
+  userId      String
+  feature     BillingFeature
+  periodStart DateTime
+  periodEnd   DateTime
+  used        Int            @default(0)
+  reserved    Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feature, periodStart, periodEnd])
+  @@index([userId, periodEnd])
+}
+
+model UsageEvent {
+  id          String         @id @default(cuid())
+  userId      String
+  feature     BillingFeature
+  kind        UsageEventKind
+  delta       Int
+  periodStart DateTime
+  periodEnd   DateTime
+  metadata    Json?
+  createdAt   DateTime       @default(now())
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, feature, createdAt])
+  @@index([periodEnd])
 }
 
 model Payment {
@@ -252,25 +441,30 @@ model Entitlement {
 }
 
 model Resume {
-  id               String          @id @default(cuid())
+  id               String                   @id @default(cuid())
   userId           String
   folderId         String?
   title            String
-  status           ResumeStatus    @default(draft)
+  status           ResumeStatus             @default(draft)
   originalFileId   String?
+  exportFileId     String?
   currentVersionId String?
-  sortOrder        Int             @default(0)
+  sortOrder        Int                      @default(0)
   lastOpenedAt     DateTime?
   processingError  String?
   deletedAt        DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
   versions         ResumeVersion[]
-  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folder           ResumeFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  originalFile     FileAsset?      @relation("ResumeOriginalFile", fields: [originalFileId], references: [id])
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder           ResumeFolder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  originalFile     FileAsset?               @relation("ResumeOriginalFile", fields: [originalFileId], references: [id])
+  exportFile       FileAsset?               @relation("ResumeExportFile", fields: [exportFileId], references: [id])
+  builderProfile   ResumeBuilderProfile?
   sourceAnalyses   ResumeAnalysisArtifact[] @relation("ResumeAnalysisSource")
   derivedAnalyses  ResumeAnalysisArtifact[] @relation("ResumeAnalysisDerived")
+  individualResponses IndividualResponseArtifact[]
+  autoResponseDefaults AutoResponseSettings[]
 
   @@index([userId, folderId, deletedAt])
   @@index([userId, updatedAt])
@@ -287,44 +481,169 @@ model ResumeVersion {
   resume    Resume              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
+model ResumeBuilderProfile {
+  id                String                         @id @default(cuid())
+  resumeId          String                         @unique
+  photoFileId       String?                        @unique
+  photoPositionX    Int                            @default(50)
+  photoPositionY    Int                            @default(50)
+  photoScale        Float                          @default(1)
+  currentStep       String                         @default("intent")
+  profession        String                         @default("")
+  lastName          String                         @default("")
+  firstName         String                         @default("")
+  middleName        String                         @default("")
+  gender            String                         @default("")
+  city              String                         @default("")
+  birthDay          String                         @default("")
+  birthMonth        String                         @default("")
+  birthYear         String                         @default("")
+  citizenship       String                         @default("")
+  workPermit        String                         @default("")
+  contactPhone      String                         @default("")
+  contactEmail      String                         @default("")
+  contactTelegram   String                         @default("")
+  contactMax        String                         @default("")
+  contactVk         String                         @default("")
+  contactWhatsapp   String                         @default("")
+  contactComment    String                         @default("")
+  salaryAmount      Int?
+  salaryCurrency    ResumeSalaryCurrency           @default(RUB)
+  employmentTypes   ResumeEmploymentType[]         @default([])
+  workFormats       ResumeWorkFormat[]             @default([])
+  contractTypes     ResumeContractType[]           @default([])
+  about             Json?
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
+  resume            Resume                         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  photoFile         FileAsset?                     @relation("ResumeBuilderPhotoFile", fields: [photoFileId], references: [id], onDelete: SetNull)
+  educationEntries  ResumeBuilderEducationEntry[]
+  experienceEntries ResumeBuilderExperienceEntry[]
+  skills            ResumeBuilderSkill[]
+
+  @@index([updatedAt])
+}
+
+model ResumeBuilderEducationEntry {
+  id             String                     @id @default(cuid())
+  profileId      String
+  kind           ResumeBuilderEducationKind @default(main)
+  sortOrder      Int                        @default(0)
+  level          String                     @default("")
+  institution    String                     @default("")
+  faculty        String                     @default("")
+  specialization String                     @default("")
+  graduationYear String                     @default("")
+  activities     Json?
+  profile        ResumeBuilderProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, kind, sortOrder])
+}
+
+model ResumeBuilderExperienceEntry {
+  id          String               @id @default(cuid())
+  profileId   String
+  sortOrder   Int                  @default(0)
+  company     String               @default("")
+  position    String               @default("")
+  startMonth  String               @default("")
+  startYear   String               @default("")
+  endMonth    String               @default("")
+  endYear     String               @default("")
+  current     Boolean              @default(false)
+  description Json?
+  profile     ResumeBuilderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}
+
+model ResumeBuilderSkill {
+  id        String               @id @default(cuid())
+  profileId String
+  value     String
+  sortOrder Int                  @default(0)
+  profile   ResumeBuilderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}
+
 model ResumeFolder {
-  id        String   @id @default(cuid())
+  id        String                   @id @default(cuid())
   userId    String
   name      String
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sortOrder Int                      @default(0)
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
   resumes   Resume[]
   analyses  ResumeAnalysisArtifact[]
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, name])
   @@index([userId, sortOrder])
 }
 
 model ResumeAnalysisArtifact {
-  id              String       @id @default(cuid())
+  id              String        @id @default(cuid())
   userId          String
   folderId        String?
   sourceResumeId  String
   derivedResumeId String?
-  workflowRunId   String       @unique
+  workflowRunId   String        @unique
   title           String
   finalResult     Json
   studioData      Json?
-  sortOrder       Int          @default(0)
+  sortOrder       Int           @default(0)
   deletedAt       DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   folder          ResumeFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  sourceResume    Resume       @relation("ResumeAnalysisSource", fields: [sourceResumeId], references: [id], onDelete: Cascade)
-  derivedResume   Resume?      @relation("ResumeAnalysisDerived", fields: [derivedResumeId], references: [id], onDelete: SetNull)
-  workflowRun     WorkflowRun  @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  sourceResume    Resume        @relation("ResumeAnalysisSource", fields: [sourceResumeId], references: [id], onDelete: Cascade)
+  derivedResume   Resume?       @relation("ResumeAnalysisDerived", fields: [derivedResumeId], references: [id], onDelete: SetNull)
+  workflowRun     WorkflowRun   @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
 
   @@index([userId, folderId, deletedAt])
   @@index([userId, updatedAt])
   @@index([sourceResumeId])
+}
+
+model IndividualResponseArtifact {
+  id              String                     @id @default(cuid())
+  userId          String
+  resumeId        String
+  resumeTitle     String
+  vacancyText     String
+  source          String                     @default("manual")
+  vacancyUrl      String?
+  vacancyTitle    String?
+  employerName    String?
+  matchScore      Int
+  decision        IndividualResponseDecision
+  coverLetter     String?
+  summary         String                     @default("")
+  strengths       Json
+  weaknesses      Json
+  recommendations Json
+  modelId         String?
+  rawResult       Json
+  deletedAt       DateTime?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume          Resume                     @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt, updatedAt])
+  @@index([resumeId])
+}
+
+model AutoResponseSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  defaultResumeId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultResume   Resume?  @relation(fields: [defaultResumeId], references: [id], onDelete: SetNull)
 }
 
 model Question {
@@ -366,6 +685,127 @@ model TrainerMessage {
   session   TrainerSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
+model DesktopDevice {
+  id              String               @id @default(cuid())
+  userId          String
+  deviceName      String
+  lastSeenAt      DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authRequests    DesktopAuthRequest[]
+  liveSessions    LiveSession[]
+
+  @@index([userId, revokedAt])
+}
+
+model DesktopAuthRequest {
+  id            String                   @id @default(cuid())
+  requestId     String                   @unique
+  pollTokenHash String
+  displayCode   String                   @unique
+  deviceName    String
+  status        DesktopAuthRequestStatus @default(pending)
+  userId        String?
+  deviceId      String?
+  sessionId     String?
+  expiresAt     DateTime
+  approvedAt    DateTime?
+  deniedAt      DateTime?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  user          User?                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device        DesktopDevice?           @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  session       Session?                 @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([status, expiresAt])
+}
+
+model LiveAssistantSettings {
+  id             String             @id @default(cuid())
+  userId         String             @unique
+  answerProvider LiveAnswerProvider @default(yandex)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LiveAiPrompt {
+  key         String   @id
+  category    String
+  title       String
+  description String?
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+model LiveSession {
+  id                String                    @id @default(cuid())
+  userId            String
+  desktopDeviceId   String?
+  deviceId          String
+  sourceProcessId   Int
+  micDeviceId       String
+  subjectTag        String
+  audioCaptureMode  LiveAudioCaptureMode      @default(device)
+  answerLength      LiveAnswerLength          @default(short)
+  assistanceMode    LiveAssistanceMode        @default(default)
+  answerProvider    LiveAnswerProvider        @default(yandex)
+  startedAt         DateTime                  @default(now())
+  stoppedAt         DateTime?
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  desktopDevice     DesktopDevice?            @relation(fields: [desktopDeviceId], references: [id], onDelete: SetNull)
+  transcripts       LiveTranscriptSegment[]
+  answers           LiveAnswerEvent[]
+  screenshots       LiveScreenshotArtifact[]
+
+  @@index([userId, startedAt])
+}
+
+model LiveTranscriptSegment {
+  id          String                @id @default(cuid())
+  sessionId   String
+  channel     LiveTranscriptChannel
+  text        String
+  isFinal     Boolean               @default(false)
+  timestampMs BigInt
+  createdAt   DateTime              @default(now())
+  session     LiveSession           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model LiveAnswerEvent {
+  id          String         @id @default(cuid())
+  sessionId   String
+  kind        LiveAnswerKind
+  shortAnswer String
+  details     String         @default("")
+  confidence  Float          @default(0.8)
+  sourceTurns Json
+  createdAt   DateTime       @default(now())
+  session     LiveSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model LiveScreenshotArtifact {
+  id          String      @id @default(cuid())
+  sessionId   String
+  fileAssetId String      @unique
+  createdAt   DateTime    @default(now())
+  session     LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  fileAsset   FileAsset   @relation("LiveScreenshotFile", fields: [fileAssetId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
 model Job {
   id            String       @id @default(cuid())
   queue         String
@@ -395,25 +835,25 @@ model JobAttempt {
 }
 
 model WorkflowRun {
-  id              String            @id @default(cuid())
-  type            String
-  status          WorkflowRunStatus @default(pending)
-  input           Json
-  output          Json?
-  error           String?
-  currentNodeKey  String?
-  nextNodeKey     String?
-  finalResult     Json?
-  savedAnalysisId String?
-  derivedResumeId String?
-  createdByUserId String
-  startedAt       DateTime?
-  finishedAt      DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  createdBy       User              @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  id               String                  @id @default(cuid())
+  type             String
+  status           WorkflowRunStatus       @default(pending)
+  input            Json
+  output           Json?
+  error            String?
+  currentNodeKey   String?
+  nextNodeKey      String?
+  finalResult      Json?
+  savedAnalysisId  String?
+  derivedResumeId  String?
+  createdByUserId  String
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  createdBy        User                    @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
   analysisArtifact ResumeAnalysisArtifact?
-  nodes           WorkflowNodeRun[]
+  nodes            WorkflowNodeRun[]
 
   @@index([createdAt])
   @@index([status])
@@ -454,6 +894,9 @@ model FileAsset {
   createdAt     DateTime    @default(now())
   owner         User?       @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   sourceResumes Resume[]    @relation("ResumeOriginalFile")
+  exportResumes Resume[]    @relation("ResumeExportFile")
+  builderPhotos ResumeBuilderProfile[] @relation("ResumeBuilderPhotoFile")
+  liveScreenshots LiveScreenshotArtifact[] @relation("LiveScreenshotFile")
 }
 
 model AuditLog {
@@ -465,6 +908,59 @@ model AuditLog {
   metadata    Json?
   createdAt   DateTime @default(now())
   actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+}
+
+model LegalDocumentVersion {
+  id          String            @id @default(cuid())
+  kind        LegalDocumentKind
+  slug        String
+  version     String
+  title       String
+  summary     String?
+  content     String
+  active      Boolean           @default(false)
+  publishedAt DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  acceptances UserConsentAcceptance[]
+
+  @@unique([kind, version])
+  @@unique([slug, version])
+  @@index([kind, active])
+  @@index([slug, active])
+}
+
+model UserConsentAcceptance {
+  id                String               @id @default(cuid())
+  userId            String
+  documentVersionId String
+  kind              LegalDocumentKind
+  version           String
+  source            String               @default("web")
+  ipAddress         String?
+  userAgent         String?
+  acceptedAt        DateTime             @default(now())
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentVersion   LegalDocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, documentVersionId])
+  @@index([userId, kind, acceptedAt])
+}
+
+model UserPrivacyRequest {
+  id          String               @id @default(cuid())
+  userId      String
+  kind        PrivacyRequestKind
+  status      PrivacyRequestStatus @default(submitted)
+  message     String               @default("")
+  metadata    Json?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  completedAt DateTime?
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }
 
 model Employer {
@@ -503,6 +999,61 @@ model EmployerCategoryLink {
 
   @@id([employerId, categoryId])
   @@index([categoryId])
+}
+
+model Vacancy {
+  id                 String        @id @default(cuid())
+  externalId         String
+  source             String        @default("external_import")
+  title              String
+  companyName        String
+  categoryName       String
+  categorySlug       String
+  level              String
+  salaryText         String?
+  salaryValue        Int?
+  salaryCurrency     String?
+  workFormat         String?
+  location           String?
+  datePosted         DateTime?
+  employmentType     String?
+  directApply        Boolean       @default(false)
+  applyButtonLabel   String?
+  applyDirectKind    String?
+  description        String
+  skillsText         String?
+  qualificationsText String?
+  benefitsText       String?
+  url                String?
+  status             VacancyStatus @default(published)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  userEvents         VacancyUserEvent[]
+
+  @@unique([source, externalId])
+  @@index([status, datePosted])
+  @@index([categorySlug])
+  @@index([level])
+  @@index([salaryValue])
+  @@index([location])
+  @@index([workFormat])
+  @@index([companyName])
+}
+
+model VacancyUserEvent {
+  id        String               @id @default(cuid())
+  userId    String
+  vacancyId String
+  type      VacancyUserEventType
+  source    String               @default("web")
+  metadata  Json?
+  createdAt DateTime             @default(now())
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vacancy   Vacancy              @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, createdAt])
+  @@index([vacancyId, type, createdAt])
+  @@index([userId, vacancyId, type, createdAt])
 }
 
 model AdminJsSession {

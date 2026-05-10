@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "OfferGO HH Copilot",
+  "version": "0.1.0",
+  "description": "OfferGO copilot for hh.ru responses.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://hh.ru/*",
+    "https://*.hh.ru/*",
+    "http://localhost:3001/*",
+    "http://127.0.0.1:3001/*",
+    "https://offergo.ru/*",
+    "https://*.offergo.ru/*"
+  ],
+  "action": {
+    "default_title": "OfferGO HH Copilot",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://hh.ru/*", "https://*.hh.ru/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

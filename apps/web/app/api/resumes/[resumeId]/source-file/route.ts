@@ -9,10 +9,20 @@ type RouteContext = {
   }>;
 };
 
+function buildSourceFilePath(request: Request, resumeId: string) {
+  const url = new URL(request.url);
+  const disposition = url.searchParams.get("disposition");
+  const search = disposition
+    ? `?disposition=${encodeURIComponent(disposition)}`
+    : "";
+
+  return `/api/v1/resumes/${resumeId}/source-file${search}`;
+}
+
 export async function GET(request: Request, context: RouteContext) {
   const { resumeId } = await context.params;
 
-  return proxyResumeLibrary(`/api/v1/resumes/${resumeId}/source-file`, {
+  return proxyResumeLibrary(buildSourceFilePath(request, resumeId), {
     headers: request.headers,
   });
 }
@@ -20,7 +30,7 @@ export async function GET(request: Request, context: RouteContext) {
 export async function HEAD(request: Request, context: RouteContext) {
   const { resumeId } = await context.params;
 
-  return proxyResumeLibrary(`/api/v1/resumes/${resumeId}/source-file`, {
+  return proxyResumeLibrary(buildSourceFilePath(request, resumeId), {
     headers: request.headers,
     method: "HEAD",
   });

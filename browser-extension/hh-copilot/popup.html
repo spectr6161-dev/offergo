@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>OfferGO HH Copilot</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <section id="authView" class="auth-view">
+        <input
+          id="codeInput"
+          autocomplete="off"
+          inputmode="latin"
+          placeholder="Код подключения"
+        />
+        <button id="connectButton" class="primary" type="button">
+          Подключить
+        </button>
+        <div class="status" id="authStatusBox"></div>
+      </section>
+
+      <section id="appView" class="app-view" hidden>
+        <header>
+          <div class="brand">OfferGO</div>
+          <button id="logoutButton" type="button">Выйти</button>
+        </header>
+
+        <label>
+          Резюме
+          <select id="resumeSelect">
+            <option value="">Загрузка...</option>
+          </select>
+        </label>
+
+        <section class="status" id="statusBox">
+          Откройте вакансию на hh.ru.
+        </section>
+
+        <button id="extractButton" type="button">Считать вакансию</button>
+        <button id="generateButton" class="primary" type="button">
+          Сгенерировать отклик
+        </button>
+        <button id="fillButton" type="button">Вставить в форму hh.ru</button>
+
+        <textarea
+          id="letterPreview"
+          placeholder="Здесь появится текст отклика"
+          readonly
+        ></textarea>
+        <p class="note">
+          Расширение не нажимает финальную отправку. Проверьте текст и отправьте
+          отклик вручную.
+        </p>
+      </section>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

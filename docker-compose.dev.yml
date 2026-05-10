@@ -13,6 +13,7 @@ x-app-volumes: &app-volumes
   - shared-node-modules:/app/packages/shared/node_modules
   - ui-node-modules:/app/packages/ui/node_modules
   - db-generated:/app/packages/db/generated
+  - web-next-cache:/app/apps/web/.next
 
 services:
   api:
@@ -30,7 +31,7 @@ services:
       NODE_ENV: development
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
-    command: pnpm --filter @offergo/web exec next dev --hostname 0.0.0.0
+    command: sh -c "mkdir -p /app/apps/web/.next && find /app/apps/web/.next -mindepth 1 -maxdepth 1 -exec rm -rf {} + && pnpm --filter @offergo/web exec next dev --hostname 0.0.0.0"
     volumes: *app-volumes
 
   worker:
@@ -55,3 +56,4 @@ volumes:
   shared-node-modules:
   ui-node-modules:
   db-generated:
+  web-next-cache:

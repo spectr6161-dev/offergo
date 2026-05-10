@@ -18,10 +18,17 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 import type { AuthenticatedAppUser } from "@offergo/auth/session";
+import {
+  finalizeQuotaReservation,
+  releaseQuotaReservation,
+  reserveQuota,
+  type UsageReservation,
+} from "@offergo/billing";
 import { prisma } from "@offergo/db";
 import { z } from "zod";
 
 import { ApiAuthGuard } from "../auth/auth.guard";
+import { throwIfQuotaExceeded } from "../billing/quota-http";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { WorkflowService } from "./workflow.service";
 
@@ -86,11 +93,28 @@ export class ResumeAnalysisController {
     @Body() body: unknown,
   ) {
     const parsed = startResumeAnalysisRunSchema.parse(body);
+    let reservation: UsageReservation | null = null;
 
-    return this.workflows.startResumeAnalysisWorkflow(user.id, {
-      resumeId: parsed.resumeId,
-      persistResults: true,
-    });
+    try {
+      reservation = await reserveQuota(user.id, "resume_analysis");
+      const run = await this.workflows.startResumeAnalysisWorkflow(user.id, {
+        resumeId: parsed.resumeId,
+        persistResults: true,
+      });
+      await finalizeQuotaReservation(reservation, {
+        workflowRunId: run.id,
+        resumeId: parsed.resumeId,
+      });
+      return run;
+    } catch (error) {
+      if (reservation) {
+        await releaseQuotaReservation(reservation, {
+          resumeId: parsed.resumeId,
+          reason: "resume_analysis_start_failed",
+        }).catch(() => undefined);
+      }
+      throwIfQuotaExceeded(error);
+    }
   }
 
   @Get("saved")

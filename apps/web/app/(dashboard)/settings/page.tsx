@@ -13,6 +13,7 @@ import {
   SettingsLogoutIconButton,
   SettingsThemeToggleCompact,
 } from "@/components/settings-inline-controls";
+import { SettingsPrivacyControls } from "@/components/settings-privacy-controls";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -423,6 +424,13 @@ export default async function SettingsPage() {
               </ItemContent>
             </Item>
           </ItemGroup>
+        </section>
+
+        <Separator />
+
+        <section className="flex flex-col gap-4">
+          <SectionHeader>Персональные данные</SectionHeader>
+          <SettingsPrivacyControls />
         </section>
 
         <Separator />

@@ -1,5 +1,5 @@
+import { IndividualResponsesClient } from "@/components/cover-materials/individual-responses-client";
+
 export default function IndividualResponsesPage() {
-  return (
-    <main className="min-h-[calc(100vh-var(--header-height)-2.5rem)]" />
-  );
+  return <IndividualResponsesClient />;
 }

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeftIcon,
@@ -14,18 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-import type { PdfViewerStatus } from "./pdf-resume-viewer-renderer";
-
-const PdfResumeViewerRenderer = dynamic(
-  () =>
-    import("./pdf-resume-viewer-renderer").then(
-      (module) => module.PdfResumeViewerRenderer
-    ),
-  {
-    loading: () => <PdfViewerSkeleton />,
-    ssr: false,
-  }
-);
+type PdfViewerStatus = "loading" | "ready" | "error";
 
 export function PdfResumeViewer({
   resumeId,
@@ -35,7 +23,32 @@ export function PdfResumeViewer({
   title: string;
 }) {
   const [status, setStatus] = useState<PdfViewerStatus>("loading");
-  const [pageCount, setPageCount] = useState(0);
+  const sourceUrl = `/api/resumes/${resumeId}/source-file?disposition=inline`;
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setStatus("loading");
+
+    fetch(sourceUrl, {
+      cache: "no-store",
+      credentials: "include",
+      method: "HEAD",
+      signal: controller.signal,
+    })
+      .then((response) => {
+        setStatus(response.ok ? "ready" : "error");
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setStatus("error");
+      });
+
+    return () => controller.abort();
+  }, [sourceUrl]);
 
   return (
     <div className="flex h-[calc(100vh-var(--header-height))] min-h-0 flex-col bg-background">
@@ -52,7 +65,7 @@ export function PdfResumeViewer({
         <div
           className={cn(
             "flex items-center gap-1 text-xs text-muted-foreground",
-            status === "error" && "text-destructive"
+            status === "error" && "text-destructive",
           )}
         >
           {status === "loading" ? (
@@ -66,26 +79,41 @@ export function PdfResumeViewer({
             ? "Загрузка PDF..."
             : status === "error"
               ? "Ошибка PDF"
-              : pageCount > 0
-                ? `${pageCount} стр.`
-                : "PDF готов"}
+              : "PDF готов"}
         </div>
       </header>
-      <PdfResumeViewerRenderer
-        resumeId={resumeId}
-        onPageCountChange={setPageCount}
-        onStatusChange={setStatus}
-      />
+      <main className="min-h-0 flex-1 bg-muted/30 p-3 sm:p-6">
+        {status === "error" ? (
+          <PdfViewerMessage text="PDF-файл недоступен в текущем окружении." />
+        ) : (
+          <div className="relative h-full overflow-hidden rounded-sm border bg-background shadow-sm">
+            {status === "loading" ? <PdfViewerSkeleton /> : null}
+            {status === "ready" ? (
+              <iframe
+                className="h-full w-full"
+                src={sourceUrl}
+                title={`PDF резюме: ${title}`}
+              />
+            ) : null}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
 
 function PdfViewerSkeleton() {
   return (
-    <main className="min-h-0 flex-1 overflow-hidden bg-muted/30 px-3 py-6 sm:px-6">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <Skeleton className="mx-auto aspect-[210/297] w-full max-w-[720px] rounded-sm" />
-      </div>
-    </main>
+    <div className="absolute inset-0 flex items-center justify-center bg-muted/30 p-6">
+      <Skeleton className="aspect-[210/297] h-full max-h-full max-w-[720px] rounded-sm" />
+    </div>
+  );
+}
+
+function PdfViewerMessage({ text }: { text: string }) {
+  return (
+    <div className="flex h-full min-h-72 items-center justify-center rounded-sm border bg-background p-6 text-center text-sm text-muted-foreground shadow-sm">
+      {text}
+    </div>
   );
 }

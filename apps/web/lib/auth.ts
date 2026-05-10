@@ -17,6 +17,17 @@ type MeResponse = {
 
 export type WebAppUser = MeResponse["user"];
 
+type ConsentStatusResponse = {
+  ok: boolean;
+  missingDocuments: Array<{
+    id: string;
+    kind: string;
+    slug: string;
+    version: string;
+    title: string;
+  }>;
+};
+
 export async function getCurrentUser() {
   try {
     const response = await apiFetch<MeResponse>("/api/v1/auth/me");
@@ -28,6 +39,20 @@ export async function getCurrentUser() {
 
     throw error;
   }
+}
+
+export async function getConsentStatus() {
+  return apiFetch<ConsentStatusResponse>("/api/v1/legal/consents/status");
+}
+
+export async function requireAcceptedLegalDocuments() {
+  const status = await getConsentStatus();
+
+  if (!status.ok) {
+    redirect("/legal/accept");
+  }
+
+  return status;
 }
 
 export async function requireUser() {

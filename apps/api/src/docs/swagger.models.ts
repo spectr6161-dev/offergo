@@ -53,6 +53,166 @@ export class AdminPingResponseDto {
   user!: AuthenticatedUserDto;
 }
 
+export class MobileLegalDocumentSummaryDto {
+  @ApiProperty({ type: String })
+  id!: string;
+
+  @ApiProperty({
+    type: String,
+    example: "privacy_policy",
+  })
+  kind!: string;
+
+  @ApiProperty({ type: String, example: "privacy-policy" })
+  slug!: string;
+
+  @ApiProperty({ type: String, example: "2026-05-06" })
+  version!: string;
+
+  @ApiProperty({ type: String, example: "Политика обработки персональных данных" })
+  title!: string;
+
+  @ApiPropertyOptional({ type: String, nullable: true })
+  summary!: string | null;
+
+  @ApiProperty({ type: Boolean })
+  active!: boolean;
+
+  @ApiProperty({ type: String, format: "date-time" })
+  publishedAt!: string;
+}
+
+export class MobileLegalStatusDto {
+  @ApiProperty({ type: Boolean })
+  ok!: boolean;
+
+  @ApiProperty({ type: () => MobileLegalDocumentSummaryDto, isArray: true })
+  missingDocuments!: MobileLegalDocumentSummaryDto[];
+}
+
+export class MobileUserAccountDto {
+  @ApiProperty({ type: String })
+  providerId!: string;
+
+  @ApiProperty({ type: String })
+  accountId!: string;
+}
+
+export class MobileUserDto {
+  @ApiProperty({ type: String })
+  id!: string;
+
+  @ApiProperty({ type: String, format: "email" })
+  email!: string;
+
+  @ApiProperty({ type: String })
+  name!: string;
+
+  @ApiPropertyOptional({ type: String, nullable: true })
+  image!: string | null;
+
+  @ApiProperty({ type: String, enum: appRoles, isArray: true })
+  roles!: string[];
+
+  @ApiProperty({ type: () => MobileUserAccountDto, isArray: true })
+  accounts!: MobileUserAccountDto[];
+}
+
+export class MobileSignUpRequestDto {
+  @ApiProperty({
+    type: String,
+    format: "email",
+    example: "user@example.com",
+  })
+  email!: string;
+
+  @ApiProperty({
+    type: String,
+    minLength: 8,
+    example: "StrongPass123",
+  })
+  password!: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: "Максим Дружинин",
+  })
+  name?: string;
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    description:
+      "IDs of all active required legal document versions shown to the user in the native app.",
+    example: ["clv_terms_id", "clv_privacy_id"],
+  })
+  acceptedDocumentIds!: string[];
+}
+
+export class MobileSignInRequestDto {
+  @ApiProperty({
+    type: String,
+    format: "email",
+    example: "user@example.com",
+  })
+  email!: string;
+
+  @ApiProperty({
+    type: String,
+    example: "StrongPass123",
+  })
+  password!: string;
+}
+
+export class MobileAuthResponseDto {
+  @ApiProperty({ type: String })
+  accessToken!: string;
+
+  @ApiProperty({ type: String, example: "Bearer" })
+  tokenType!: "Bearer";
+
+  @ApiProperty({ type: String, format: "date-time" })
+  expiresAt!: string;
+
+  @ApiProperty({ type: () => MobileUserDto })
+  user!: MobileUserDto;
+
+  @ApiProperty({ type: () => MobileLegalStatusDto })
+  legal!: MobileLegalStatusDto;
+}
+
+export class MobileSessionResponseDto extends MobileAuthResponseDto {}
+
+export class MobileLogoutResponseDto {
+  @ApiProperty({ type: Boolean, example: true })
+  ok!: boolean;
+}
+
+export class AcceptConsentsRequestDto {
+  @ApiPropertyOptional({
+    type: String,
+    example: "mobile_register",
+  })
+  source?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    isArray: true,
+    description:
+      "Optional exact active legal document version IDs accepted by the client. If omitted, all active required documents are accepted for backward compatibility.",
+    example: ["clv_terms_id", "clv_privacy_id"],
+  })
+  documentIds?: string[];
+}
+
+export class AcceptConsentsResponseDto {
+  @ApiProperty({ type: Boolean, example: true })
+  ok!: boolean;
+
+  @ApiProperty({ type: String, format: "date-time" })
+  acceptedAt!: string;
+}
+
 export class StartCheckoutBodyDto {
   @ApiProperty({
     type: String,

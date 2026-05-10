@@ -1,16 +1,11 @@
-import { PricingSection } from "@/components/pricing-section";
-import type { BillingPlanCard } from "@/components/pricing-section";
+import {
+  PricingSection,
+  type BillingPlanCard,
+  type BillingSubscriptionSummary,
+} from "@/components/pricing-section";
 import { apiFetch, getApiErrorMessage } from "@/lib/api";
 
-type ApiPlan = {
-  id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  priceRub: number;
-  subscriptionType: string;
-  durationDays: number;
-};
+type ApiPlan = Omit<BillingPlanCard, "planId">;
 
 type ApiListResponse<T> = {
   items: T[];
@@ -30,7 +25,10 @@ async function getBillingPlans() {
     );
 
     return {
-      items: response.items,
+      items: response.items.map((plan) => ({
+        ...plan,
+        planId: plan.id,
+      })),
     };
   } catch (error) {
     return {
@@ -40,11 +38,16 @@ async function getBillingPlans() {
   }
 }
 
-function buildPricingCards(apiPlans: ApiPlan[]): BillingPlanCard[] {
-  return apiPlans.map((plan) => ({
-    ...plan,
-    planId: plan.id,
-  }));
+async function getSubscription() {
+  try {
+    return await apiFetch<BillingSubscriptionSummary>(
+      "/api/v1/billing/subscription",
+    );
+  } catch (error) {
+    return {
+      error: getApiErrorMessage(error),
+    };
+  }
 }
 
 async function syncReturnedPayment(paymentId?: string) {
@@ -55,29 +58,36 @@ async function syncReturnedPayment(paymentId?: string) {
   try {
     await apiFetch(`/api/v1/billing/payments/${paymentId}/status`);
   } catch {
-    // Payment status sync is opportunistic; the subscription table still shows pending.
+    // Payment status sync is opportunistic; subscription data below still loads.
   }
 }
 
 export default async function BillingPage({ searchParams }: BillingPageProps) {
   const query = await searchParams;
-  const [plansResult] = await Promise.all([
+  await syncReturnedPayment(query.paymentId);
+
+  const [plansResult, subscriptionResult] = await Promise.all([
     getBillingPlans(),
-    syncReturnedPayment(query.paymentId),
+    getSubscription(),
   ]);
-  const pricingCards = buildPricingCards(plansResult.items);
+  const error =
+    plansResult.error ||
+    ("error" in subscriptionResult ? subscriptionResult.error : null);
 
   return (
-    <main className="flex min-h-[calc(100vh-var(--header-height))] items-start justify-center px-4 py-12 md:px-6 md:py-16">
-      {plansResult.error ? (
+    <main className="flex min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background px-4 py-2 text-foreground md:px-6 lg:px-8">
+      {error || "error" in subscriptionResult ? (
         <div
-          className="w-full max-w-2xl rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive"
+          className="w-full rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive"
           role="alert"
         >
-          Не удалось загрузить тарифы: {plansResult.error}
+          Не удалось загрузить тарифы: {error}
         </div>
       ) : (
-        <PricingSection plans={pricingCards} />
+        <PricingSection
+          plans={plansResult.items}
+          subscription={subscriptionResult}
+        />
       )}
     </main>
   );

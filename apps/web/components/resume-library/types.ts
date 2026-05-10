@@ -20,6 +20,7 @@ export type ResumeLibraryResume = {
   status: string;
   folderId: string | null;
   originalFileId: string | null;
+  exportFileId: string | null;
   currentVersionId: string | null;
   sortOrder: number;
   lastOpenedAt: string | null;
@@ -28,6 +29,7 @@ export type ResumeLibraryResume = {
   createdAt: string;
   updatedAt: string;
   originalFile: ResumeLibraryFile;
+  exportFile: ResumeLibraryFile;
   currentVersion: ResumeLibraryVersion | null;
 };
 

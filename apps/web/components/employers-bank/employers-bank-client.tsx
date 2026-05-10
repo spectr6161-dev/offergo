@@ -687,7 +687,7 @@ export function EmployersBankClient() {
   }
 
   return (
-    <main className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:px-8">
+    <main className="mx-auto grid w-full max-w-none grid-cols-1 gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-x-10 lg:px-8">
       <div className="lg:col-span-2">
         <EmployerSearchBar
           value={searchText}

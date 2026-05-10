@@ -13,8 +13,19 @@ type ErrorResponse = {
     path: string;
     timestamp: string;
     details?: unknown;
+    [key: string]: unknown;
   };
 };
+
+function getHttpExceptionPayload(exception: HttpException) {
+  const response = exception.getResponse();
+
+  if (!response || typeof response !== "object") {
+    return {};
+  }
+
+  return response as Record<string, unknown>;
+}
 
 function getHttpExceptionMessage(exception: HttpException) {
   const response = exception.getResponse();
@@ -58,6 +69,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     let code = "internal_error";
     let message = "Internal server error";
     let details: unknown;
+    let extra: Record<string, unknown> = {};
 
     if (exception instanceof ZodError) {
       statusCode = HttpStatus.BAD_REQUEST;
@@ -82,8 +94,18 @@ export class ApiExceptionFilter implements ExceptionFilter {
       }
     } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
-      code = statusCode >= 500 ? "http_error" : "request_error";
+      const payload = getHttpExceptionPayload(exception);
+      code =
+        typeof payload.code === "string"
+          ? payload.code
+          : statusCode >= 500
+            ? "http_error"
+            : "request_error";
       message = getHttpExceptionMessage(exception);
+      details = payload.details;
+      const { code: _code, message: _message, details: _details, ...rest } =
+        payload;
+      extra = rest;
     } else if (isProviderError(exception)) {
       statusCode = HttpStatus.BAD_GATEWAY;
       code = "provider_error";
@@ -114,6 +136,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
         statusCode,
         path: request.url,
         timestamp,
+        ...extra,
         ...(details ? { details } : {}),
       },
     };

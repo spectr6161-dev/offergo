@@ -1,0 +1,12 @@
+{
+	admin off
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	@api path /api/v1/* /api/auth/* /api/docs* /api/docs-json /adminjs* /ws/live*
+	reverse_proxy @api api:3001
+
+	reverse_proxy web:3000
+}

@@ -1,0 +1,24 @@
+<Application x:Class="TutorOverlay.Client.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Dark"
+                                             PrimaryColor="Blue"
+                                             SecondaryColor="LightBlue" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="WindowSurfaceBrush" Color="#FF03050A" />
+            <SolidColorBrush x:Key="CardSurfaceBrush" Color="#FF0E1420" />
+            <SolidColorBrush x:Key="CardSurfaceAltBrush" Color="#FF111A2B" />
+            <SolidColorBrush x:Key="AccentGreenBrush" Color="#FF3B82F6" />
+            <SolidColorBrush x:Key="AccentGreenSoftBrush" Color="#333B82F6" />
+            <SolidColorBrush x:Key="MutedBrush" Color="#FF94A3B8" />
+            <SolidColorBrush x:Key="SoftTextBrush" Color="#FFD8E6F8" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

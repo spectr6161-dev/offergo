@@ -200,6 +200,7 @@ function formatDate(value: string | null) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "Europe/Moscow",
   }).format(new Date(value));
 }
 
@@ -324,12 +325,24 @@ const libraryGridPreviewClass =
 const libraryGridMenuClass =
   "absolute right-1 top-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100";
 
+function getResumeServedFile(resume: ResumeLibraryResume) {
+  return resume.exportFile ?? resume.originalFile;
+}
+
 function isPdfResume(resume: ResumeLibraryResume) {
-  return resume.originalFile?.mimeType === "application/pdf";
+  return getResumeServedFile(resume)?.mimeType === "application/pdf";
+}
+
+function hasResumeServedFile(resume: ResumeLibraryResume) {
+  return Boolean(getResumeServedFile(resume));
+}
+
+function isBuilderResume(resume: ResumeLibraryResume) {
+  return resume.currentVersion?.source === "builder";
 }
 
 function ResumePreview({ resume }: { resume: ResumeLibraryResume }) {
-  if (isPdfResume(resume) && resume.originalFileId) {
+  if (isPdfResume(resume) && hasResumeServedFile(resume)) {
     return (
       <PdfResumePreview
         fallback={<TextResumePreview className="border-0 shadow-none" resume={resume} />}
@@ -428,6 +441,7 @@ function ResumeCard({
   onOpenActionMenu,
   onOpenContextMenu,
   onOpenPdf,
+  onEdit,
   onRename,
   onDuplicate,
   onMove,
@@ -448,6 +462,7 @@ function ResumeCard({
     event: ReactMouseEvent<HTMLElement>
   ) => void;
   onOpenPdf: (resume: ResumeLibraryResume) => void;
+  onEdit: (resume: ResumeLibraryResume) => void;
   onRename: (resume: ResumeLibraryResume) => void;
   onDuplicate: (resume: ResumeLibraryResume) => void;
   onMove: (resume: ResumeLibraryResume, folderId: string | null) => void;
@@ -508,6 +523,7 @@ function ResumeCard({
             onAnalyze={onAnalyze}
             onDelete={onDelete}
             onDuplicate={onDuplicate}
+            onEdit={onEdit}
             onMove={onMove}
             onOpen={onOpen}
             onOpenPdf={onOpenPdf}
@@ -554,6 +570,7 @@ function ResumeCard({
           onAnalyze={onAnalyze}
           onDelete={onDelete}
           onDuplicate={onDuplicate}
+          onEdit={onEdit}
           onMove={onMove}
           onOpen={onOpen}
           onOpenPdf={onOpenPdf}
@@ -926,6 +943,7 @@ function ResumeCardMenu({
   onOpen,
   onAnalyze,
   onOpenPdf,
+  onEdit,
   onRename,
   onDuplicate,
   onMove,
@@ -937,6 +955,7 @@ function ResumeCardMenu({
   onOpen: (resume: ResumeLibraryResume) => void;
   onAnalyze: (resume: ResumeLibraryResume) => void;
   onOpenPdf: (resume: ResumeLibraryResume) => void;
+  onEdit: (resume: ResumeLibraryResume) => void;
   onRename: (resume: ResumeLibraryResume) => void;
   onDuplicate: (resume: ResumeLibraryResume) => void;
   onMove: (resume: ResumeLibraryResume, folderId: string | null) => void;
@@ -957,6 +976,7 @@ function ResumeCardMenu({
           onAnalyze={onAnalyze}
           onDelete={onDelete}
           onDuplicate={onDuplicate}
+          onEdit={onEdit}
           onMove={onMove}
           onOpen={onOpen}
           onOpenPdf={onOpenPdf}
@@ -974,6 +994,7 @@ function ResumeCardMenuContent({
   onOpen,
   onAnalyze,
   onOpenPdf,
+  onEdit,
   onRename,
   onDuplicate,
   onMove,
@@ -985,6 +1006,7 @@ function ResumeCardMenuContent({
   onOpen: (resume: ResumeLibraryResume) => void;
   onAnalyze: (resume: ResumeLibraryResume) => void;
   onOpenPdf: (resume: ResumeLibraryResume) => void;
+  onEdit: (resume: ResumeLibraryResume) => void;
   onRename: (resume: ResumeLibraryResume) => void;
   onDuplicate: (resume: ResumeLibraryResume) => void;
   onMove: (resume: ResumeLibraryResume, folderId: string | null) => void;
@@ -1001,10 +1023,16 @@ function ResumeCardMenuContent({
             <FileTextIcon data-icon="inline-start" />
             Открыть
           </DropdownMenuItem>
-          {isPdfResume(resume) && resume.originalFileId ? (
+          {isPdfResume(resume) && hasResumeServedFile(resume) ? (
             <DropdownMenuItem onClick={() => onOpenPdf(resume)}>
               <FileSearchIcon data-icon="inline-start" />
               Открыть PDF
+            </DropdownMenuItem>
+          ) : null}
+          {isBuilderResume(resume) ? (
+            <DropdownMenuItem onClick={() => onEdit(resume)}>
+              <PencilIcon data-icon="inline-start" />
+              Редактировать анкету
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuItem disabled={!hasText} onClick={() => onAnalyze(resume)}>
@@ -1037,7 +1065,7 @@ function ResumeCardMenuContent({
             ))}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-        {resume.originalFileId ? (
+        {hasResumeServedFile(resume) ? (
           <DropdownMenuItem asChild>
             <a href={`/api/resumes/${resume.id}/source-file`}>
               <DownloadIcon data-icon="inline-start" />
@@ -1503,7 +1531,16 @@ export function ResumeLibraryClient() {
     }
   }
 
+  function handleEditBuilder(resume: ResumeLibraryResume) {
+    router.push(`/resumes/${resume.id}/edit`);
+  }
+
   function handleOpen(resume: ResumeLibraryResume) {
+    if (isBuilderResume(resume)) {
+      router.push(`/resumes/${resume.id}`);
+      return;
+    }
+
     router.push(`/resumes/${resume.id}`);
   }
 
@@ -1625,7 +1662,7 @@ export function ResumeLibraryClient() {
   }
 
   function handleOpenPdf(resume: ResumeLibraryResume) {
-    if (!isPdfResume(resume) || !resume.originalFileId) {
+    if (!isPdfResume(resume) || !hasResumeServedFile(resume)) {
       toast.error("У этого резюме нет оригинального PDF.");
       return;
     }
@@ -1927,7 +1964,7 @@ export function ResumeLibraryClient() {
                 <DropdownMenuItem
                   disabled={
                     !isPdfResume(actionMenu.resume) ||
-                    !actionMenu.resume.originalFileId
+                    !hasResumeServedFile(actionMenu.resume)
                   }
                   onClick={() => handleActionOpenPdf(actionMenu.resume!)}
                 >
@@ -1976,6 +2013,7 @@ export function ResumeLibraryClient() {
                 onAnalyze={requestAnalyze}
                 onDelete={handleDelete}
                 onDuplicate={handleDuplicate}
+                onEdit={handleEditBuilder}
                 onMove={handleMove}
                 onOpen={handleOpen}
                 onOpenPdf={handleOpenPdf}
@@ -2159,6 +2197,7 @@ export function ResumeLibraryClient() {
                     onAnalyze={requestAnalyze}
                     onDelete={handleDelete}
                     onDuplicate={handleDuplicate}
+                    onEdit={handleEditBuilder}
                     onMove={handleMove}
                     onOpen={handleOpen}
                     onOpenActionMenu={openResumeActionMenu}

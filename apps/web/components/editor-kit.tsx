@@ -90,6 +90,12 @@ export const EditorKit = [
   ...FloatingToolbarKit,
 ];
 
+const dndPlugins = new Set<unknown>(DndKit);
+
+export const WizardEditorKit = EditorKit.filter(
+  (plugin) => !dndPlugins.has(plugin)
+);
+
 export type MyEditor = TPlateEditor<Value, (typeof EditorKit)[number]>;
 
 export const useEditor = () => useEditorRef<MyEditor>();
