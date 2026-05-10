@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/assets/readme-cover.svg" alt="OfferGO cover" width="100%" />
+  <img src="./docs/assets/readme-cover.svg" alt="Обложка OfferGO" width="100%" />
 </p>
 
 <h1 align="center">OfferGO</h1>
@@ -10,18 +10,18 @@
 
 <p align="center">
   <a href="https://offergo.ru">offergo.ru</a>
-  ·
-  <a href="#quick-start">Quick start</a>
-  ·
+  |
+  <a href="#quick-start">Быстрый старт</a>
+  |
   <a href="#api">API</a>
-  ·
-  <a href="#architecture">Architecture</a>
-  ·
-  <a href="#desktop-extension-mobile">Clients</a>
+  |
+  <a href="#architecture">Архитектура</a>
+  |
+  <a href="#clients">Клиенты</a>
 </p>
 
 <p align="center">
-  <a href="https://offergo.ru"><img alt="Live" src="https://img.shields.io/badge/live-offergo.ru-0EA5E9?style=for-the-badge"></a>
+  <a href="https://offergo.ru"><img alt="Продакшен" src="https://img.shields.io/badge/live-offergo.ru-0EA5E9?style=for-the-badge"></a>
   <a href="#stack"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white"></a>
   <a href="#stack"><img alt="NestJS" src="https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white"></a>
   <a href="#database"><img alt="Prisma" src="https://img.shields.io/badge/Prisma-6-2D3748?style=for-the-badge&logo=prisma&logoColor=white"></a>
@@ -40,65 +40,67 @@
 
 ---
 
-## Product
+## Что такое OfferGO
 
-OfferGO объединяет основные сценарии поиска работы в одном продукте: пользователь создаёт резюме, анализирует его, ищет вакансии и работодателей, генерирует индивидуальные отклики, подключает автоотклики через расширение и использует desktop live-помощника на собеседовании.
+OfferGO объединяет основные сценарии поиска работы в одном продукте: пользователь создаёт резюме, анализирует его, смотрит вакансии и работодателей, генерирует индивидуальные отклики, подключает автоотклики через расширение и использует desktop live-помощника на собеседовании.
 
 <table>
   <tr>
-    <td><b>Resume Builder</b></td>
-    <td>Wizard-резюме, фото с настройкой области, просмотр, редактирование, печать, PDF/DOCX/TXT export.</td>
+    <td><b>Конструктор резюме</b></td>
+    <td>Wizard-резюме, фото с настройкой области, просмотр, редактирование, печать, экспорт в PDF/DOCX/TXT.</td>
   </tr>
   <tr>
-    <td><b>Cover Materials</b></td>
-    <td>Индивидуальные отклики одним AI-запросом, история, автоотклики через browser extension.</td>
+    <td><b>Сопроводительные материалы</b></td>
+    <td>Индивидуальные отклики одним AI-запросом, история генераций, автоотклики через browser extension.</td>
   </tr>
   <tr>
-    <td><b>Vacancies</b></td>
-    <td>Банк вакансий в Postgres, фильтры, детальная карточка, события просмотра и переходов.</td>
+    <td><b>Вакансии</b></td>
+    <td>Банк вакансий в Postgres, фильтры, детальная карточка, события просмотров и переходов.</td>
   </tr>
   <tr>
-    <td><b>Employer Bank</b></td>
-    <td>Каталог работодателей, сайты компаний, админское управление данными.</td>
+    <td><b>Банк работодателей</b></td>
+    <td>Каталог работодателей, сайты компаний, список открытых данных и админское управление.</td>
   </tr>
   <tr>
-    <td><b>Interview Assistant</b></td>
+    <td><b>Помощник на собеседовании</b></td>
     <td>WPF-клиент, WebSocket live-сессия, аудио, скриншоты, текстовые запросы и подсказки.</td>
   </tr>
   <tr>
-    <td><b>Billing & Quotas</b></td>
-    <td>Тарифы, лимиты, usage counters, paywall-ответы API и страница подписки.</td>
+    <td><b>Подписки и лимиты</b></td>
+    <td>Тарифы, usage counters, paywall-ответы API, контроль лимитов и страница подписки.</td>
   </tr>
   <tr>
-    <td><b>Legal & Compliance</b></td>
-    <td>Версионированные документы, consent acceptance, cookie banner, production gates.</td>
+    <td><b>Юридический контур</b></td>
+    <td>Версионированные документы, фиксация согласий, cookie banner и production-проверки окружения.</td>
   </tr>
 </table>
 
-## Stack
+<a id="stack"></a>
 
-| Layer | Technology |
+## Технологический стек
+
+| Слой | Технологии |
 | --- | --- |
 | Web | Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui, PlateJS |
 | API | NestJS 11, Express 5, Swagger/OpenAPI, AdminJS |
-| Auth | Better Auth, web cookies, bearer sessions for desktop/extension/mobile |
+| Auth | Better Auth, web cookies, bearer sessions для desktop/extension/mobile |
 | Data | PostgreSQL, Prisma, migrations, import scripts |
 | Queue | Redis, BullMQ worker runtime |
 | Storage | S3-compatible storage / MinIO locally |
-| AI | AI provider layer in `packages/ai`, prompt management, structured generation |
-| Billing | Plan, entitlement, quota and payment integration layer |
-| Desktop | WPF client for live interview assistant |
-| Extension | Chromium extension for auto-responses |
-| Runtime | Docker Compose, Caddy-ready deployment, server scripts |
+| AI | AI provider layer в `packages/ai`, prompt management, structured generation |
+| Billing | Тарифы, entitlement, quota и payment integration layer |
+| Desktop | WPF-клиент для live-помощника на собеседовании |
+| Extension | Chromium extension для автооткликов |
+| Runtime | Docker Compose, server scripts, Caddy-ready deployment |
 
 <a id="architecture"></a>
 
-## Architecture
+## Архитектура
 
 ```mermaid
 flowchart LR
-  User[Web user] --> Web[apps/web<br/>Next.js]
-  Mobile[Mobile app] --> API[apps/api<br/>NestJS]
+  User[Web-пользователь] --> Web[apps/web<br/>Next.js]
+  Mobile[Мобильное приложение] --> API[apps/api<br/>NestJS]
   Extension[Browser extension] --> API
   WPF[WPF desktop app] --> API
   WPF <-->|WebSocket| Live[/ws/live/]
@@ -117,43 +119,43 @@ flowchart LR
   Worker --> Storage
 ```
 
-## Repository Map
+## Структура репозитория
 
 ```text
 apps/
   api/        NestJS API, Swagger, AdminJS, auth, billing, resumes, vacancies, live
-  web/        Next.js application, dashboards, public pages, Next proxy routes
-  worker/     BullMQ workers and background tasks
+  web/        Next.js приложение, dashboard, публичные страницы, Next proxy routes
+  worker/     BullMQ workers и фоновые задачи
 
 packages/
-  ai/         AI adapters and generation helpers
-  auth/       Better Auth integration and session helpers
+  ai/         AI adapters и helpers генерации
+  auth/       Better Auth integration и session helpers
   billing/    plans, entitlements, quotas, payment contracts
   db/         Prisma schema, migrations, seed, import scripts
-  queue/      queue names and payload contracts
-  shared/     shared env, DTOs, enums and utilities
+  queue/      queue names и payload contracts
+  shared/     shared env, DTOs, enums и utilities
   ui/         reusable UI helpers
 
-browser-extension/ browser extension source for auto-responses
+browser-extension/ browser extension source для автооткликов
 
 wpf/
   TutorOverlay.Client/ WPF desktop assistant
   native/              native capture helper
 
-docs/        architecture, deployment and runbooks
-scripts/     Docker-first local and server commands
+docs/        архитектура, деплой и runbooks
+scripts/     Docker-first команды для локального и серверного запуска
 ```
 
 <a id="quick-start"></a>
 
-## Quick Start
+## Быстрый старт
 
-Requirements:
+Требования:
 
-- Docker Engine or Docker Desktop
+- Docker Engine или Docker Desktop
 - Docker Compose v2
 - Git
-- pnpm 10.x for non-Docker local checks
+- pnpm 10.x для локальных проверок без Docker
 
 Windows PowerShell:
 
@@ -167,15 +169,15 @@ Linux/macOS:
 make setup
 ```
 
-Without `make`:
+Без `make`:
 
 ```bash
 sh scripts/project.sh setup
 ```
 
-Local URLs:
+Локальные адреса:
 
-| Service | URL |
+| Сервис | URL |
 | --- | --- |
 | Web | `http://localhost:3000` |
 | API health | `http://localhost:3001/api/v1/health` |
@@ -184,7 +186,7 @@ Local URLs:
 | AdminJS | `http://localhost:3001/adminjs` |
 | MinIO console | `http://localhost:9001` |
 
-## Development Commands
+## Команды разработки
 
 ```bash
 pnpm install
@@ -198,12 +200,12 @@ pnpm --filter @offergo/web build
 Docker workflow:
 
 ```bash
-make dev       # start local project in Docker
-make build     # build images
-make seed      # run seed
-make deploy    # pull/build/db-sync/restart on server
-make restart   # restart app services
-make health    # check services and API health
+make dev       # локальный запуск проекта в Docker
+make build     # сборка images
+make seed      # запуск seed
+make deploy    # pull/build/db-sync/restart на сервере
+make restart   # перезапуск app-сервисов
+make health    # проверка сервисов и API health
 make logs      # compose logs
 ```
 
@@ -221,28 +223,28 @@ pnpm docker:health
 
 ## API
 
-Primary API base:
+Основной API base:
 
 ```text
 https://offergo.ru/api/v1
 ```
 
-Local API base:
+Локальный API base:
 
 ```text
 http://localhost:3001/api/v1
 ```
 
-Documentation:
+Документация:
 
 ```text
 https://offergo.ru/api/docs
 http://localhost:3001/api/docs
 ```
 
-Main API groups:
+Основные группы API:
 
-| Area | Endpoints |
+| Область | Endpoints |
 | --- | --- |
 | Auth | `/auth/mobile/*`, `/auth/app/*`, `/auth/extension/*`, `/auth/me` |
 | Legal | `/legal-documents`, `/legal/consents/*` |
@@ -255,11 +257,11 @@ Main API groups:
 | Admin | `/admin/vacancies`, `/admin/*` |
 | Live assistant | `/settings/bootstrap`, `/sessions`, `/sessions/:id/screenshot`, `/ws/live` |
 
-Mobile and desktop clients should call the backend API directly. Next.js proxy routes under `/api/*` are for the web app only.
+Мобильный клиент, desktop-клиент и расширение должны ходить напрямую в backend API. Next.js proxy routes под `/api/*` предназначены только для web-приложения.
 
 <a id="database"></a>
 
-## Database
+## База данных
 
 Prisma schema:
 
@@ -267,7 +269,7 @@ Prisma schema:
 packages/db/prisma/schema.prisma
 ```
 
-Useful commands:
+Полезные команды:
 
 ```bash
 pnpm --filter @offergo/db db:generate
@@ -276,48 +278,48 @@ pnpm --filter @offergo/db db:seed
 pnpm --filter @offergo/db import:vacancies
 ```
 
-The vacancy import is idempotent and stores every row as a first-class `Vacancy` record, not as a JSON blob.
+Импорт вакансий идемпотентный: каждая строка сохраняется как полноценная запись `Vacancy`, а не как JSON blob.
 
-## Admin
+## Администрирование
 
-AdminJS is available at:
+AdminJS доступен по адресам:
 
 ```text
 https://offergo.ru/adminjs
 http://localhost:3001/adminjs
 ```
 
-Admin access is role-based. Do not hardcode credentials in the repository. Use configured users and roles through the auth/admin flow.
+Доступ в админку зависит от роли пользователя. Логины, пароли, ключи и production-секреты нельзя хранить в репозитории.
 
-<a id="desktop-extension-mobile"></a>
+<a id="clients"></a>
 
-## Desktop, Extension, Mobile
+## Клиенты
 
-| Client | Purpose | Auth |
+| Клиент | Назначение | Авторизация |
 | --- | --- | --- |
-| Web | Main product UI | Better Auth web session |
-| Mobile | Native app API client | `/api/v1/auth/mobile/*` bearer token |
-| WPF | Live interview assistant | browser-approved desktop bearer session |
-| Extension | Auto-responses helper | extension connection code and bearer token |
+| Web | Основной интерфейс продукта | Better Auth web session |
+| Mobile | Нативное приложение | `/api/v1/auth/mobile/*` bearer token |
+| WPF | Live-помощник на собеседовании | browser-approved desktop bearer session |
+| Extension | Автоотклики | код подключения расширения и bearer token |
 
-WPF build:
+Сборка WPF:
 
 ```powershell
 dotnet restore wpf/TutorOverlay.Client/TutorOverlay.Client.csproj
 dotnet build wpf/TutorOverlay.Client/TutorOverlay.Client.csproj
 ```
 
-Extension archive for users is served from:
+Архив расширения для пользователей отдаётся по адресу:
 
 ```text
 /extensions/offergo-auto-responses.zip
 ```
 
-## Deployment
+## Деплой
 
-Current production target is a Docker Compose host behind a domain/proxy.
+Текущая production-цель: Docker Compose host за доменом и reverse proxy.
 
-Minimum server flow:
+Минимальный серверный flow:
 
 ```bash
 git pull --ff-only
@@ -325,17 +327,17 @@ make deploy
 make health
 ```
 
-Deployment rules:
+Правила деплоя:
 
-- application code is deployed from Git, not by manual file edits on the server;
-- database changes go through Prisma migrations/import scripts;
-- secrets stay in `.env` or deployment secrets, never in Git;
-- generated archives, keys and local datasets are ignored by `.gitignore`;
-- production should expose only web/API/proxy ports publicly.
+- код приложения деплоится из Git, а не ручными правками на сервере;
+- изменения БД проходят через Prisma migrations и import scripts;
+- секреты остаются в `.env` или deployment secrets, но не попадают в Git;
+- generated archives, ключи и локальные datasets игнорируются через `.gitignore`;
+- наружу должны быть открыты только web/API/proxy ports.
 
-## Quality Gates
+## Проверки качества
 
-Before merging meaningful changes:
+Перед merge значимых изменений:
 
 ```bash
 pnpm --filter @offergo/db db:generate
@@ -345,32 +347,32 @@ pnpm --filter @offergo/api build
 pnpm --filter @offergo/web build
 ```
 
-For WPF changes:
+Для изменений WPF:
 
 ```powershell
 dotnet build wpf/TutorOverlay.Client/TutorOverlay.Client.csproj
 ```
 
-## Security Notes
+## Безопасность
 
-- Do not commit `.env`, private SSH keys, extension private keys or production exports.
-- Use HTTPS in production for web, API and extension flows.
-- Keep legal document versions and consent acceptance records in the database.
-- Use AdminJS only for trusted admin users.
-- Treat resume content, photos, files, screenshots, transcripts and vacancies pasted by users as personal or sensitive user data.
+- Не коммитить `.env`, приватные SSH-ключи, private key расширения и production-exports.
+- В production использовать HTTPS для web, API и extension flows.
+- Хранить версии юридических документов и факты принятия согласий в БД.
+- Открывать AdminJS только доверенным администраторам.
+- Считать резюме, фото, файлы, скриншоты, транскрипты и данные вакансий пользовательскими или чувствительными данными.
 
-## Links
+## Ссылки
 
-| Resource | Link |
+| Ресурс | Ссылка |
 | --- | --- |
 | Production | `https://offergo.ru` |
 | Swagger | `https://offergo.ru/api/docs` |
 | Runbook | [`docs/runbook.md`](./docs/runbook.md) |
-| Architecture | [`docs/architecture.md`](./docs/architecture.md) |
-| Deployment | [`docs/deployment.md`](./docs/deployment.md) |
-| Development workflow | [`docs/development-workflow.md`](./docs/development-workflow.md) |
+| Архитектура | [`docs/architecture.md`](./docs/architecture.md) |
+| Деплой | [`docs/deployment.md`](./docs/deployment.md) |
+| Workflow разработки | [`docs/development-workflow.md`](./docs/development-workflow.md) |
 | Billing | [`docs/billing-platega.md`](./docs/billing-platega.md) |
 
-## License
+## Лицензия
 
-Private commercial project. Choose and add an explicit license before public distribution.
+Приватный коммерческий проект. Перед публичным распространением нужно явно выбрать и добавить лицензию.
