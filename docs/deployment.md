@@ -12,9 +12,31 @@
 The repository includes a root `docker-compose.yml` for this monorepo subtree.
 Every runtime part of the project is started through Docker Compose.
 
-## Server update flow
+## GitHub Actions production flow
 
-Use one command:
+Production deploy runs from GitHub Actions on every push to `main`.
+
+The workflow:
+
+1. runs Prisma generate and typechecks for `api` and `web`;
+2. builds `api`, `web`, and `worker` Docker images in GitHub Actions;
+3. pushes the images to GitHub Container Registry;
+4. uploads only the deployment bundle to `/home/hinstil/offergo`;
+5. runs `scripts/project.sh deploy-images` over SSH.
+
+The server does not build application images in this flow. It pulls GHCR images and restarts Docker Compose services with the existing `.env` and volumes.
+
+Required GitHub repository secrets:
+
+```text
+PROD_SSH_HOST
+PROD_SSH_USER
+PROD_SSH_PRIVATE_KEY
+```
+
+## Manual server update flow
+
+For emergency manual deploy from the server, use:
 
 ```bash
 make deploy
@@ -26,7 +48,7 @@ Windows:
 powershell -ExecutionPolicy Bypass -File scripts/project.ps1 deploy
 ```
 
-The deploy flow pulls the latest code, rebuilds cached Docker images, starts infra, syncs Prisma schema, runs seed, and restarts `api`, `web`, and `worker`.
+The manual flow rebuilds cached Docker images on the server. Prefer the GitHub Actions flow for normal production updates.
 
 ## Notes
 

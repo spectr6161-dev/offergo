@@ -1,4 +1,5 @@
 .env
+.ci-images.env
 .turbo
 coverage
 *.tsbuildinfo

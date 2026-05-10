@@ -1,0 +1,180 @@
+name: Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: spectr6161-dev
+  API_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-api:${{ github.sha }}
+  WEB_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-web:${{ github.sha }}
+  WORKER_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-worker:${{ github.sha }}
+  API_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-api:latest
+  WEB_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-web:latest
+  WORKER_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-worker:latest
+  NEXT_PUBLIC_API_URL: https://offergo.ru
+  NEXT_PUBLIC_BETTER_AUTH_URL: https://offergo.ru
+  NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ""
+
+jobs:
+  checks:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @offergo/db db:generate
+
+      - name: API typecheck
+        run: pnpm --filter @offergo/api typecheck
+
+      - name: Web typecheck
+        run: pnpm --filter @offergo/web typecheck
+
+  build:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    needs: checks
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: api
+          push: true
+          tags: |
+            ${{ env.API_IMAGE_SHA }}
+            ${{ env.API_IMAGE_LATEST }}
+          cache-from: type=gha,scope=offergo-api
+          cache-to: type=gha,mode=max,scope=offergo-api
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: web
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_BETTER_AUTH_URL=${{ env.NEXT_PUBLIC_BETTER_AUTH_URL }}
+            NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=${{ env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME }}
+          tags: |
+            ${{ env.WEB_IMAGE_SHA }}
+            ${{ env.WEB_IMAGE_LATEST }}
+          cache-from: type=gha,scope=offergo-web
+          cache-to: type=gha,mode=max,scope=offergo-web
+
+      - name: Build and push Worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: worker
+          push: true
+          tags: |
+            ${{ env.WORKER_IMAGE_SHA }}
+            ${{ env.WORKER_IMAGE_LATEST }}
+          cache-from: type=gha,scope=offergo-worker
+          cache-to: type=gha,mode=max,scope=offergo-worker
+
+  deploy:
+    name: Deploy production
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout deployment files
+        uses: actions/checkout@v4
+
+      - name: Prepare SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/offergo_deploy_key
+          chmod 600 ~/.ssh/offergo_deploy_key
+          ssh-keyscan -H "${{ secrets.PROD_SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload deployment bundle
+        run: |
+          set -euo pipefail
+          tar -czf /tmp/offergo-deploy-bundle.tgz docker-compose.yml deploy/Caddyfile scripts/project.sh
+          scp -i ~/.ssh/offergo_deploy_key /tmp/offergo-deploy-bundle.tgz \
+            "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz"
+
+      - name: Deploy over SSH
+        run: |
+          set -euo pipefail
+          GHCR_TOKEN_B64="$(printf '%s' "${{ secrets.GITHUB_TOKEN }}" | base64 -w 0)"
+          ssh -i ~/.ssh/offergo_deploy_key \
+            "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}" \
+            "GHCR_USER='${{ github.actor }}' GHCR_TOKEN_B64='${GHCR_TOKEN_B64}' API_IMAGE='${{ env.API_IMAGE_SHA }}' WEB_IMAGE='${{ env.WEB_IMAGE_SHA }}' WORKER_IMAGE='${{ env.WORKER_IMAGE_SHA }}' BUNDLE_PATH='/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz' bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          mkdir -p "$HOME/offergo"
+          tar -xzf "$BUNDLE_PATH" -C "$HOME/offergo"
+          chmod +x "$HOME/offergo/scripts/project.sh"
+
+          cd "$HOME/offergo"
+
+          GHCR_TOKEN="$(printf '%s' "$GHCR_TOKEN_B64" | base64 -d)"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+          export API_IMAGE WEB_IMAGE WORKER_IMAGE
+          sh scripts/project.sh deploy-images
+          sh scripts/project.sh health
+          docker image prune -f --filter "until=168h" || true
+          REMOTE
+
+      - name: Verify public endpoints
+        run: |
+          set -euo pipefail
+          curl --fail --show-error --location --max-time 30 https://offergo.ru/api/v1/health
+          curl --fail --show-error --location --max-time 30 https://offergo.ru > /tmp/offergo-home.html
+          curl --fail --show-error --location --max-time 30 https://offergo.ru/api/docs > /tmp/offergo-docs.html

@@ -5,7 +5,11 @@ command_name="${1:-setup}"
 
 compose() {
   echo "> docker compose $*"
-  docker compose "$@"
+  if [ -f .env ] && [ -f .ci-images.env ]; then
+    docker compose --env-file .env --env-file .ci-images.env "$@"
+  else
+    docker compose "$@"
+  fi
 }
 
 dev_compose() {
@@ -26,6 +30,29 @@ sync_database() {
 
 seed_database() {
   compose run --rm db-seed
+}
+
+require_deploy_images() {
+  : "${API_IMAGE:?API_IMAGE is required for deploy-images}"
+  : "${WEB_IMAGE:?WEB_IMAGE is required for deploy-images}"
+  : "${WORKER_IMAGE:?WORKER_IMAGE is required for deploy-images}"
+}
+
+pull_deploy_images() {
+  echo "> docker pull ${API_IMAGE}"
+  docker pull "${API_IMAGE}"
+  echo "> docker pull ${WEB_IMAGE}"
+  docker pull "${WEB_IMAGE}"
+  echo "> docker pull ${WORKER_IMAGE}"
+  docker pull "${WORKER_IMAGE}"
+}
+
+write_deploy_image_env() {
+  cat > .ci-images.env <<EOF
+API_IMAGE=${API_IMAGE}
+WEB_IMAGE=${WEB_IMAGE}
+WORKER_IMAGE=${WORKER_IMAGE}
+EOF
 }
 
 case "$command_name" in
@@ -65,6 +92,16 @@ case "$command_name" in
     compose up -d api web worker
     compose ps
     ;;
+  deploy-images)
+    ensure_env_file
+    require_deploy_images
+    write_deploy_image_env
+    pull_deploy_images
+    compose up -d postgres redis minio
+    sync_database
+    compose up -d --no-build api web worker reverse-proxy
+    compose ps
+    ;;
   restart)
     compose up -d --build api web worker
     compose ps
@@ -90,7 +127,7 @@ case "$command_name" in
     ;;
   *)
     echo "Unknown command: $command_name" >&2
-    echo "Usage: scripts/project.sh setup|dev|build|seed|deploy|restart|logs|ps|health|clean|clean-volumes" >&2
+    echo "Usage: scripts/project.sh setup|dev|build|seed|deploy|deploy-images|restart|logs|ps|health|clean|clean-volumes" >&2
     exit 1
     ;;
 esac

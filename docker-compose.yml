@@ -69,7 +69,7 @@ services:
       retries: 10
 
   api:
-    image: saas-base-api:local
+    image: ${API_IMAGE:-saas-base-api:local}
     build:
       <<: *app-build
       target: api
@@ -99,7 +99,7 @@ services:
       start_period: 20s
 
   web:
-    image: saas-base-web:local
+    image: ${WEB_IMAGE:-saas-base-web:local}
     build:
       <<: *app-build
       target: web
@@ -159,7 +159,7 @@ services:
       - caddy-config:/config
 
   worker:
-    image: saas-base-worker:local
+    image: ${WORKER_IMAGE:-saas-base-worker:local}
     build:
       <<: *app-build
       target: worker
@@ -181,7 +181,7 @@ services:
       - server-logs:/app/logs
 
   db-sync:
-    image: saas-base-api:local
+    image: ${API_IMAGE:-saas-base-api:local}
     build:
       <<: *app-build
       target: api
@@ -197,7 +197,7 @@ services:
     command: pnpm --filter @offergo/db exec prisma db push --skip-generate
 
   db-seed:
-    image: saas-base-api:local
+    image: ${API_IMAGE:-saas-base-api:local}
     build:
       <<: *app-build
       target: api
