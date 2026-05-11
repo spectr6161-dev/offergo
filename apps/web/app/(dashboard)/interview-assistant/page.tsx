@@ -211,7 +211,7 @@ function DownloadSection() {
         className="h-16 w-full rounded-2xl bg-primary px-8 text-lg font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto sm:min-w-96"
         size="lg"
       >
-        <a download href="/downloads/offergo-interview-assistant.exe">
+        <a download href="/downloads/offergo-interview-assistant.zip">
           <WindowsIcon data-icon="inline-start" />
           Скачать для Windows
         </a>
@@ -240,9 +240,9 @@ function GuideSection() {
         <AccordionItem value="install">
           <AccordionTrigger>1. Скачать приложение</AccordionTrigger>
           <AccordionContent>
-            Скачайте exe-файл и запустите его на Windows. Сборка
-            самодостаточная, отдельная установка .NET Desktop Runtime 8 не
-            требуется.
+            Скачайте ZIP-архив, распакуйте его в удобную папку и запустите
+            `TutorOverlay.Client.exe`. Сборка самодостаточная, отдельная
+            установка .NET Desktop Runtime 8 не требуется.
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="login">

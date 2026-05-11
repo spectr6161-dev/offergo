@@ -172,7 +172,7 @@ jobs:
           $manifest = [ordered]@{
             version = $sha.Substring(0, 7)
             builtAt = (Get-Date).ToUniversalTime().ToString("o")
-            fileName = "offergo-interview-assistant.exe"
+            fileName = "offergo-interview-assistant.zip"
             platform = "windows-x64"
             requires = "Windows 10/11 x64"
           } | ConvertTo-Json
@@ -252,4 +252,4 @@ jobs:
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/v1/health
           curl --fail --show-error --location --max-time 30 https://offergo.ru > /tmp/offergo-home.html
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/docs > /tmp/offergo-docs.html
-          curl --fail --show-error --head --location --max-time 30 https://offergo.ru/downloads/offergo-interview-assistant.exe
+          curl --fail --show-error --head --location --max-time 30 https://offergo.ru/downloads/offergo-interview-assistant.zip
