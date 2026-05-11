@@ -2,12 +2,9 @@ import Link from "next/link";
 import type { ReactNode, SVGProps } from "react";
 import {
   AlertCircleIcon,
-  ArrowRightIcon,
-  CheckCircle2Icon,
   CreditCardIcon,
   GaugeIcon,
   KeyboardIcon,
-  MonitorIcon,
   PlayCircleIcon,
   ScanLineIcon,
   ShieldAlertIcon,
@@ -155,76 +152,19 @@ function getAssistantLimits(subscription?: BillingSubscriptionSummary) {
     .filter((item): item is BillingUsageLimit => Boolean(item));
 }
 
-function HeroSection() {
+function DownloadSection() {
   return (
-    <section className="overflow-hidden rounded-[2rem] bg-muted/40 p-6 md:p-10">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-3">
-            <Badge className="w-fit" variant="secondary">
-              Windows-приложение
-            </Badge>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl">
-              Помощник для собеседований
-            </h1>
-            <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
-              Live-подсказки, анализ скриншотов и текстовые запросы в одном
-              приложении для Windows. Сначала откроется страница установки с
-              инструкцией, затем начнётся загрузка ZIP.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              asChild
-              className="h-16 rounded-2xl px-8 text-lg font-semibold"
-              size="lg"
-            >
-              <Link href="/interview-assistant/install">
-                <WindowsIcon data-icon="inline-start" />
-                Скачать для Windows
-              </Link>
-            </Button>
-            <Button
-              asChild
-              className="h-16 rounded-2xl px-8 text-base"
-              size="lg"
-              variant="outline"
-            >
-              <Link href="/billing">
-                Увеличить лимиты
-                <ArrowRightIcon data-icon="inline-end" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="rounded-[1.5rem] bg-background/70 p-4">
-          <div className="rounded-[1.25rem] bg-background p-4 text-foreground shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 font-medium">
-                <MonitorIcon />
-                OfferGO Assistant
-              </div>
-              <Badge variant="secondary">Windows</Badge>
-            </div>
-            <div className="flex flex-col gap-3">
-              {[
-                "Слушает вопрос",
-                "Формирует подсказку",
-                "Показывает ответ поверх окна",
-              ].map((item) => (
-                <div
-                  className="flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-3 text-sm"
-                  key={item}
-                >
-                  <CheckCircle2Icon />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+    <section className="flex w-full">
+      <Button
+        asChild
+        className="h-16 w-full rounded-2xl bg-sky-600 px-8 text-lg font-semibold text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-white dark:hover:bg-sky-600 sm:w-auto sm:min-w-96"
+        size="lg"
+      >
+        <Link href="/interview-assistant/install">
+          <WindowsIcon data-icon="inline-start" />
+          Скачать для Windows
+        </Link>
+      </Button>
     </section>
   );
 }
@@ -323,7 +263,10 @@ function LimitsSection({
           <Button asChild variant="outline">
             <Link href="/subscription">Посмотреть все лимиты</Link>
           </Button>
-          <Button asChild>
+          <Button
+            asChild
+            className="bg-sky-600 text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-white dark:hover:bg-sky-600"
+          >
             <Link href="/billing">
               {hasExhaustedLimit ? "Увеличить лимиты" : "Расширить лимиты"}
               <CreditCardIcon data-icon="inline-end" />
@@ -414,7 +357,7 @@ function TrainingSection() {
           Видео и визуальные шаги вместо длинной текстовой инструкции.
         </p>
       </div>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <div className="flex flex-col gap-6">
         <div className="overflow-hidden rounded-3xl bg-muted/50">
           <video
             className="aspect-video w-full bg-muted"
@@ -510,7 +453,7 @@ export default async function InterviewAssistantPage() {
   return (
     <main className="min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background p-4 text-foreground md:p-6">
       <section className="flex w-full flex-col gap-10">
-        <HeroSection />
+        <DownloadSection />
         <AssistantSettingsPanel />
         <Separator />
         <LimitsSection

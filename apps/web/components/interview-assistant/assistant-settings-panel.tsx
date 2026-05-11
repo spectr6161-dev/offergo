@@ -1,13 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   BellRingIcon,
-  BriefcaseBusinessIcon,
   Code2Icon,
   EyeOffIcon,
-  MessagesSquareIcon,
-  MonitorCogIcon,
   ScanLineIcon,
   Settings2Icon,
   TimerIcon,
@@ -66,64 +63,14 @@ type ToggleKey =
 const profiles: Array<{
   key: ProfileKey;
   label: string;
-  description: string;
-  scenario: string;
 }> = [
-  {
-    key: "flutter",
-    label: "Flutter / Dart",
-    description:
-      "Мобильные собеседования, Dart, Flutter, iOS/Android, state management.",
-    scenario:
-      "Помощник делает акцент на Flutter-виджетах, асинхронности, архитектуре мобильного приложения, платформенных каналах и разборе ошибок сборки.",
-  },
-  {
-    key: "react",
-    label: "React / Next.js",
-    description: "Frontend, App Router, React, TypeScript, UI и performance.",
-    scenario:
-      "Ответы фокусируются на React-паттернах, Server/Client Components, API-интеграциях, состоянии, формах и оптимизации интерфейса.",
-  },
-  {
-    key: "backend",
-    label: "Backend / Node.js",
-    description:
-      "API, базы данных, очереди, архитектура, безопасность и отказоустойчивость.",
-    scenario:
-      "Помощник подсвечивает проектирование API, транзакции, индексы, фоновые задачи, auth-flow и устойчивость сервисов.",
-  },
-  {
-    key: "product",
-    label: "Product / Analyst",
-    description:
-      "Продуктовые кейсы, метрики, гипотезы, требования и коммуникация.",
-    scenario:
-      "Ответы строятся вокруг бизнес-логики, приоритизации, пользовательских сценариев, метрик и продуктового мышления.",
-  },
-  {
-    key: "qa",
-    label: "QA Engineer",
-    description:
-      "Тест-кейсы, автотесты, баг-репорты, качество релизов и edge cases.",
-    scenario:
-      "Помощник помогает формулировать тестовые сценарии, риски, регрессии и стратегию автоматизации.",
-  },
-  {
-    key: "data",
-    label: "Data Analyst",
-    description:
-      "SQL, отчёты, аналитика, визуализация и продуктовые данные.",
-    scenario:
-      "Ответы ориентированы на работу с данными, SQL-запросы, метрики, интерпретацию графиков и проверку гипотез.",
-  },
-  {
-    key: "general",
-    label: "Общий помощник",
-    description:
-      "Универсальный режим для собеседований без узкой специализации.",
-    scenario:
-      "Помощник отвечает нейтрально, кратко объясняет ход мысли и подстраивается под тему разговора.",
-  },
+  { key: "flutter", label: "Flutter / Dart" },
+  { key: "react", label: "React / Next.js" },
+  { key: "backend", label: "Backend / Node.js" },
+  { key: "product", label: "Product / Analyst" },
+  { key: "qa", label: "QA Engineer" },
+  { key: "data", label: "Data Analyst" },
+  { key: "general", label: "Общий помощник" },
 ];
 
 const reactionOptions: Array<{
@@ -224,7 +171,7 @@ const behaviorOptions: Array<{
     key: "hideTaskbar",
     title: "Скрывать окно из панели задач",
     description:
-      "Окно не занимает место на панели задач, управление остаётся в приложении.",
+      "Окно не занимает место на панели задач, управление остается в приложении.",
   },
   {
     key: "trayIcon",
@@ -338,11 +285,6 @@ export function AssistantSettingsPanel() {
   const [answerLength, setAnswerLength] = useState(55);
   const [delay, setDelay] = useState(3);
 
-  const selectedProfile = useMemo(
-    () => profiles.find((item) => item.key === profile) ?? profiles[0],
-    [profile],
-  );
-
   function updateToggle(key: ToggleKey, value: boolean) {
     setToggles((current) => ({
       ...current,
@@ -373,51 +315,23 @@ export function AssistantSettingsPanel() {
         </TabsList>
 
         <TabsContent className="pt-4" value="profile">
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <div className="flex flex-col gap-3">
-              <Select
-                onValueChange={(value) => setProfile(value as ProfileKey)}
-                value={profile}
-              >
-                <SelectTrigger className="h-12 w-full text-base">
-                  <SelectValue placeholder="Выберите профиль" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {profiles.map((item) => (
-                      <SelectItem key={item.key} value={item.key}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <ItemGroup>
-                <Item className="px-0 py-4" variant="default">
-                  <ItemMedia variant="icon">
-                    <BriefcaseBusinessIcon />
-                  </ItemMedia>
-                  <ItemContent>
-                    <ItemTitle className="w-full text-base">
-                      {selectedProfile.label}
-                    </ItemTitle>
-                    <ItemDescription>
-                      {selectedProfile.description}
-                    </ItemDescription>
-                  </ItemContent>
-                </Item>
-              </ItemGroup>
-            </div>
-            <div className="rounded-3xl bg-muted/40 p-5">
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                <MessagesSquareIcon />
-                Сценарий работы
-              </div>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {selectedProfile.scenario}
-              </p>
-            </div>
-          </div>
+          <Select
+            onValueChange={(value) => setProfile(value as ProfileKey)}
+            value={profile}
+          >
+            <SelectTrigger className="h-12 w-full text-base md:max-w-xl">
+              <SelectValue placeholder="Выберите профиль" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {profiles.map((item) => (
+                  <SelectItem key={item.key} value={item.key}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </TabsContent>
 
         <TabsContent className="pt-4" value="reactions">
