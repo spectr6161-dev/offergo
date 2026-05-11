@@ -213,7 +213,7 @@ export function RegisterForm() {
       window.location.origin,
     ).toString();
     const errorCallbackURL = new URL(
-      `/login?error=${provider}`,
+      `/register?error=${provider}`,
       window.location.origin,
     ).toString();
     const fallbackMessage = getProviderErrorMessage(provider);

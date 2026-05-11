@@ -144,7 +144,10 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
     setStatus(undefined);
     setIsSubmitting(true);
 
-    const callbackURL = new URL(redirectTo, window.location.origin).toString();
+    const callbackURL = new URL(
+      `/legal/accept?next=${encodeURIComponent(redirectTo)}`,
+      window.location.origin,
+    ).toString();
     const errorCallbackURL = new URL(
       `/login?error=${provider}`,
       window.location.origin,
@@ -158,13 +161,13 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
               providerId: "yandex",
               callbackURL,
               errorCallbackURL,
-              requestSignUp: false,
+              requestSignUp: true,
             })
           : await authClient.signIn.social({
               provider: "vk",
               callbackURL,
               errorCallbackURL,
-              requestSignUp: false,
+              requestSignUp: true,
             });
 
       if (result.error) {
