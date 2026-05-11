@@ -87,8 +87,21 @@ const envSchema = z.object({
     .min(16)
     .default("offergo-dev-secret-please-change"),
   AUTH_COOKIE_DOMAIN: z.string().default(""),
+  ENABLE_GOOGLE_AUTH: z
+    .string()
+    .transform((value) => value === "true")
+    .default(false),
+  ENABLE_TELEGRAM_AUTH: z
+    .string()
+    .transform((value) => value === "true")
+    .default(false),
   GOOGLE_CLIENT_ID: z.string().optional().default(""),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
+  YANDEX_OAUTH_CLIENT_ID: z.string().optional().default(""),
+  YANDEX_OAUTH_CLIENT_SECRET: z.string().optional().default(""),
+  VK_OAUTH_CLIENT_ID: z.string().optional().default(""),
+  VK_OAUTH_CLIENT_SECRET: z.string().optional().default(""),
+  VK_OAUTH_CLIENT_KEY: z.string().optional().default(""),
   TELEGRAM_BOT_TOKEN: z.string().optional().default(""),
   TELEGRAM_AUTH_MAX_AGE_SECONDS: z.coerce.number().default(86400),
   LEGAL_OPERATOR_NAME: z.string().optional().default("ООО/ИП OfferGO"),
@@ -176,8 +189,15 @@ const parsedEnv = envSchema.parse({
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   AUTH_COOKIE_DOMAIN: process.env.AUTH_COOKIE_DOMAIN,
+  ENABLE_GOOGLE_AUTH: process.env.ENABLE_GOOGLE_AUTH,
+  ENABLE_TELEGRAM_AUTH: process.env.ENABLE_TELEGRAM_AUTH,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  YANDEX_OAUTH_CLIENT_ID: process.env.YANDEX_OAUTH_CLIENT_ID,
+  YANDEX_OAUTH_CLIENT_SECRET: process.env.YANDEX_OAUTH_CLIENT_SECRET,
+  VK_OAUTH_CLIENT_ID: process.env.VK_OAUTH_CLIENT_ID,
+  VK_OAUTH_CLIENT_SECRET: process.env.VK_OAUTH_CLIENT_SECRET,
+  VK_OAUTH_CLIENT_KEY: process.env.VK_OAUTH_CLIENT_KEY,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   TELEGRAM_AUTH_MAX_AGE_SECONDS: process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS,
   LEGAL_OPERATOR_NAME: process.env.LEGAL_OPERATOR_NAME,
@@ -247,6 +267,10 @@ function isDefaultDatabaseUrl(value: string) {
 
 function hasValue(value: string | undefined) {
   return Boolean(value?.trim());
+}
+
+function hasPairedValue(left: string | undefined, right: string | undefined) {
+  return hasValue(left) === hasValue(right);
 }
 
 function validateProductionEnv(config: typeof parsedEnv) {
@@ -328,11 +352,41 @@ function validateProductionEnv(config: typeof parsedEnv) {
     );
   }
 
-  if (
-    hasValue(config.GOOGLE_CLIENT_ID) !== hasValue(config.GOOGLE_CLIENT_SECRET)
-  ) {
+  if (!hasPairedValue(config.GOOGLE_CLIENT_ID, config.GOOGLE_CLIENT_SECRET)) {
     errors.push(
       "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured together.",
+    );
+  }
+
+  if (
+    config.ENABLE_GOOGLE_AUTH &&
+    (!hasValue(config.GOOGLE_CLIENT_ID) || !hasValue(config.GOOGLE_CLIENT_SECRET))
+  ) {
+    errors.push(
+      "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required when ENABLE_GOOGLE_AUTH=true.",
+    );
+  }
+
+  if (config.ENABLE_TELEGRAM_AUTH && !hasValue(config.TELEGRAM_BOT_TOKEN)) {
+    errors.push(
+      "TELEGRAM_BOT_TOKEN is required when ENABLE_TELEGRAM_AUTH=true.",
+    );
+  }
+
+  if (
+    !hasPairedValue(
+      config.YANDEX_OAUTH_CLIENT_ID,
+      config.YANDEX_OAUTH_CLIENT_SECRET,
+    )
+  ) {
+    errors.push(
+      "YANDEX_OAUTH_CLIENT_ID and YANDEX_OAUTH_CLIENT_SECRET must be configured together.",
+    );
+  }
+
+  if (!hasPairedValue(config.VK_OAUTH_CLIENT_ID, config.VK_OAUTH_CLIENT_SECRET)) {
+    errors.push(
+      "VK_OAUTH_CLIENT_ID and VK_OAUTH_CLIENT_SECRET must be configured together.",
     );
   }
 

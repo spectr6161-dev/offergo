@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import { genericOAuthClient } from "better-auth/client/plugins";
 
 const authBaseURL =
   process.env.NEXT_PUBLIC_BETTER_AUTH_URL ??
@@ -8,6 +9,7 @@ const authBaseURL =
 
 export const authClient = createAuthClient({
   baseURL: authBaseURL,
+  plugins: [genericOAuthClient()],
   fetchOptions: {
     credentials: "include",
   },

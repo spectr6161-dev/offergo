@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -13,7 +12,6 @@ import {
   normalizeLogin,
 } from "@/lib/auth-login";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TelegramLoginWidget } from "@/components/telegram-login-widget";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -39,6 +37,13 @@ type StatusState =
       message: string;
     }
   | undefined;
+
+type SocialProvider = "yandex" | "vk";
+
+const socialButtonLabels: Record<SocialProvider, string> = {
+  yandex: "Продолжить через Яндекс",
+  vk: "Продолжить через VK",
+};
 
 function validate(
   login: string,
@@ -82,6 +87,52 @@ async function acceptLegalDocuments(source: string) {
   if (!response.ok) {
     throw new Error("Не удалось сохранить юридические согласия.");
   }
+}
+
+function getLegalErrors(
+  termsAccepted: boolean,
+  privacyAccepted: boolean,
+): FieldErrors {
+  const errors: FieldErrors = {};
+
+  if (!termsAccepted) {
+    errors.termsAccepted = "Подтвердите пользовательское соглашение.";
+  }
+
+  if (!privacyAccepted) {
+    errors.privacyAccepted =
+      "Подтвердите согласие с обработкой персональных данных.";
+  }
+
+  return errors;
+}
+
+function getProviderErrorMessage(provider: SocialProvider) {
+  return `Не удалось перейти к регистрации через ${
+    provider === "yandex" ? "Яндекс" : "VK"
+  }.`;
+}
+
+function SocialIcon({ provider }: { provider: SocialProvider }) {
+  if (provider === "yandex") {
+    return (
+      <span
+        aria-hidden="true"
+        className="inline-flex size-5 items-center justify-center rounded-full bg-[#fc3f1d] text-xs font-semibold text-white"
+      >
+        Я
+      </span>
+    );
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-flex size-5 items-center justify-center rounded bg-[#0077ff] text-[0.65rem] font-semibold text-white"
+    >
+      VK
+    </span>
+  );
 }
 
 export function RegisterForm() {
@@ -145,17 +196,8 @@ export function RegisterForm() {
     }
   }
 
-  async function handleGoogleClick() {
-    const nextErrors: FieldErrors = {};
-
-    if (!termsAccepted) {
-      nextErrors.termsAccepted = "Подтвердите пользовательское соглашение.";
-    }
-
-    if (!privacyAccepted) {
-      nextErrors.privacyAccepted =
-        "Подтвердите согласие с обработкой персональных данных.";
-    }
+  async function handleSocialClick(provider: SocialProvider) {
+    const nextErrors = getLegalErrors(termsAccepted, privacyAccepted);
 
     setErrors((current) => ({ ...current, ...nextErrors }));
     setStatus(undefined);
@@ -166,35 +208,42 @@ export function RegisterForm() {
 
     setIsSubmitting(true);
 
-    try {
-      const { error } = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: new URL(
-          "/legal/accept?next=/resumes",
-          window.location.origin,
-        ).toString(),
-        errorCallbackURL: new URL(
-          "/login?error=google",
-          window.location.origin,
-        ).toString(),
-        requestSignUp: true,
-      });
+    const callbackURL = new URL(
+      "/legal/accept?next=/resumes",
+      window.location.origin,
+    ).toString();
+    const errorCallbackURL = new URL(
+      `/login?error=${provider}`,
+      window.location.origin,
+    ).toString();
+    const fallbackMessage = getProviderErrorMessage(provider);
 
-      if (error) {
+    try {
+      const result =
+        provider === "yandex"
+          ? await authClient.signIn.oauth2({
+              providerId: "yandex",
+              callbackURL,
+              errorCallbackURL,
+              requestSignUp: true,
+            })
+          : await authClient.signIn.social({
+              provider: "vk",
+              callbackURL,
+              errorCallbackURL,
+              requestSignUp: true,
+            });
+
+      if (result.error) {
         setStatus({
           tone: "destructive",
-          message:
-            error.message ??
-            "Не удалось перейти к регистрации через Google.",
+          message: result.error.message ?? fallbackMessage,
         });
       }
     } catch (error) {
       setStatus({
         tone: "destructive",
-        message: getAuthClientErrorMessage(
-          error,
-          "Не удалось перейти к регистрации через Google.",
-        ),
+        message: getAuthClientErrorMessage(error, fallbackMessage),
       });
     } finally {
       setIsSubmitting(false);
@@ -372,26 +421,20 @@ export function RegisterForm() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <TelegramLoginWidget callbackURL="/legal/accept?next=/resumes" />
-
-        <Button
-          type="button"
-          size="lg"
-          variant="outline"
-          disabled={isSubmitting}
-          className="h-[3.1rem] w-full rounded-xl border-white/10 bg-[#090909] text-[1.02rem] font-medium text-white hover:bg-[#111111] hover:text-white"
-          onClick={handleGoogleClick}
-        >
-          <Image
-            src="/brands/google.svg"
-            alt=""
-            width={20}
-            height={20}
-            data-icon="inline-start"
-            className="size-5"
-          />
-          Продолжить через Google
-        </Button>
+        {(["yandex", "vk"] as const).map((provider) => (
+          <Button
+            key={provider}
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={isSubmitting}
+            className="h-[3.1rem] w-full rounded-xl border-white/10 bg-[#090909] text-[1.02rem] font-medium text-white hover:bg-[#111111] hover:text-white"
+            onClick={() => void handleSocialClick(provider)}
+          >
+            <SocialIcon provider={provider} />
+            {socialButtonLabels[provider]}
+          </Button>
+        ))}
       </div>
     </form>
   );
