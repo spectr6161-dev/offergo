@@ -1,17 +1,22 @@
 import Link from "next/link";
-import type { SVGProps } from "react";
+import type { ReactNode, SVGProps } from "react";
 import {
   AlertCircleIcon,
+  ArrowRightIcon,
   CheckCircle2Icon,
   CreditCardIcon,
   GaugeIcon,
   KeyboardIcon,
+  MonitorIcon,
+  PlayCircleIcon,
   ScanLineIcon,
+  ShieldAlertIcon,
   TimerIcon,
   WrenchIcon,
   type LucideIcon,
 } from "lucide-react";
 
+import { AssistantSettingsPanel } from "@/components/interview-assistant/assistant-settings-panel";
 import type {
   BillingSubscriptionSummary,
   BillingUsageLimit,
@@ -150,6 +155,80 @@ function getAssistantLimits(subscription?: BillingSubscriptionSummary) {
     .filter((item): item is BillingUsageLimit => Boolean(item));
 }
 
+function HeroSection() {
+  return (
+    <section className="overflow-hidden rounded-[2rem] bg-muted/40 p-6 md:p-10">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-3">
+            <Badge className="w-fit" variant="secondary">
+              Windows-приложение
+            </Badge>
+            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl">
+              Помощник для собеседований
+            </h1>
+            <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
+              Live-подсказки, анализ скриншотов и текстовые запросы в одном
+              приложении для Windows. Сначала откроется страница установки с
+              инструкцией, затем начнётся загрузка ZIP.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              asChild
+              className="h-16 rounded-2xl px-8 text-lg font-semibold"
+              size="lg"
+            >
+              <Link href="/interview-assistant/install">
+                <WindowsIcon data-icon="inline-start" />
+                Скачать для Windows
+              </Link>
+            </Button>
+            <Button
+              asChild
+              className="h-16 rounded-2xl px-8 text-base"
+              size="lg"
+              variant="outline"
+            >
+              <Link href="/billing">
+                Увеличить лимиты
+                <ArrowRightIcon data-icon="inline-end" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-[1.5rem] bg-background/70 p-4">
+          <div className="rounded-[1.25rem] bg-background p-4 text-foreground shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 font-medium">
+                <MonitorIcon />
+                OfferGO Assistant
+              </div>
+              <Badge variant="secondary">Windows</Badge>
+            </div>
+            <div className="flex flex-col gap-3">
+              {[
+                "Слушает вопрос",
+                "Формирует подсказку",
+                "Показывает ответ поверх окна",
+              ].map((item) => (
+                <div
+                  className="flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-3 text-sm"
+                  key={item}
+                >
+                  <CheckCircle2Icon />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function UsageLimitItem({
   item,
   isLast,
@@ -166,27 +245,35 @@ function UsageLimitItem({
   const limitLabel = item.unlimited
     ? "Безлимит"
     : formatLimitValue(item.feature, item.limit);
+  const remaining =
+    enforcementLimit === null ? null : Math.max(0, enforcementLimit - used);
 
   return (
     <>
-      <Item className="px-0 py-4" variant="default">
+      <Item className="px-0 py-5" variant="default">
         <ItemMedia variant="icon">
           <Icon />
         </ItemMedia>
         <ItemContent className="min-w-0">
-          <ItemTitle className="text-base">
+          <ItemTitle className="w-full text-base">
             {featureLabels[feature] ?? item.label}
           </ItemTitle>
           <ItemDescription>
-            Обновится {formatDate(item.resetAt)}
-            {item.unlimited && item.fairUseLimit
-              ? `, технический предел ${formatLimitValue(item.feature, item.fairUseLimit)}`
-              : ""}
+            Использовано {formatLimitValue(item.feature, used)} из {limitLabel}.
+            Обновится {formatDate(item.resetAt)}.
           </ItemDescription>
+          {item.unlimited && item.fairUseLimit ? (
+            <ItemDescription>
+              Технический предел:{" "}
+              {formatLimitValue(item.feature, item.fairUseLimit)}.
+            </ItemDescription>
+          ) : null}
         </ItemContent>
         <ItemActions className="basis-full justify-between sm:basis-auto sm:justify-end">
           <span className="text-sm font-semibold">
-            {formatLimitValue(item.feature, used)} / {limitLabel}
+            {remaining === null
+              ? "Безлимит"
+              : `Осталось ${formatLimitValue(item.feature, remaining)}`}
           </span>
           {exhausted ? (
             <Badge variant="destructive">Исчерпан</Badge>
@@ -194,7 +281,7 @@ function UsageLimitItem({
             <Badge variant="secondary">Безлимит</Badge>
           ) : null}
         </ItemActions>
-        <ItemFooter className="mt-1 flex-col items-stretch gap-2">
+        <ItemFooter className="mt-2 flex-col items-stretch gap-2">
           <Progress value={progress} />
         </ItemFooter>
       </Item>
@@ -203,79 +290,159 @@ function UsageLimitItem({
   );
 }
 
-function DownloadSection() {
+function LimitsSection({
+  error,
+  limits,
+  periodEnd,
+  periodStart,
+}: {
+  error?: string;
+  limits: BillingUsageLimit[];
+  periodEnd?: string;
+  periodStart?: string;
+}) {
+  const hasExhaustedLimit = limits.some((item) => {
+    const total = item.enforcementLimit ?? item.limit;
+    return total !== null && item.used + item.reserved >= total;
+  });
+
   return (
-    <section className="flex w-full">
-      <Button
-        asChild
-        className="h-16 w-full rounded-2xl bg-primary px-8 text-lg font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto sm:min-w-96"
-        size="lg"
-      >
-        <a download href="/downloads/offergo-interview-assistant.zip">
-          <WindowsIcon data-icon="inline-start" />
-          Скачать для Windows
-        </a>
-      </Button>
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Лимиты помощника
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {periodStart && periodEnd
+              ? `Текущий период: ${formatDate(periodStart)} - ${formatDate(periodEnd)}`
+              : "Данные по текущему периоду временно недоступны."}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button asChild variant="outline">
+            <Link href="/subscription">Посмотреть все лимиты</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/billing">
+              {hasExhaustedLimit ? "Увеличить лимиты" : "Расширить лимиты"}
+              <CreditCardIcon data-icon="inline-end" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {error ? (
+        <Alert variant="destructive">
+          <AlertCircleIcon />
+          <AlertTitle>Не удалось загрузить лимиты</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {limits.length > 0 ? (
+        <ItemGroup className="gap-0">
+          {limits.map((item, index) => (
+            <UsageLimitItem
+              isLast={index === limits.length - 1}
+              item={item}
+              key={item.feature}
+            />
+          ))}
+        </ItemGroup>
+      ) : error ? null : (
+        <Alert>
+          <GaugeIcon />
+          <AlertTitle>Лимиты не найдены</AlertTitle>
+          <AlertDescription>
+            Данные по лимитам помощника появятся после обновления тарифов.
+          </AlertDescription>
+        </Alert>
+      )}
     </section>
   );
 }
 
-function GuideSection() {
+function VisualStep({
+  children,
+  label,
+  title,
+}: {
+  children: ReactNode;
+  label: string;
+  title: string;
+}) {
   return (
-    <section className="flex flex-col gap-4">
+    <Item className="items-start px-0 py-4" variant="default">
+      <ItemMedia>
+        <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+          {label}
+        </div>
+      </ItemMedia>
+      <ItemContent>
+        <ItemTitle className="w-full text-base">{title}</ItemTitle>
+        <ItemDescription className="line-clamp-none">{children}</ItemDescription>
+      </ItemContent>
+    </Item>
+  );
+}
+
+function MockImage({ title }: { title: string }) {
+  return (
+    <div className="mt-3 rounded-2xl bg-muted/60 p-4">
+      <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+        <PlayCircleIcon />
+        {title}
+      </div>
+      <div className="grid gap-2">
+        <div className="h-3 w-2/3 rounded-full bg-background" />
+        <div className="h-3 w-5/6 rounded-full bg-background" />
+        <div className="h-16 rounded-xl bg-background" />
+      </div>
+    </div>
+  );
+}
+
+function TrainingSection() {
+  return (
+    <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-2xl font-semibold tracking-tight">
-          Как начать работу
+          Обучение работе
         </h2>
         <p className="text-sm text-muted-foreground">
-          Пошаговая настройка занимает несколько минут.
+          Видео и визуальные шаги вместо длинной текстовой инструкции.
         </p>
       </div>
-      <Accordion
-        className="w-full"
-        defaultValue="install"
-        type="single"
-        collapsible
-      >
-        <AccordionItem value="install">
-          <AccordionTrigger>1. Скачать приложение</AccordionTrigger>
-          <AccordionContent>
-            Скачайте ZIP-архив, распакуйте его в удобную папку и запустите
-            `TutorOverlay.Client.exe`. Сборка самодостаточная, отдельная
-            установка .NET Desktop Runtime 8 не требуется.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="login">
-          <AccordionTrigger>2. Подключить аккаунт</AccordionTrigger>
-          <AccordionContent>
-            В приложении нажмите вход, подтвердите подключение в браузере и
-            дождитесь статуса успешного подключения. Токен хранится локально на
-            компьютере.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="model">
-          <AccordionTrigger>3. Выбрать модель ответов</AccordionTrigger>
-          <AccordionContent>
-            В настройках выберите Yandex или Gemini для текстовых подсказок.
-            Аудиораспознавание live-сессии работает отдельно от выбора модели
-            ответов.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="session">
-          <AccordionTrigger>4. Запустить live-сессию</AccordionTrigger>
-          <AccordionContent>
-            Запустите сессию перед собеседованием. После старта начинают
-            расходоваться минуты аудиораспознавания текущего периода.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="tools">
-          <AccordionTrigger>5. Использовать запросы и скриншоты</AccordionTrigger>
-          <AccordionContent>
-            Отправляйте текстовые вопросы вручную или делайте скриншот задачи.
-            Каждый текстовый запрос и каждый скриншот расходует отдельный лимит.
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="overflow-hidden rounded-3xl bg-muted/50">
+          <video
+            className="aspect-video w-full bg-muted"
+            controls
+            preload="metadata"
+            src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+          />
+        </div>
+        <ItemGroup className="gap-0">
+          <VisualStep label="1" title="Скачайте ZIP">
+            Откройте страницу установки, дождитесь автоматической загрузки или
+            нажмите кнопку “Скачать сейчас”.
+            <MockImage title="Экран загрузки" />
+          </VisualStep>
+          <ItemSeparator className="my-0" />
+          <VisualStep label="2" title="Распакуйте архив">
+            Перенесите папку в удобное место, например в документы или на диск с
+            программами.
+            <MockImage title="Папка с приложением" />
+          </VisualStep>
+          <ItemSeparator className="my-0" />
+          <VisualStep label="3" title="Запустите приложение">
+            Нажмите <code>TutorOverlay.Client.exe</code>, войдите в аккаунт и
+            запустите live-сессию.
+            <MockImage title="Окно входа" />
+          </VisualStep>
+        </ItemGroup>
+      </div>
     </section>
   );
 }
@@ -283,53 +450,54 @@ function GuideSection() {
 function TroubleshootingSection() {
   const items = [
     {
-      title: "Приложение не запускается",
+      title: "Браузер пишет, что файл небезопасный",
       description:
-        "Проверьте, что Windows не заблокировала файл после скачивания. Если SmartScreen показывает предупреждение, подтвердите запуск приложения.",
+        "Такое бывает у новых приложений без широкой истории скачиваний. На странице установки есть пошаговая инструкция, как сохранить файл вручную.",
+      media: "Предупреждение браузера",
+    },
+    {
+      title: "Windows показывает SmartScreen",
+      description:
+        "Откройте подробности и подтвердите запуск, если скачивали файл с offergo.ru.",
+      media: "SmartScreen",
     },
     {
       title: "Не получается войти",
       description:
         "Проверьте, что вход выполняется тем же аккаунтом OfferGO. Если токен устарел, выйдите из приложения и подключитесь заново.",
-    },
-    {
-      title: "Не слышно собеседника",
-      description:
-        "Проверьте выбранный режим захвата аудио, устройство вывода и разрешения Windows для микрофона.",
+      media: "Окно подключения",
     },
     {
       title: "Лимит закончился",
       description:
-        "Откройте тарифы и увеличьте лимиты. До оплаты соответствующая функция в приложении будет недоступна.",
+        "Откройте тарифы и увеличьте лимиты. До оплаты соответствующая функция будет недоступна.",
+      media: "Лимиты тарифа",
     },
   ];
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-5">
       <div className="flex items-center gap-2">
         <WrenchIcon />
         <h2 className="text-2xl font-semibold tracking-tight">
           Проблемы и решения
         </h2>
       </div>
-      <ItemGroup className="gap-0">
+      <Accordion collapsible type="single">
         {items.map((item, index) => (
-          <div key={item.title}>
-            <Item className="px-0 py-4" variant="default">
-              <ItemMedia variant="icon">
-                <CheckCircle2Icon />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>{item.title}</ItemTitle>
-                <ItemDescription>{item.description}</ItemDescription>
-              </ItemContent>
-            </Item>
-            {index < items.length - 1 ? (
-              <ItemSeparator className="my-0" />
-            ) : null}
-          </div>
+          <AccordionItem key={item.title} value={`problem-${index}`}>
+            <AccordionTrigger>{item.title}</AccordionTrigger>
+            <AccordionContent>
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {item.description}
+                </p>
+                <MockImage title={item.media} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </ItemGroup>
+      </Accordion>
     </section>
   );
 }
@@ -338,77 +506,35 @@ export default async function InterviewAssistantPage() {
   const result = await getSubscription();
   const subscription = "subscription" in result ? result.subscription : undefined;
   const limits = getAssistantLimits(subscription);
-  const hasExhaustedLimit = limits.some((item) => {
-    const total = item.enforcementLimit ?? item.limit;
-    return total !== null && item.used + item.reserved >= total;
-  });
 
   return (
     <main className="min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background p-4 text-foreground md:p-6">
-      <section className="flex w-full flex-col gap-8">
-        <DownloadSection />
+      <section className="flex w-full flex-col gap-10">
+        <HeroSection />
+        <AssistantSettingsPanel />
         <Separator />
-
-        {result.error ? (
-          <Alert variant="destructive">
-            <AlertCircleIcon />
-            <AlertTitle>Не удалось загрузить лимиты</AlertTitle>
-            <AlertDescription>
-              {result.error}. Скачать приложение и открыть инструкцию можно
-              прямо сейчас.
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-2xl font-semibold tracking-tight">
-                Лимиты помощника
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Текущий период:{" "}
-                {subscription
-                  ? `${formatDate(subscription.periodStart)} - ${formatDate(subscription.periodEnd)}`
-                  : "данные временно недоступны"}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button asChild variant="outline">
-                <Link href="/subscription">Посмотреть лимиты</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/billing">
-                  {hasExhaustedLimit ? "Увеличить лимиты" : "Открыть тарифы"}
-                  <CreditCardIcon data-icon="inline-end" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {limits.length > 0 ? (
-            <ItemGroup className="gap-0">
-              {limits.map((item, index) => (
-                <UsageLimitItem
-                  isLast={index === limits.length - 1}
-                  item={item}
-                  key={item.feature}
-                />
-              ))}
-            </ItemGroup>
-          ) : result.error ? null : (
-            <Alert>
-              <GaugeIcon />
-              <AlertTitle>Лимиты не найдены</AlertTitle>
-              <AlertDescription>
-                Данные по лимитам помощника появятся после обновления тарифов.
-              </AlertDescription>
-            </Alert>
-          )}
-        </section>
-
-        <GuideSection />
+        <LimitsSection
+          error={"error" in result ? result.error : undefined}
+          limits={limits}
+          periodEnd={subscription?.periodEnd}
+          periodStart={subscription?.periodStart}
+        />
+        <Separator />
+        <TrainingSection />
+        <Separator />
         <TroubleshootingSection />
+        <Alert>
+          <ShieldAlertIcon />
+          <AlertTitle>Поддержка</AlertTitle>
+          <AlertDescription>
+            По вопросам работы программы можно круглосуточно писать в службу
+            технической поддержки{" "}
+            <a href="https://t.me/offergo_bot" rel="noreferrer" target="_blank">
+              @offergo_bot
+            </a>
+            .
+          </AlertDescription>
+        </Alert>
       </section>
     </main>
   );

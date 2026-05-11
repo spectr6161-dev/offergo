@@ -208,6 +208,10 @@ const adminNavItems: AdminNavItem[] = [
 const staticBreadcrumbs: Record<string, BreadcrumbEntry[]> = {
   "/dashboard": [{ title: "Главная" }],
   "/interview-assistant": [{ title: "Помощник" }],
+  "/interview-assistant/install": [
+    { title: "Помощник", href: "/interview-assistant" },
+    { title: "Установка" },
+  ],
   "/resumes": [{ title: "Мои резюме" }],
   "/vacancies": [{ title: "Вакансии" }],
   "/employers-bank": [{ title: "Банк работодателей" }],
