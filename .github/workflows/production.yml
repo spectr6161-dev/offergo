@@ -148,7 +148,17 @@ jobs:
 
       - name: Publish WPF client
         shell: pwsh
-        run: dotnet publish .\wpf\TutorOverlay.Client\TutorOverlay.Client.csproj -c Release -r win-x64 --self-contained false -o .\artifacts\wpf\publish
+        run: >
+          dotnet publish .\wpf\TutorOverlay.Client\TutorOverlay.Client.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -o .\artifacts\wpf\publish
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
 
       - name: Package WPF client
         shell: pwsh
@@ -156,14 +166,15 @@ jobs:
           $ErrorActionPreference = "Stop"
           $dist = ".\artifacts\wpf\dist"
           New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          Copy-Item ".\artifacts\wpf\publish\TutorOverlay.Client.exe" "$dist\offergo-interview-assistant.exe" -Force
           Compress-Archive -Path ".\artifacts\wpf\publish\*" -DestinationPath "$dist\offergo-interview-assistant.zip" -Force
           $sha = "${{ github.sha }}"
           $manifest = [ordered]@{
             version = $sha.Substring(0, 7)
             builtAt = (Get-Date).ToUniversalTime().ToString("o")
-            fileName = "offergo-interview-assistant.zip"
+            fileName = "offergo-interview-assistant.exe"
             platform = "windows-x64"
-            requires = ".NET Desktop Runtime 8"
+            requires = "Windows 10/11 x64"
           } | ConvertTo-Json
           Set-Content -Path "$dist\offergo-interview-assistant.json" -Value $manifest -Encoding UTF8
 
@@ -241,4 +252,4 @@ jobs:
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/v1/health
           curl --fail --show-error --location --max-time 30 https://offergo.ru > /tmp/offergo-home.html
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/docs > /tmp/offergo-docs.html
-          curl --fail --show-error --head --location --max-time 30 https://offergo.ru/downloads/offergo-interview-assistant.zip
+          curl --fail --show-error --head --location --max-time 30 https://offergo.ru/downloads/offergo-interview-assistant.exe

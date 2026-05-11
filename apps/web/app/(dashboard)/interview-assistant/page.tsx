@@ -208,10 +208,10 @@ function DownloadSection() {
     <section className="flex w-full">
       <Button
         asChild
-        className="h-16 w-full rounded-2xl px-8 text-lg font-semibold sm:w-auto sm:min-w-96"
+        className="h-16 w-full rounded-2xl bg-primary px-8 text-lg font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto sm:min-w-96"
         size="lg"
       >
-        <a download href="/downloads/offergo-interview-assistant.zip">
+        <a download href="/downloads/offergo-interview-assistant.exe">
           <WindowsIcon data-icon="inline-start" />
           Скачать для Windows
         </a>
@@ -231,13 +231,18 @@ function GuideSection() {
           Пошаговая настройка занимает несколько минут.
         </p>
       </div>
-      <Accordion className="w-full" defaultValue="install" type="single" collapsible>
+      <Accordion
+        className="w-full"
+        defaultValue="install"
+        type="single"
+        collapsible
+      >
         <AccordionItem value="install">
-          <AccordionTrigger>1. Скачать и распаковать</AccordionTrigger>
+          <AccordionTrigger>1. Скачать приложение</AccordionTrigger>
           <AccordionContent>
-            Скачайте ZIP-архив, распакуйте его в удобную папку и запустите
-            `TutorOverlay.Client.exe`. Для запуска нужна среда .NET Desktop
-            Runtime 8.
+            Скачайте exe-файл и запустите его на Windows. Сборка
+            самодостаточная, отдельная установка .NET Desktop Runtime 8 не
+            требуется.
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="login">
@@ -280,7 +285,7 @@ function TroubleshootingSection() {
     {
       title: "Приложение не запускается",
       description:
-        "Установите .NET Desktop Runtime 8 для Windows и повторно запустите exe-файл.",
+        "Проверьте, что Windows не заблокировала файл после скачивания. Если SmartScreen показывает предупреждение, подтвердите запуск приложения.",
     },
     {
       title: "Не получается войти",

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using TutorOverlay.Client.Models;
@@ -499,6 +500,36 @@ internal sealed class ProcessLoopbackAudioCaptureAdapter : AudioCaptureAdapterBa
     private static string ResolveHelperPath()
     {
         var baseDirectory = AppContext.BaseDirectory;
-        return Path.Combine(baseDirectory, "ProcessLoopbackCaptureHelper.exe");
+        var bundledPath = Path.Combine(baseDirectory, "ProcessLoopbackCaptureHelper.exe");
+
+        if (File.Exists(bundledPath))
+        {
+            return bundledPath;
+        }
+
+        var appDataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "OfferGO",
+            "ProcessLoopbackCaptureHelper.exe");
+
+        if (File.Exists(appDataPath))
+        {
+            return appDataPath;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(appDataPath)!);
+
+        using var resource = Assembly.GetExecutingAssembly()
+            .GetManifestResourceStream("ProcessLoopbackCaptureHelper.exe");
+
+        if (resource is null)
+        {
+            return bundledPath;
+        }
+
+        using var output = File.Create(appDataPath);
+        resource.CopyTo(output);
+
+        return appDataPath;
     }
 }

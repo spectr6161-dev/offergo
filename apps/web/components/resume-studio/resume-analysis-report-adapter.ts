@@ -723,7 +723,7 @@ function getDocumentTitleFromDisplayBlocks(blocks: ResumeAnalysisDisplayBlock[])
       !/@|\+?\d[\d\s().-]{7,}|telegram|linkedin|github/i.test(block.text)
   )
 
-  return firstHeader?.text.trim().split("\n")[0] || "Р РµР·СЋРјРµ"
+  return firstHeader?.text.trim().split("\n")[0] || "Резюме"
 }
 
 function getDocumentSubtitleFromDisplayBlocks(

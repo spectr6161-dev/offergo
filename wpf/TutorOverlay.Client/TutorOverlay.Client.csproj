@@ -25,6 +25,8 @@
              Link="ProcessLoopbackCaptureHelper.exe"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
+    <EmbeddedResource Include="..\native\ProcessLoopbackCaptureHelper\out\ProcessLoopbackCaptureHelper.exe"
+                      LogicalName="ProcessLoopbackCaptureHelper.exe" />
   </ItemGroup>
 
 </Project>

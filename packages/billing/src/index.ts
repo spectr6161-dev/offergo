@@ -243,7 +243,7 @@ function getCalendarMonthWindow(now = new Date()) {
 
 function getQuotaExceededMessage(feature: BillingFeature, resetAt: Date) {
   const label = billingFeatureLabels[feature] ?? feature;
-  return `Р›РёРјРёС‚ "${label}" РёСЃС‡РµСЂРїР°РЅ. Р›РёРјРёС‚ РѕР±РЅРѕРІРёС‚СЃСЏ ${resetAt.toLocaleDateString(
+  return `Лимит "${label}" исчерпан. Лимит обновится ${resetAt.toLocaleDateString(
     "ru-RU",
   )}.`;
 }
