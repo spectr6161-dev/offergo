@@ -8,8 +8,10 @@ import {
   Post,
   Req,
   UnauthorizedException,
+  UnprocessableEntityException,
   UseGuards,
 } from "@nestjs/common";
+import { randomBytes } from "node:crypto";
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -26,11 +28,12 @@ import type { Request } from "express";
 import { z } from "zod";
 import { auth } from "@offergo/auth/core";
 import { prisma } from "@offergo/db";
-import type { AppRole } from "@offergo/shared";
+import { env, type AppRole } from "@offergo/shared";
 import { ApiAuthGuard } from "./auth.guard";
 import { CurrentUser } from "./current-user.decorator";
 import type { AuthenticatedRequest } from "./authenticated-request";
 import type { AuthenticatedAppUser } from "@offergo/auth/session";
+import { validateYandexMobileAccessToken } from "./yandex-mobile-auth";
 import {
   acceptUserConsents,
   assertAcceptedDocumentIds,
@@ -44,6 +47,8 @@ import {
   MobileSessionResponseDto,
   MobileSignInRequestDto,
   MobileSignUpRequestDto,
+  MobileSocialSignInRequestDto,
+  MobileSocialSignUpRequestDto,
 } from "../docs/swagger.models";
 
 const mobileSignInSchema = z.object({
@@ -58,12 +63,23 @@ const mobileSignUpSchema = z.object({
   acceptedDocumentIds: z.array(z.string().trim().min(1)).min(1),
 });
 
+const mobileSocialSignInSchema = z.object({
+  provider: z.string().trim().min(1),
+  providerAccessToken: z.string().trim().min(1),
+});
+
+const mobileSocialSignUpSchema = mobileSocialSignInSchema.extend({
+  acceptedDocumentIds: z.array(z.string().trim().min(1)).min(1),
+});
+
 type BetterAuthUserResult = {
   id: string;
   email: string;
   name: string;
   image?: string | null;
 };
+
+type MobileSocialProvider = "yandex";
 
 function getBearerToken(request: AuthenticatedRequest) {
   const header = request.headers.authorization;
@@ -73,6 +89,59 @@ function getBearerToken(request: AuthenticatedRequest) {
   }
 
   return header.slice(7).trim();
+}
+
+function getClientIp(request: Request) {
+  const forwardedFor = request.headers["x-forwarded-for"];
+
+  if (typeof forwardedFor === "string" && forwardedFor.trim()) {
+    return forwardedFor.split(",")[0]?.trim() ?? null;
+  }
+
+  return request.ip ?? null;
+}
+
+function getRequestUserAgent(request: Request) {
+  const userAgent = request.headers["user-agent"];
+  return typeof userAgent === "string" ? userAgent : null;
+}
+
+function createSessionToken() {
+  return randomBytes(32).toString("base64url");
+}
+
+function createSessionExpiresAt() {
+  return new Date(Date.now() + env.MOBILE_SESSION_TTL_DAYS * 24 * 60 * 60_000);
+}
+
+async function createMobileBearerSession(userId: string, request: Request) {
+  const token = createSessionToken();
+  const expiresAt = createSessionExpiresAt();
+  const session = await prisma.session.create({
+    data: {
+      userId,
+      token,
+      expiresAt,
+      ipAddress: getClientIp(request),
+      userAgent: getRequestUserAgent(request),
+    },
+    select: {
+      token: true,
+    },
+  });
+
+  return session.token;
+}
+
+function assertMobileSocialProvider(
+  provider: string,
+): asserts provider is MobileSocialProvider {
+  if (provider !== "yandex") {
+    throw new UnprocessableEntityException({
+      code: "unsupported_provider",
+      message: "Only yandex provider is supported for mobile social auth.",
+    });
+  }
 }
 
 function getAuthErrorMessage(error: unknown) {
@@ -125,7 +194,10 @@ function mapSignUpError(error: unknown): never {
   const status = getAuthErrorStatus(error);
   const message = getAuthErrorMessage(error);
 
-  if (status === 422 || /already exists|use another email/i.test(message ?? "")) {
+  if (
+    status === 422 ||
+    /already exists|use another email/i.test(message ?? "")
+  ) {
     throw new ConflictException("User with this email already exists.");
   }
 
@@ -294,6 +366,201 @@ export class MobileAuthController {
     }
 
     return buildMobileAuthResponse(result.token, result.user.id);
+  }
+
+  @Post("social/sign-in")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Native mobile social login",
+    description:
+      "Authenticates a native mobile app with a provider access token. The backend verifies the provider token and returns the same bearer session contract as email/password login.",
+  })
+  @ApiBody({ type: MobileSocialSignInRequestDto })
+  @ApiOkResponse({ type: MobileAuthResponseDto })
+  @ApiBadRequestResponse({ description: "Invalid payload." })
+  @ApiUnauthorizedResponse({
+    description:
+      "Provider token is invalid, expired or was issued for another client.",
+  })
+  @ApiConflictResponse({
+    description: "Provider account is not registered in OfferGO yet.",
+  })
+  @ApiUnprocessableEntityResponse({
+    description: "Unsupported social provider.",
+  })
+  @ApiResponse({ status: 429, description: "Auth rate limit exceeded." })
+  async socialSignIn(@Req() request: Request, @Body() body: unknown) {
+    const parsed = mobileSocialSignInSchema.parse(body ?? {});
+    assertMobileSocialProvider(parsed.provider);
+
+    const profile = await validateYandexMobileAccessToken(
+      parsed.providerAccessToken,
+    );
+    const providerId = parsed.provider;
+    let userId: string | null = null;
+
+    const existingAccount = await prisma.account.findUnique({
+      where: {
+        providerId_accountId: {
+          providerId,
+          accountId: profile.id,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (existingAccount) {
+      userId = existingAccount.userId;
+
+      if (profile.image) {
+        await prisma.user.updateMany({
+          where: {
+            id: userId,
+            image: null,
+          },
+          data: {
+            image: profile.image,
+          },
+        });
+      }
+    } else {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: profile.email },
+        select: { id: true, image: true },
+      });
+
+      if (!existingUser) {
+        throw new ConflictException({
+          code: "account_not_registered",
+          message: "Yandex account is not registered in OfferGO.",
+        });
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.account.create({
+          data: {
+            providerId,
+            accountId: profile.id,
+            userId: existingUser.id,
+          },
+        });
+
+        await tx.user.update({
+          where: { id: existingUser.id },
+          data: {
+            emailVerified: true,
+            ...(existingUser.image || !profile.image
+              ? {}
+              : { image: profile.image }),
+          },
+        });
+      });
+
+      userId = existingUser.id;
+    }
+
+    const token = await createMobileBearerSession(userId, request);
+
+    return buildMobileAuthResponse(token, userId);
+  }
+
+  @Post("social/sign-up")
+  @HttpCode(200)
+  @ApiOperation({
+    summary: "Native mobile social registration",
+    description:
+      "Registers a native mobile user with a verified provider access token and accepted legal document version IDs.",
+  })
+  @ApiBody({ type: MobileSocialSignUpRequestDto })
+  @ApiOkResponse({ type: MobileAuthResponseDto })
+  @ApiBadRequestResponse({ description: "Invalid payload." })
+  @ApiUnauthorizedResponse({
+    description:
+      "Provider token is invalid, expired or was issued for another client.",
+  })
+  @ApiConflictResponse({
+    description: "Provider account or email is already registered.",
+  })
+  @ApiUnprocessableEntityResponse({
+    description:
+      "Unsupported provider or not all active legal documents were accepted.",
+  })
+  @ApiResponse({ status: 429, description: "Auth rate limit exceeded." })
+  async socialSignUp(@Req() request: Request, @Body() body: unknown) {
+    const parsed = mobileSocialSignUpSchema.parse(body ?? {});
+    assertMobileSocialProvider(parsed.provider);
+
+    const documents = await getActiveRequiredDocuments();
+    assertAcceptedDocumentIds(documents, parsed.acceptedDocumentIds);
+
+    const profile = await validateYandexMobileAccessToken(
+      parsed.providerAccessToken,
+    );
+    const providerId = parsed.provider;
+    const expiresAt = createSessionExpiresAt();
+    const token = createSessionToken();
+
+    const created = await prisma.$transaction(async (tx) => {
+      const [existingAccount, existingUser] = await Promise.all([
+        tx.account.findUnique({
+          where: {
+            providerId_accountId: {
+              providerId,
+              accountId: profile.id,
+            },
+          },
+          select: { id: true },
+        }),
+        tx.user.findUnique({
+          where: { email: profile.email },
+          select: { id: true },
+        }),
+      ]);
+
+      if (existingAccount || existingUser) {
+        throw new ConflictException({
+          code: "account_already_registered",
+          message: "Yandex account or email is already registered in OfferGO.",
+        });
+      }
+
+      const user = await tx.user.create({
+        data: {
+          email: profile.email,
+          emailVerified: true,
+          name: profile.name,
+          image: profile.image,
+          accounts: {
+            create: {
+              providerId,
+              accountId: profile.id,
+            },
+          },
+          sessions: {
+            create: {
+              token,
+              expiresAt,
+              ipAddress: getClientIp(request),
+              userAgent: getRequestUserAgent(request),
+            },
+          },
+        },
+        select: { id: true },
+      });
+
+      return user;
+    });
+
+    await acceptUserConsents({
+      userId: created.id,
+      source: "mobile_social_register",
+      request,
+      documentIds: parsed.acceptedDocumentIds,
+    });
+
+    return buildMobileAuthResponse(token, created.id);
   }
 
   @Get("session")

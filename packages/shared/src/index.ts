@@ -104,12 +104,20 @@ const envSchema = z.object({
   VK_OAUTH_CLIENT_KEY: z.string().optional().default(""),
   TELEGRAM_BOT_TOKEN: z.string().optional().default(""),
   TELEGRAM_AUTH_MAX_AGE_SECONDS: z.coerce.number().default(86400),
+  MOBILE_SESSION_TTL_DAYS: z.coerce.number().int().positive().default(30),
   LEGAL_OPERATOR_NAME: z.string().optional().default("ООО/ИП OfferGO"),
   LEGAL_OPERATOR_INN: z.string().optional().default("000000000000"),
   LEGAL_OPERATOR_OGRNIP_OR_OGRN: z.string().optional().default("0000000000000"),
   LEGAL_OPERATOR_ADDRESS: z.string().optional().default("Российская Федерация"),
-  LEGAL_OPERATOR_EMAIL: z.string().email().optional().default("privacy@offergo.local"),
-  LEGAL_RESPONSIBLE_PERSON: z.string().optional().default("Ответственный за обработку персональных данных"),
+  LEGAL_OPERATOR_EMAIL: z
+    .string()
+    .email()
+    .optional()
+    .default("privacy@offergo.local"),
+  LEGAL_RESPONSIBLE_PERSON: z
+    .string()
+    .optional()
+    .default("Ответственный за обработку персональных данных"),
   LEGAL_DATA_LOCATION: z.string().optional().default("RU"),
   LEGAL_AI_PUBLIC_PROVIDER: z.enum(["yandex"]).default("yandex"),
   LEGAL_FISCALIZATION_CONFIRMED: z
@@ -145,7 +153,9 @@ const envSchema = z.object({
     .default("minimal"),
   GEMINI_GENERATE_FALLBACK_MODELS: z
     .string()
-    .default("gemini-3.1-flash-lite-preview,gemini-2.5-flash,gemini-3.1-pro-preview"),
+    .default(
+      "gemini-3.1-flash-lite-preview,gemini-2.5-flash,gemini-3.1-pro-preview",
+    ),
   LIVE_WEBSOCKET_PATH: z.string().default("/ws/live"),
   LIVE_SCREENSHOT_MAX_MB: z.coerce.number().default(6),
   DESKTOP_SESSION_TTL_DAYS: z.coerce.number().default(30),
@@ -200,6 +210,7 @@ const parsedEnv = envSchema.parse({
   VK_OAUTH_CLIENT_KEY: process.env.VK_OAUTH_CLIENT_KEY,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   TELEGRAM_AUTH_MAX_AGE_SECONDS: process.env.TELEGRAM_AUTH_MAX_AGE_SECONDS,
+  MOBILE_SESSION_TTL_DAYS: process.env.MOBILE_SESSION_TTL_DAYS,
   LEGAL_OPERATOR_NAME: process.env.LEGAL_OPERATOR_NAME,
   LEGAL_OPERATOR_INN: process.env.LEGAL_OPERATOR_INN,
   LEGAL_OPERATOR_OGRNIP_OR_OGRN: process.env.LEGAL_OPERATOR_OGRNIP_OR_OGRN,
@@ -208,8 +219,7 @@ const parsedEnv = envSchema.parse({
   LEGAL_RESPONSIBLE_PERSON: process.env.LEGAL_RESPONSIBLE_PERSON,
   LEGAL_DATA_LOCATION: process.env.LEGAL_DATA_LOCATION,
   LEGAL_AI_PUBLIC_PROVIDER: process.env.LEGAL_AI_PUBLIC_PROVIDER,
-  LEGAL_FISCALIZATION_CONFIRMED:
-    process.env.LEGAL_FISCALIZATION_CONFIRMED,
+  LEGAL_FISCALIZATION_CONFIRMED: process.env.LEGAL_FISCALIZATION_CONFIRMED,
   LEGAL_ALLOWED_EXTENSION_IDS: process.env.LEGAL_ALLOWED_EXTENSION_IDS,
   PLATEGA_BASE_URL: process.env.PLATEGA_BASE_URL,
   PLATEGA_MERCHANT_ID: process.env.PLATEGA_MERCHANT_ID,
@@ -360,7 +370,8 @@ function validateProductionEnv(config: typeof parsedEnv) {
 
   if (
     config.ENABLE_GOOGLE_AUTH &&
-    (!hasValue(config.GOOGLE_CLIENT_ID) || !hasValue(config.GOOGLE_CLIENT_SECRET))
+    (!hasValue(config.GOOGLE_CLIENT_ID) ||
+      !hasValue(config.GOOGLE_CLIENT_SECRET))
   ) {
     errors.push(
       "GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are required when ENABLE_GOOGLE_AUTH=true.",
@@ -384,7 +395,9 @@ function validateProductionEnv(config: typeof parsedEnv) {
     );
   }
 
-  if (!hasPairedValue(config.VK_OAUTH_CLIENT_ID, config.VK_OAUTH_CLIENT_SECRET)) {
+  if (
+    !hasPairedValue(config.VK_OAUTH_CLIENT_ID, config.VK_OAUTH_CLIENT_SECRET)
+  ) {
     errors.push(
       "VK_OAUTH_CLIENT_ID and VK_OAUTH_CLIENT_SECRET must be configured together.",
     );

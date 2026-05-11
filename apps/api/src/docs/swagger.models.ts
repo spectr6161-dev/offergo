@@ -69,7 +69,10 @@ export class MobileLegalDocumentSummaryDto {
   @ApiProperty({ type: String, example: "2026-05-06" })
   version!: string;
 
-  @ApiProperty({ type: String, example: "Политика обработки персональных данных" })
+  @ApiProperty({
+    type: String,
+    example: "Политика обработки персональных данных",
+  })
   title!: string;
 
   @ApiPropertyOptional({ type: String, nullable: true })
@@ -162,6 +165,36 @@ export class MobileSignInRequestDto {
     example: "StrongPass123",
   })
   password!: string;
+}
+
+export class MobileSocialSignInRequestDto {
+  @ApiProperty({
+    type: String,
+    enum: ["yandex"],
+    example: "yandex",
+    description:
+      "Social auth provider. Only yandex is supported in this version.",
+  })
+  provider!: "yandex";
+
+  @ApiProperty({
+    type: String,
+    example: "AQAAAA...",
+    description:
+      "Access token received by the native mobile app from Yandex ID SDK.",
+  })
+  providerAccessToken!: string;
+}
+
+export class MobileSocialSignUpRequestDto extends MobileSocialSignInRequestDto {
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    description:
+      "IDs of all active required legal document versions shown to the user in the native app.",
+    example: ["clv_terms_id", "clv_privacy_id"],
+  })
+  acceptedDocumentIds!: string[];
 }
 
 export class MobileAuthResponseDto {
