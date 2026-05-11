@@ -172,6 +172,7 @@ async function bootstrap() {
     bodyParser: false,
     logger: nestLogger,
   });
+  app.getHttpAdapter().getInstance().set("trust proxy", 1);
 
   app.use(applySecurityHeaders);
   app.use(applyRateLimit);
