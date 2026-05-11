@@ -23,7 +23,8 @@
   <ItemGroup Condition="Exists('..\native\ProcessLoopbackCaptureHelper\out\ProcessLoopbackCaptureHelper.exe')">
     <Content Include="..\native\ProcessLoopbackCaptureHelper\out\ProcessLoopbackCaptureHelper.exe"
              Link="ProcessLoopbackCaptureHelper.exe"
-             CopyToOutputDirectory="PreserveNewest" />
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

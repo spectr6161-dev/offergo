@@ -155,6 +155,7 @@ services:
       - "${HTTPS_PORT:-443}:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./downloads:/srv/downloads:ro
       - caddy-data:/data
       - caddy-config:/config
 

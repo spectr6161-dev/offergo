@@ -5,6 +5,11 @@
 {$APP_DOMAIN} {
 	encode zstd gzip
 
+	handle_path /downloads/* {
+		root * /srv/downloads
+		file_server
+	}
+
 	@api path /api/v1/* /api/auth/* /api/docs* /api/docs-json /adminjs* /ws/live*
 	reverse_proxy @api api:3001
 

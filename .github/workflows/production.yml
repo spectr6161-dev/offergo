@@ -123,15 +123,73 @@ jobs:
           cache-from: type=gha,scope=offergo-worker
           cache-to: type=gha,mode=max,scope=offergo-worker
 
+  build-windows-assistant:
+    name: Build Windows assistant
+    runs-on: windows-latest
+    needs: checks
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build native audio helper
+        shell: pwsh
+        run: .\wpf\native\ProcessLoopbackCaptureHelper\build.ps1 -Configuration Release
+
+      - name: Restore WPF client
+        shell: pwsh
+        run: dotnet restore .\wpf\TutorOverlay.Client\TutorOverlay.Client.csproj
+
+      - name: Publish WPF client
+        shell: pwsh
+        run: dotnet publish .\wpf\TutorOverlay.Client\TutorOverlay.Client.csproj -c Release -r win-x64 --self-contained false -o .\artifacts\wpf\publish
+
+      - name: Package WPF client
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $dist = ".\artifacts\wpf\dist"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          Compress-Archive -Path ".\artifacts\wpf\publish\*" -DestinationPath "$dist\offergo-interview-assistant.zip" -Force
+          $sha = "${{ github.sha }}"
+          $manifest = [ordered]@{
+            version = $sha.Substring(0, 7)
+            builtAt = (Get-Date).ToUniversalTime().ToString("o")
+            fileName = "offergo-interview-assistant.zip"
+            platform = "windows-x64"
+            requires = ".NET Desktop Runtime 8"
+          } | ConvertTo-Json
+          Set-Content -Path "$dist\offergo-interview-assistant.json" -Value $manifest -Encoding UTF8
+
+      - name: Upload WPF package
+        uses: actions/upload-artifact@v4
+        with:
+          name: offergo-interview-assistant
+          path: artifacts/wpf/dist/*
+
   deploy:
     name: Deploy production
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - build
+      - build-windows-assistant
     timeout-minutes: 20
 
     steps:
       - name: Checkout deployment files
         uses: actions/checkout@v4
+
+      - name: Download Windows assistant package
+        uses: actions/download-artifact@v4
+        with:
+          name: offergo-interview-assistant
+          path: /tmp/offergo-downloads
 
       - name: Prepare SSH
         run: |
@@ -145,8 +203,11 @@ jobs:
         run: |
           set -euo pipefail
           tar -czf /tmp/offergo-deploy-bundle.tgz docker-compose.yml deploy/Caddyfile scripts/project.sh
+          tar -czf /tmp/offergo-downloads-${{ github.sha }}.tgz -C /tmp/offergo-downloads .
           scp -i ~/.ssh/offergo_deploy_key /tmp/offergo-deploy-bundle.tgz \
             "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz"
+          scp -i ~/.ssh/offergo_deploy_key /tmp/offergo-downloads-${{ github.sha }}.tgz \
+            "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/tmp/offergo-downloads-${{ github.sha }}.tgz"
 
       - name: Deploy over SSH
         run: |
@@ -154,11 +215,13 @@ jobs:
           GHCR_TOKEN_B64="$(printf '%s' "${{ secrets.GITHUB_TOKEN }}" | base64 -w 0)"
           ssh -i ~/.ssh/offergo_deploy_key \
             "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}" \
-            "GHCR_USER='${{ github.actor }}' GHCR_TOKEN_B64='${GHCR_TOKEN_B64}' API_IMAGE='${{ env.API_IMAGE_SHA }}' WEB_IMAGE='${{ env.WEB_IMAGE_SHA }}' WORKER_IMAGE='${{ env.WORKER_IMAGE_SHA }}' BUNDLE_PATH='/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz' bash -s" <<'REMOTE'
+            "GHCR_USER='${{ github.actor }}' GHCR_TOKEN_B64='${GHCR_TOKEN_B64}' API_IMAGE='${{ env.API_IMAGE_SHA }}' WEB_IMAGE='${{ env.WEB_IMAGE_SHA }}' WORKER_IMAGE='${{ env.WORKER_IMAGE_SHA }}' BUNDLE_PATH='/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz' DOWNLOADS_BUNDLE_PATH='/tmp/offergo-downloads-${{ github.sha }}.tgz' bash -s" <<'REMOTE'
           set -euo pipefail
 
           mkdir -p "$HOME/offergo"
           tar -xzf "$BUNDLE_PATH" -C "$HOME/offergo"
+          mkdir -p "$HOME/offergo/downloads"
+          tar -xzf "$DOWNLOADS_BUNDLE_PATH" -C "$HOME/offergo/downloads"
           chmod +x "$HOME/offergo/scripts/project.sh"
 
           cd "$HOME/offergo"
@@ -178,3 +241,4 @@ jobs:
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/v1/health
           curl --fail --show-error --location --max-time 30 https://offergo.ru > /tmp/offergo-home.html
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/docs > /tmp/offergo-docs.html
+          curl --fail --show-error --head --location --max-time 30 https://offergo.ru/downloads/offergo-interview-assistant.zip

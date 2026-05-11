@@ -97,6 +97,11 @@ const authenticatedNavItems: NavItem[] = [
     match: "exact",
   },
   {
+    title: "Помощник",
+    href: "/interview-assistant",
+    activeOn: ["/interview-assistant"],
+  },
+  {
     title: "Тарифы",
     href: "/billing",
     activeOn: ["/billing"],
@@ -202,6 +207,7 @@ const adminNavItems: AdminNavItem[] = [
 
 const staticBreadcrumbs: Record<string, BreadcrumbEntry[]> = {
   "/dashboard": [{ title: "Главная" }],
+  "/interview-assistant": [{ title: "Помощник" }],
   "/resumes": [{ title: "Мои резюме" }],
   "/vacancies": [{ title: "Вакансии" }],
   "/employers-bank": [{ title: "Банк работодателей" }],

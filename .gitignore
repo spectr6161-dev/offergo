@@ -22,6 +22,8 @@ logs
 *.pem
 *.crx
 deploy-archives
+artifacts
+downloads
 aset
 /icon/
 workspace-contractors*.csv
