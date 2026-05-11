@@ -1,13 +1,11 @@
 import Link from "next/link";
+import type { SVGProps } from "react";
 import {
   AlertCircleIcon,
   CheckCircle2Icon,
   CreditCardIcon,
-  DownloadIcon,
-  ExternalLinkIcon,
   GaugeIcon,
   KeyboardIcon,
-  MonitorPlayIcon,
   ScanLineIcon,
   TimerIcon,
   WrenchIcon,
@@ -74,6 +72,17 @@ const featureLabels: Record<AssistantFeature, string> = {
   wpf_screenshot: "Анализ скриншотов",
   wpf_text_request: "Анализ текстовых запросов",
 };
+
+function WindowsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" {...props}>
+      <path
+        d="M3 5.1 10.8 4v7.4H3V5.1Zm9-1.25L21 2.6v8.8h-9V3.85ZM3 12.6h7.8V20L3 18.9v-6.3Zm9 0h9v8.8l-9-1.25V12.6Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 async function getSubscription(): Promise<SubscriptionResult> {
   try {
@@ -196,37 +205,17 @@ function UsageLimitItem({
 
 function DownloadSection() {
   return (
-    <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div className="flex max-w-3xl flex-col gap-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <MonitorPlayIcon />
-          Windows 10/11
-        </div>
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-            Помощник для собеседований
-          </h1>
-          <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-            Скачайте приложение для Windows, подключите аккаунт OfferGO и
-            используйте подсказки, анализ скриншотов и текстовые запросы во
-            время подготовки и собеседования.
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
-        <Button asChild size="lg">
-          <a download href="/downloads/offergo-interview-assistant.zip">
-            <DownloadIcon data-icon="inline-start" />
-            Скачать для Windows
-          </a>
-        </Button>
-        <Button asChild size="lg" variant="outline">
-          <a href="/downloads/offergo-interview-assistant.json">
-            Версия сборки
-            <ExternalLinkIcon data-icon="inline-end" />
-          </a>
-        </Button>
-      </div>
+    <section className="flex w-full">
+      <Button
+        asChild
+        className="h-16 w-full rounded-2xl px-8 text-lg font-semibold sm:w-auto sm:min-w-96"
+        size="lg"
+      >
+        <a download href="/downloads/offergo-interview-assistant.zip">
+          <WindowsIcon data-icon="inline-start" />
+          Скачать для Windows
+        </a>
+      </Button>
     </section>
   );
 }
