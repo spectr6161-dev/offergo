@@ -3,11 +3,11 @@ import type { ReactNode, SVGProps } from "react";
 import {
   AlertCircleIcon,
   CreditCardIcon,
+  DownloadIcon,
   GaugeIcon,
   KeyboardIcon,
   PlayCircleIcon,
   ScanLineIcon,
-  ShieldAlertIcon,
   TimerIcon,
   WrenchIcon,
   type LucideIcon,
@@ -18,6 +18,16 @@ import type {
   BillingSubscriptionSummary,
   BillingUsageLimit,
 } from "@/components/pricing-section";
+import {
+  Stepper,
+  StepperDescription,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from "@/components/reui/stepper";
 import {
   Accordion,
   AccordionContent,
@@ -154,17 +164,34 @@ function getAssistantLimits(subscription?: BillingSubscriptionSummary) {
 
 function DownloadSection() {
   return (
-    <section className="flex w-full">
-      <Button
-        asChild
-        className="h-16 w-full rounded-2xl bg-sky-600 px-8 text-lg font-semibold text-white hover:bg-sky-700 dark:bg-sky-500 dark:text-white dark:hover:bg-sky-600 sm:w-auto sm:min-w-96"
-        size="lg"
-      >
-        <Link href="/interview-assistant/install">
-          <WindowsIcon data-icon="inline-start" />
-          Скачать для Windows
-        </Link>
-      </Button>
+    <section>
+      <ItemGroup className="gap-0">
+        <Item className="items-start px-0 py-4" variant="default">
+          <ItemMedia className="mt-1" variant="icon">
+            <DownloadIcon />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle className="w-full text-lg">
+              Windows-приложение
+            </ItemTitle>
+            <ItemDescription>
+              Скачивание откроется через страницу установки.
+            </ItemDescription>
+          </ItemContent>
+          <ItemActions className="basis-full sm:basis-auto">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+            >
+              <Link href="/interview-assistant/install">
+                <WindowsIcon data-icon="inline-start" />
+                Скачать для Windows
+              </Link>
+            </Button>
+          </ItemActions>
+        </Item>
+      </ItemGroup>
     </section>
   );
 }
@@ -306,30 +333,6 @@ function LimitsSection({
   );
 }
 
-function VisualStep({
-  children,
-  label,
-  title,
-}: {
-  children: ReactNode;
-  label: string;
-  title: string;
-}) {
-  return (
-    <Item className="items-start px-0 py-4" variant="default">
-      <ItemMedia>
-        <div className="flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-          {label}
-        </div>
-      </ItemMedia>
-      <ItemContent>
-        <ItemTitle className="w-full text-base">{title}</ItemTitle>
-        <ItemDescription className="line-clamp-none">{children}</ItemDescription>
-      </ItemContent>
-    </Item>
-  );
-}
-
 function MockImage({ title }: { title: string }) {
   return (
     <div className="mt-3 rounded-2xl bg-muted/60 p-4">
@@ -340,52 +343,85 @@ function MockImage({ title }: { title: string }) {
       <div className="grid gap-2">
         <div className="h-3 w-2/3 rounded-full bg-background" />
         <div className="h-3 w-5/6 rounded-full bg-background" />
-        <div className="h-16 rounded-xl bg-background" />
+        <div className="h-14 rounded-xl bg-background" />
       </div>
     </div>
+  );
+}
+
+function TrainingStep({
+  children,
+  step,
+  title,
+}: {
+  children: ReactNode;
+  step: number;
+  title: string;
+}) {
+  return (
+    <StepperItem
+      className="relative w-full items-start not-last:flex-1"
+      step={step}
+    >
+      <StepperTrigger className="items-center gap-2.5 pb-0" type="button">
+        <StepperIndicator className="size-7 text-sm font-semibold">
+          {step}
+        </StepperIndicator>
+        <div className="text-left">
+          <StepperTitle className="text-base leading-none font-semibold sm:text-lg">
+            {title}
+          </StepperTitle>
+        </div>
+      </StepperTrigger>
+      <StepperDescription className="w-full pb-8 pl-8 pt-3 text-foreground">
+        {children}
+      </StepperDescription>
+      {step < 3 ? (
+        <StepperSeparator className="absolute inset-y-0 top-8 left-3.5 -order-1 m-0 -translate-x-1/2 group-data-[orientation=vertical]/stepper-nav:h-[calc(100%-2rem)]" />
+      ) : null}
+    </StepperItem>
   );
 }
 
 function TrainingSection() {
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Обучение работе
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Видео и визуальные шаги вместо длинной текстовой инструкции.
-        </p>
+      <h2 className="text-2xl font-semibold tracking-tight">
+        Обучение работе
+      </h2>
+
+      <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-muted/50">
+        <video
+          className="aspect-video w-full bg-muted"
+          controls
+          preload="metadata"
+          src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+        />
       </div>
-      <div className="flex flex-col gap-6">
-        <div className="overflow-hidden rounded-3xl bg-muted/50">
-          <video
-            className="aspect-video w-full bg-muted"
-            controls
-            preload="metadata"
-            src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
-          />
-        </div>
-        <ItemGroup className="gap-0">
-          <VisualStep label="1" title="Скачайте ZIP">
+
+      <Stepper
+        className="w-full"
+        defaultValue={1}
+        orientation="vertical"
+      >
+        <StepperNav className="w-full">
+          <TrainingStep step={1} title="Скачайте ZIP">
             Откройте страницу установки, дождитесь автоматической загрузки или
-            нажмите кнопку “Скачать сейчас”.
+            нажмите кнопку "Скачать сейчас".
             <MockImage title="Экран загрузки" />
-          </VisualStep>
-          <ItemSeparator className="my-0" />
-          <VisualStep label="2" title="Распакуйте архив">
-            Перенесите папку в удобное место, например в документы или на диск с
-            программами.
+          </TrainingStep>
+          <TrainingStep step={2} title="Распакуйте архив">
+            Перенесите папку в удобное место, например в документы или на диск
+            с программами.
             <MockImage title="Папка с приложением" />
-          </VisualStep>
-          <ItemSeparator className="my-0" />
-          <VisualStep label="3" title="Запустите приложение">
+          </TrainingStep>
+          <TrainingStep step={3} title="Запустите приложение">
             Нажмите <code>TutorOverlay.Client.exe</code>, войдите в аккаунт и
             запустите live-сессию.
             <MockImage title="Окно входа" />
-          </VisualStep>
-        </ItemGroup>
-      </div>
+          </TrainingStep>
+        </StepperNav>
+      </Stepper>
     </section>
   );
 }
@@ -451,9 +487,11 @@ export default async function InterviewAssistantPage() {
   const limits = getAssistantLimits(subscription);
 
   return (
-    <main className="min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background p-4 text-foreground md:p-6">
+    <main className="min-h-svh w-full bg-background p-4 text-foreground md:p-6">
       <section className="flex w-full flex-col gap-10">
         <DownloadSection />
+        <TrainingSection />
+        <Separator />
         <AssistantSettingsPanel />
         <Separator />
         <LimitsSection
@@ -463,21 +501,7 @@ export default async function InterviewAssistantPage() {
           periodStart={subscription?.periodStart}
         />
         <Separator />
-        <TrainingSection />
-        <Separator />
         <TroubleshootingSection />
-        <Alert>
-          <ShieldAlertIcon />
-          <AlertTitle>Поддержка</AlertTitle>
-          <AlertDescription>
-            По вопросам работы программы можно круглосуточно писать в службу
-            технической поддержки{" "}
-            <a href="https://t.me/offergo_bot" rel="noreferrer" target="_blank">
-              @offergo_bot
-            </a>
-            .
-          </AlertDescription>
-        </Alert>
       </section>
     </main>
   );

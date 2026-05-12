@@ -75,8 +75,8 @@ function InstallStep({
 
 export default function InterviewAssistantInstallPage() {
   return (
-    <main className="min-h-[calc(100svh-var(--shell-header-height))] w-full bg-background p-4 text-foreground md:p-6">
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+    <main className="min-h-svh w-full bg-background p-4 text-foreground md:p-6">
+      <section className="flex w-full flex-col gap-8">
         <div className="flex flex-col gap-4">
           <Button asChild className="w-fit" variant="ghost">
             <Link href="/interview-assistant">
@@ -88,7 +88,7 @@ export default function InterviewAssistantInstallPage() {
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
               Установка помощника для Windows
             </h1>
-            <p className="max-w-3xl text-base text-muted-foreground md:text-lg">
+            <p className="max-w-5xl text-base text-muted-foreground md:text-lg">
               Загрузка начнётся автоматически через 10 секунд. Если браузер или
               Windows покажут предупреждение, используйте инструкцию ниже.
             </p>

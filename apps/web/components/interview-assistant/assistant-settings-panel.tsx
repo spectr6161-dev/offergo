@@ -31,7 +31,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ProfileKey =
   | "flutter"
@@ -81,36 +80,32 @@ const reactionOptions: Array<{
   {
     key: "directQuestions",
     title: "Явные вопросы",
-    description: "Фразы с вопросительными словами и прямым запросом ответа.",
+    description: "Вопросительные слова и прямой запрос ответа.",
   },
   {
     key: "codeTasks",
     title: "Задачи по коду",
-    description:
-      "Алгоритмы, ревью кода, вопросы по реализации и синтаксису.",
+    description: "Алгоритмы, ревью кода и реализация.",
   },
   {
     key: "errors",
     title: "Ошибки и логи",
-    description: "Stack trace, сообщения компилятора и runtime-ошибки.",
+    description: "Stack trace, ошибки сборки и runtime.",
   },
   {
     key: "architecture",
     title: "Архитектура",
-    description:
-      "Системный дизайн, API, границы модулей и trade-off решения.",
+    description: "API, модули, trade-off и системный дизайн.",
   },
   {
     key: "behavioral",
     title: "Поведенческие вопросы",
-    description:
-      "Опыт, конфликты, коммуникация, ответственность и процессы.",
+    description: "Опыт, конфликты, коммуникация и процессы.",
   },
   {
     key: "hr",
     title: "HR-вопросы",
-    description:
-      "Мотивация, ожидания, причины смены работы, условия и зарплата.",
+    description: "Мотивация, условия, ожидания и зарплата.",
   },
 ];
 
@@ -122,14 +117,12 @@ const ignoreOptions: Array<{
   {
     key: "smallTalk",
     title: "Small talk",
-    description:
-      "Не реагировать на приветствия и разговоры без рабочего контекста.",
+    description: "Не реагировать на разговоры без рабочего контекста.",
   },
   {
     key: "personal",
     title: "Личные темы",
-    description:
-      "Игнорировать вопросы, не относящиеся к собеседованию или работе.",
+    description: "Игнорировать вопросы вне собеседования и работы.",
   },
   {
     key: "repeats",
@@ -138,9 +131,8 @@ const ignoreOptions: Array<{
   },
   {
     key: "lowConfidence",
-    title: "Низкая уверенность распознавания",
-    description:
-      "Не давать подсказку, если речь распознана неуверенно.",
+    title: "Низкая уверенность",
+    description: "Не показывать подсказку при слабом распознавании речи.",
   },
 ];
 
@@ -152,37 +144,32 @@ const behaviorOptions: Array<{
   {
     key: "autoAnswer",
     title: "Автоответы",
-    description:
-      "Показывать подсказку без ручного текстового запроса.",
+    description: "Показывать подсказку без ручного текстового запроса.",
   },
   {
     key: "screenshots",
     title: "Анализ скриншотов",
-    description:
-      "Разбирать задачи, код и ошибки по снимку экрана.",
+    description: "Разбирать задачи, код и ошибки по снимку экрана.",
   },
   {
     key: "startMinimized",
     title: "Запускать свернутым",
-    description:
-      "После старта приложение сразу уходит в компактный режим.",
+    description: "После старта приложение сразу уходит в компактный режим.",
   },
   {
     key: "hideTaskbar",
     title: "Скрывать окно из панели задач",
-    description:
-      "Окно не занимает место на панели задач, управление остается в приложении.",
+    description: "Окно не занимает место на панели задач.",
   },
   {
     key: "trayIcon",
     title: "Показывать иконку в трее",
-    description:
-      "Быстрый доступ к помощнику через область уведомлений Windows.",
+    description: "Быстрый доступ через область уведомлений Windows.",
   },
   {
     key: "desktopShortcut",
-    title: "Создать ярлык на рабочем столе",
-    description: "Добавить быстрый запуск после первого входа.",
+    title: "Создать ярлык",
+    description: "Добавить быстрый запуск на рабочий стол.",
   },
 ];
 
@@ -232,6 +219,48 @@ function ToggleItem({
   );
 }
 
+function ToggleGroup({
+  icon: Icon,
+  items,
+  title,
+  toggles,
+  onToggle,
+}: {
+  icon: typeof BellRingIcon;
+  items: Array<{
+    key: ToggleKey;
+    title: string;
+    description: string;
+  }>;
+  title: string;
+  toggles: Record<ToggleKey, boolean>;
+  onToggle: (key: ToggleKey, value: boolean) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2 font-medium">
+        <Icon />
+        {title}
+      </div>
+      <ItemGroup className="gap-0">
+        {items.map((item, index) => (
+          <div key={item.key}>
+            <ToggleItem
+              checked={toggles[item.key]}
+              description={item.description}
+              onChange={(value) => onToggle(item.key, value)}
+              title={item.title}
+            />
+            {index < items.length - 1 ? (
+              <ItemSeparator className="my-0" />
+            ) : null}
+          </div>
+        ))}
+      </ItemGroup>
+    </div>
+  );
+}
+
 function SliderSetting({
   icon: Icon,
   label,
@@ -261,9 +290,6 @@ function SliderSetting({
             {value} {suffix}
           </Badge>
         </ItemTitle>
-        <ItemDescription>
-          UI-настройка, сохранение будет добавлено позже.
-        </ItemDescription>
       </ItemContent>
       <div className="basis-full pt-2">
         <Slider
@@ -294,162 +320,99 @@ export function AssistantSettingsPanel() {
 
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Настройки работы помощника
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Пока это прототип интерфейса. Настройки показывают будущую модель
-          управления помощником и не сохраняются на сервере.
-        </p>
+      <h2 className="text-2xl font-semibold tracking-tight">
+        Настройки помощника
+      </h2>
+
+      <div className="grid gap-8 xl:grid-cols-[minmax(280px,0.75fr)_minmax(0,1.25fr)]">
+        <ItemGroup className="gap-0">
+          <Item className="px-0 py-4" variant="default">
+            <ItemMedia variant="icon">
+              <Settings2Icon />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle className="w-full text-base">
+                Профиль помощника
+              </ItemTitle>
+            </ItemContent>
+            <ItemActions className="basis-full sm:basis-72">
+              <Select
+                onValueChange={(value) => setProfile(value as ProfileKey)}
+                value={profile}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue placeholder="Выберите профиль" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {profiles.map((item) => (
+                      <SelectItem key={item.key} value={item.key}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </ItemActions>
+          </Item>
+          <ItemSeparator className="my-0" />
+          <SliderSetting
+            icon={Settings2Icon}
+            label="Чувствительность"
+            max={100}
+            min={10}
+            onChange={setSensitivity}
+            suffix="%"
+            value={sensitivity}
+          />
+          <ItemSeparator className="my-0" />
+          <SliderSetting
+            icon={Code2Icon}
+            label="Длина ответа"
+            max={100}
+            min={20}
+            onChange={setAnswerLength}
+            suffix="%"
+            value={answerLength}
+          />
+          <ItemSeparator className="my-0" />
+          <SliderSetting
+            icon={TimerIcon}
+            label="Задержка"
+            max={8}
+            min={0}
+            onChange={setDelay}
+            suffix="сек"
+            value={delay}
+          />
+        </ItemGroup>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ToggleGroup
+            icon={BellRingIcon}
+            items={reactionOptions}
+            onToggle={updateToggle}
+            title="Реагировать на"
+            toggles={toggles}
+          />
+          <ToggleGroup
+            icon={EyeOffIcon}
+            items={ignoreOptions}
+            onToggle={updateToggle}
+            title="Игнорировать"
+            toggles={toggles}
+          />
+          <div className="lg:col-span-2">
+            <ToggleGroup
+              icon={ScanLineIcon}
+              items={behaviorOptions}
+              onToggle={updateToggle}
+              title="Поведение приложения"
+              toggles={toggles}
+            />
+          </div>
+        </div>
       </div>
-
-      <Tabs defaultValue="profile">
-        <TabsList
-          className="w-full justify-start overflow-x-auto"
-          variant="line"
-        >
-          <TabsTrigger value="profile">Профиль</TabsTrigger>
-          <TabsTrigger value="reactions">Реакции</TabsTrigger>
-          <TabsTrigger value="behavior">Поведение</TabsTrigger>
-        </TabsList>
-
-        <TabsContent className="pt-4" value="profile">
-          <Select
-            onValueChange={(value) => setProfile(value as ProfileKey)}
-            value={profile}
-          >
-            <SelectTrigger className="h-12 w-full text-base md:max-w-xl">
-              <SelectValue placeholder="Выберите профиль" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {profiles.map((item) => (
-                  <SelectItem key={item.key} value={item.key}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </TabsContent>
-
-        <TabsContent className="pt-4" value="reactions">
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 font-medium">
-                <BellRingIcon />
-                Реагировать на
-              </div>
-              <ItemGroup className="gap-0">
-                {reactionOptions.map((item, index) => (
-                  <div key={item.key}>
-                    <ToggleItem
-                      checked={toggles[item.key]}
-                      description={item.description}
-                      onChange={(value) => updateToggle(item.key, value)}
-                      title={item.title}
-                    />
-                    {index < reactionOptions.length - 1 ? (
-                      <ItemSeparator className="my-0" />
-                    ) : null}
-                  </div>
-                ))}
-              </ItemGroup>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 font-medium">
-                <EyeOffIcon />
-                Игнорировать
-              </div>
-              <ItemGroup className="gap-0">
-                {ignoreOptions.map((item, index) => (
-                  <div key={item.key}>
-                    <ToggleItem
-                      checked={toggles[item.key]}
-                      description={item.description}
-                      onChange={(value) => updateToggle(item.key, value)}
-                      title={item.title}
-                    />
-                    {index < ignoreOptions.length - 1 ? (
-                      <ItemSeparator className="my-0" />
-                    ) : null}
-                  </div>
-                ))}
-              </ItemGroup>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent className="pt-4" value="behavior">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
-            <ItemGroup className="gap-0">
-              <SliderSetting
-                icon={Settings2Icon}
-                label="Чувствительность автоответа"
-                max={100}
-                min={10}
-                onChange={setSensitivity}
-                suffix="%"
-                value={sensitivity}
-              />
-              <ItemSeparator className="my-0" />
-              <SliderSetting
-                icon={Code2Icon}
-                label="Длина ответа"
-                max={100}
-                min={20}
-                onChange={setAnswerLength}
-                suffix="%"
-                value={answerLength}
-              />
-              <ItemSeparator className="my-0" />
-              <SliderSetting
-                icon={TimerIcon}
-                label="Задержка перед ответом"
-                max={8}
-                min={0}
-                onChange={setDelay}
-                suffix="сек"
-                value={delay}
-              />
-            </ItemGroup>
-
-            <ItemGroup className="gap-0">
-              {behaviorOptions.map((item, index) => (
-                <div key={item.key}>
-                  <ToggleItem
-                    checked={toggles[item.key]}
-                    description={item.description}
-                    onChange={(value) => updateToggle(item.key, value)}
-                    title={item.title}
-                  />
-                  {index < behaviorOptions.length - 1 ? (
-                    <ItemSeparator className="my-0" />
-                  ) : null}
-                </div>
-              ))}
-              <Item className="mt-3 px-0 py-3" variant="default">
-                <ItemMedia variant="icon">
-                  <ScanLineIcon />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle className="w-full">
-                    Безопасная видимость окна
-                  </ItemTitle>
-                  <ItemDescription>
-                    Скрытие окна из панели задач не маскирует процесс в системе,
-                    а только делает интерфейс менее навязчивым.
-                  </ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  <Badge variant="outline">UI only</Badge>
-                </ItemActions>
-              </Item>
-            </ItemGroup>
-          </div>
-        </TabsContent>
-      </Tabs>
     </section>
   );
 }
