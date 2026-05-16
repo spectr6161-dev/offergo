@@ -1,0 +1,73 @@
+﻿---
+import { faq } from "@/data/site";
+---
+
+<section class="section faq-section" aria-labelledby="faq-title">
+  <div class="container faq-grid">
+    <div class="faq-copy reveal">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-title" class="section-title">Коротко о главном</h2>
+      <p class="section-lead">Сайт не прячет ограничения MVP: beta-доступ, Windows-клиент и осторожная проверка сценариев захвата.</p>
+    </div>
+    <div class="faq-list">
+      {faq.map((item) => (
+        <details class="faq-item reveal">
+          <summary>{item.question}</summary>
+          <p>{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 0.78fr 1.22fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .faq-copy {
+    position: sticky;
+    top: 112px;
+  }
+
+  .faq-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .faq-item {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.035);
+    padding: 18px 20px;
+  }
+
+  .faq-item summary {
+    cursor: pointer;
+    color: var(--soft);
+    font-weight: 900;
+  }
+
+  .faq-item p {
+    margin: 14px 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 860px) {
+    .faq-section .container {
+      width: min(100% - 40px, var(--max));
+    }
+
+    .faq-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .faq-copy {
+      position: static;
+    }
+  }
+</style>

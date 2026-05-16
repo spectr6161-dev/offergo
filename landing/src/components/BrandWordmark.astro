@@ -1,0 +1,145 @@
+---
+interface Props {
+  size?: "sm" | "md";
+  href?: string;
+  interactive?: boolean;
+  class?: string;
+}
+
+const {
+  size = "md",
+  href,
+  interactive = Boolean(href),
+  class: className = "",
+} = Astro.props;
+
+const Tag = href ? "a" : "span";
+---
+
+<Tag
+  class:list={[
+    "brand-wordmark",
+    `brand-wordmark--${size}`,
+    interactive && "brand-wordmark--interactive",
+    className,
+  ]}
+  href={href}
+  aria-label={href ? "offerGO - на главную" : undefined}
+>
+  <span class="brand-wordmark__offer">offer</span>
+  <span class="brand-wordmark__go-shell" aria-hidden="true">
+    <span class="brand-wordmark__go">GO</span>
+  </span>
+</Tag>
+
+<style>
+  .brand-wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    width: fit-content;
+    white-space: nowrap;
+    line-height: 1;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .brand-wordmark--md {
+    --offer-size: 1.52rem;
+    --go-size: 1.2rem;
+    --offer-weight: 600;
+    --go-weight: 800;
+    --go-padding-inline: 0.8rem;
+    --go-padding-block: 0.5rem;
+    --go-radius: 8px;
+    --offer-shift: 0.02em;
+    --go-gap: 0.18rem;
+  }
+
+  .brand-wordmark--sm {
+    --offer-size: 1.16rem;
+    --go-size: 0.95rem;
+    --offer-weight: 600;
+    --go-weight: 800;
+    --go-padding-inline: 0.64rem;
+    --go-padding-block: 0.4rem;
+    --go-radius: 7px;
+    --offer-shift: 0.018em;
+    --go-gap: 0.15rem;
+  }
+
+  .brand-wordmark__offer,
+  .brand-wordmark__go {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  }
+
+  .brand-wordmark__offer {
+    position: relative;
+    z-index: 1;
+    color: var(--text);
+    font-size: var(--offer-size);
+    font-style: italic;
+    font-weight: var(--offer-weight);
+    letter-spacing: -0.08em;
+    transform: skewX(-10deg) translateX(var(--offer-shift));
+    transform-origin: left center;
+  }
+
+  .brand-wordmark__go-shell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--go-gap);
+    padding: var(--go-padding-block) var(--go-padding-inline);
+    overflow: hidden;
+    border-radius: var(--go-radius);
+    background: var(--accent);
+    transform: skewX(-15deg);
+    transform-origin: left center;
+    transition: background 180ms var(--ease), transform 180ms var(--ease);
+  }
+
+  .brand-wordmark__go-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0, rgba(255, 255, 255, 0.16) 18%, transparent 18.5% 100%);
+    pointer-events: none;
+  }
+
+  .brand-wordmark__go {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    font-size: var(--go-size);
+    font-weight: var(--go-weight);
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+    transform: skewX(15deg);
+  }
+
+  .brand-wordmark--interactive {
+    transition: color 180ms var(--ease);
+  }
+
+  .brand-wordmark--interactive:hover .brand-wordmark__go-shell,
+  .brand-wordmark--interactive:focus-visible .brand-wordmark__go-shell {
+    background: var(--accent-2);
+  }
+
+  .brand-wordmark--interactive:hover .brand-wordmark__offer,
+  .brand-wordmark--interactive:focus-visible .brand-wordmark__offer {
+    color: var(--soft);
+  }
+
+  @media (max-width: 900px) {
+    .brand-wordmark--md {
+      --offer-size: 1.26rem;
+      --go-size: 1.02rem;
+      --go-padding-inline: 0.7rem;
+      --go-padding-block: 0.42rem;
+      --go-gap: 0.16rem;
+    }
+  }
+</style>

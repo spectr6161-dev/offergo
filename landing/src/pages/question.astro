@@ -1,0 +1,69 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { fetchQuestionBankJson } from "@/lib/question-bank";
+
+const legacyId = Astro.url.searchParams.get("id")?.trim();
+
+if (legacyId) {
+  try {
+    const response = await fetchQuestionBankJson<{ slug: string }>(`/question-bank/questions/legacy/${encodeURIComponent(legacyId)}`);
+    return Astro.redirect(`/questions/${response.slug}`, 301);
+  } catch {
+    Astro.response.status = 404;
+  }
+} else {
+  Astro.response.status = 404;
+}
+---
+
+<BaseLayout title="Вопрос не найден — offerGO" description="Вопрос не найден в банке вопросов offerGO.">
+  <section class="legacy-question section-tight">
+    <div class="container legacy-question__inner">
+      <p class="legacy-question__eyebrow">404</p>
+      <h1>Вопрос не найден</h1>
+      <p>Проверьте ссылку или вернитесь в каталог, чтобы открыть вопрос заново.</p>
+      <a class="btn btn-primary" href="/questions">Открыть банк вопросов</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legacy-question {
+    padding-top: calc(var(--header) + 46px);
+    padding-bottom: 96px;
+  }
+
+  .legacy-question__inner {
+    min-height: 54vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .legacy-question__eyebrow {
+    margin: 0;
+    color: var(--accent-2);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .legacy-question__inner h1 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.06em;
+  }
+
+  .legacy-question__inner p:last-of-type {
+    margin: 0;
+    max-width: 560px;
+    color: var(--soft);
+    line-height: 1.6;
+  }
+</style>

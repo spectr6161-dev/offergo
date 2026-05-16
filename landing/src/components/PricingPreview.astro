@@ -1,0 +1,581 @@
+---
+import { brand } from "@/data/site";
+
+const patternItems = Array.from({ length: 24 }, (_, index) => index);
+const competitorPrices = ["2 499 ₽", "2 999 ₽", "3 999 ₽"];
+const mainFeatures = [
+  "Безлимитное время использования",
+  "Решение задач с экрана",
+  "Банк вопросов по компаниям",
+  "Приоритетная поддержка",
+  "Умные модели LLM",
+  "Live-подсказки во время звонка",
+];
+const freeTrialLimits = [
+  "До 15 минут использования в месяц",
+  "Базовые модели без усиленного reasoning",
+  "Без банка вопросов по компаниям",
+  "Без приоритетной поддержки",
+];
+
+const billingPlans = {
+  monthly: {
+    pattern: "999 ₽",
+    value: "999 ₽",
+    period: "в месяц",
+    note: "Полный доступ ко всем возможностям offerGO без лимита по времени.",
+    meta: "Оплата помесячно, без обязательств на год вперёд.",
+  },
+  yearly: {
+    pattern: "599 ₽",
+    value: "599 ₽",
+    period: "в месяц",
+    note: "При оплате за год цена ниже на 40%, а доступ остаётся полным.",
+    meta: "7 190 ₽ одним платежом за год. Экономия 4 798 ₽.",
+  },
+} as const;
+---
+
+<section class="section pricing-preview" id="pricing" aria-labelledby="pricing-preview-title">
+  <div class="container">
+    <div class="pricing-head reveal">
+      <h2 id="pricing-preview-title">Попробуйте прямо сейчас</h2>
+    </div>
+
+    <div class="billing-toggle reveal" role="group" aria-label="Период оплаты" data-billing-toggle>
+      <button class="billing-toggle__button is-active" type="button" data-plan-toggle="monthly" aria-pressed="true">
+        Месячная оплата
+      </button>
+      <button class="billing-toggle__button" type="button" data-plan-toggle="yearly" aria-pressed="false">
+        <span>Годовая оплата</span>
+        <span class="billing-toggle__badge">-40%</span>
+      </button>
+    </div>
+
+    <div class="pricing-stage reveal" data-pricing-root data-plan="monthly">
+      <div class="pricing-stage__pattern" aria-hidden="true">
+        {patternItems.map((item) => (
+          <span data-price-pattern={item}>{billingPlans.monthly.pattern}</span>
+        ))}
+      </div>
+
+      <div class="pricing-stage__inner">
+        <div class="pricing-summary">
+          <p class="pricing-summary__eyebrow">Один тариф. Полный доступ. Без раздутой сетки планов.</p>
+          <p class="pricing-summary__value-line">
+            <span>Всего</span>
+            <strong data-price-value>{billingPlans.monthly.value}</strong>
+          </p>
+          <p class="pricing-summary__period" data-price-period>{billingPlans.monthly.period}</p>
+          <p class="pricing-summary__note" data-price-note>{billingPlans.monthly.note}</p>
+
+          <div class="pricing-market">
+            <span class="pricing-market__label">У конкурентов:</span>
+            <ul aria-label="Цены конкурентов">
+              {competitorPrices.map((price) => (
+                <li>{price}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="pricing-summary__cta">
+            <a class="btn btn-primary pricing-summary__button pricing-summary__button--buy" href={brand.downloadUrl}>
+              Купить
+            </a>
+            <p class="pricing-summary__meta" data-price-meta>{billingPlans.monthly.meta}</p>
+          </div>
+        </div>
+
+        <div class="pricing-details">
+          <section class="pricing-rail" aria-labelledby="pricing-features-title">
+            <h3 id="pricing-features-title">Что входит в offerGO</h3>
+            <ul class="pricing-list" aria-label="Преимущества полного доступа">
+              {mainFeatures.map((feature) => (
+                <li>{feature}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section class="pricing-rail pricing-rail--trial" aria-labelledby="pricing-trial-title">
+            <h3 id="pricing-trial-title">Можно попробовать бесплатно</h3>
+            <p>После установки доступен демо-режим, чтобы проверить сервис в живом звонке до оплаты.</p>
+            <ul class="pricing-list pricing-list--trial" aria-label="Ограничения демо-режима">
+              {freeTrialLimits.map((limit) => (
+                <li>{limit}</li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector("[data-pricing-root]");
+    const toggleRoot = document.querySelector("[data-billing-toggle]");
+    if (!root || !toggleRoot) {
+      return;
+    }
+
+    const plans = {
+      monthly: {
+        pattern: "999 ₽",
+        value: "999 ₽",
+        period: "в месяц",
+        note: "Полный доступ ко всем возможностям offerGO без лимита по времени.",
+        meta: "Оплата помесячно, без обязательств на год вперёд.",
+      },
+      yearly: {
+        pattern: "599 ₽",
+        value: "599 ₽",
+        period: "в месяц",
+        note: "При оплате за год цена ниже на 40%, а доступ остаётся полным.",
+        meta: "7 190 ₽ одним платежом за год. Экономия 4 798 ₽.",
+      },
+    };
+
+    const valueNode = root.querySelector("[data-price-value]");
+    const periodNode = root.querySelector("[data-price-period]");
+    const noteNode = root.querySelector("[data-price-note]");
+    const metaNode = root.querySelector("[data-price-meta]");
+    const patternNodes = root.querySelectorAll("[data-price-pattern]");
+    const toggles = toggleRoot.querySelectorAll("[data-plan-toggle]");
+
+    const applyPlan = (planKey) => {
+      const plan = plans[planKey];
+      if (!plan || !valueNode || !periodNode || !noteNode || !metaNode) {
+        return;
+      }
+
+      root.dataset.plan = planKey;
+      valueNode.textContent = plan.value;
+      periodNode.textContent = plan.period;
+      noteNode.textContent = plan.note;
+      metaNode.textContent = plan.meta;
+      patternNodes.forEach((node) => {
+        node.textContent = plan.pattern;
+      });
+
+      toggles.forEach((toggle) => {
+        const isActive = toggle.dataset.planToggle === planKey;
+        toggle.classList.toggle("is-active", isActive);
+        toggle.setAttribute("aria-pressed", String(isActive));
+      });
+    };
+
+    toggles.forEach((toggle) => {
+      toggle.addEventListener("click", () => {
+        applyPlan(toggle.dataset.planToggle || "monthly");
+      });
+    });
+  })();
+</script>
+
+<style>
+  .pricing-preview .container {
+    width: min(1240px, calc(100% - 56px));
+  }
+
+  .pricing-head {
+    margin: 0 auto 28px;
+    text-align: center;
+  }
+
+  .pricing-head h2 {
+    margin: 0;
+    color: var(--text);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(2.3rem, 4.8vw, 4.9rem);
+    font-weight: 600;
+    line-height: 0.94;
+    letter-spacing: -0.08em;
+  }
+
+  .billing-toggle {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto 34px;
+    width: 100%;
+  }
+
+  .billing-toggle__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--soft);
+    cursor: pointer;
+    transition:
+      color 180ms var(--ease),
+      border-color 180ms var(--ease),
+      background 180ms var(--ease),
+      transform 180ms var(--ease);
+  }
+
+  .billing-toggle__button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(96, 165, 250, 0.34);
+  }
+
+  .billing-toggle__button.is-active {
+    border-color: rgba(59, 130, 246, 0.42);
+    background: var(--panel);
+    color: var(--text);
+  }
+
+  .billing-toggle__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(0, 230, 118, 0.14);
+    color: #00e676;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .pricing-stage {
+    position: relative;
+    overflow: hidden;
+    padding: 62px 0 0;
+  }
+
+  .pricing-stage::before,
+  .pricing-stage::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.28), transparent);
+  }
+
+  .pricing-stage::before {
+    top: 0;
+  }
+
+  .pricing-stage::after {
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.18), transparent);
+  }
+
+  .pricing-stage__pattern {
+    position: absolute;
+    inset: 16px 0 18px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px clamp(18px, 3vw, 46px);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .pricing-stage__pattern span {
+    justify-self: center;
+    color: rgba(37, 99, 235, 0.08);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(2.3rem, 4vw, 4.9rem);
+    font-weight: 700;
+    letter-spacing: -0.09em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .pricing-stage__pattern span:nth-child(3n) {
+    transform: translateX(12px);
+  }
+
+  .pricing-stage__pattern span:nth-child(4n) {
+    transform: translateX(-10px);
+  }
+
+  .pricing-stage__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 44px;
+    width: min(980px, 100%);
+    margin: 0 auto;
+    padding-bottom: 42px;
+  }
+
+  .pricing-summary {
+    display: grid;
+    gap: 18px;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .pricing-summary__eyebrow {
+    margin: 0;
+    color: var(--soft);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .pricing-summary__value-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 14px;
+    margin: 0;
+    color: var(--soft);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.8rem, 3.1vw, 3rem);
+    font-weight: 500;
+    letter-spacing: -0.08em;
+  }
+
+  .pricing-summary__value-line strong {
+    color: var(--text);
+    font-size: clamp(4.5rem, 10vw, 8.2rem);
+    font-weight: 700;
+    line-height: 0.88;
+    letter-spacing: -0.1em;
+  }
+
+  .pricing-summary__period {
+    margin: -8px 0 0;
+    color: var(--soft);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pricing-summary__note {
+    margin: 0;
+    max-width: 38rem;
+    color: var(--soft);
+    font-size: 1.06rem;
+    line-height: 1.72;
+  }
+
+  .pricing-market {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    margin-top: 6px;
+  }
+
+  .pricing-market__label {
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .pricing-market ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pricing-market li {
+    color: var(--muted);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.18rem, 2vw, 1.58rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+
+  .pricing-summary__cta {
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    margin-top: 6px;
+  }
+
+  .pricing-summary__button {
+    min-width: 280px;
+  }
+
+  .pricing-summary__button--buy {
+    min-height: 52px;
+    padding-inline: 34px;
+    font-size: 0.98rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pricing-summary__meta {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .pricing-details {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 30px 48px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(148, 163, 184, 0.14);
+  }
+
+  .pricing-rail {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .pricing-rail h3 {
+    margin: 0;
+    color: var(--text);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.06em;
+  }
+
+  .pricing-rail p {
+    margin: 0;
+    color: var(--soft);
+    line-height: 1.72;
+  }
+
+  .pricing-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 22px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pricing-list li {
+    position: relative;
+    padding-left: 18px;
+    color: var(--soft);
+    line-height: 1.62;
+  }
+
+  .pricing-list li::before {
+    position: absolute;
+    left: 0;
+    top: 0.72rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    content: "";
+    transform: translateY(-50%);
+  }
+
+  .pricing-list--trial {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-list--trial li::before {
+    background: rgba(148, 163, 184, 0.9);
+  }
+
+  @media (max-width: 980px) {
+    .pricing-preview .container {
+      width: min(100% - 40px, 1120px);
+    }
+
+    .pricing-stage {
+      padding-top: 52px;
+    }
+
+    .pricing-stage__pattern {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pricing-details {
+      grid-template-columns: 1fr;
+      gap: 26px;
+    }
+
+    .pricing-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .billing-toggle {
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .billing-toggle__button {
+      width: 100%;
+    }
+
+    .pricing-stage {
+      padding-top: 44px;
+    }
+
+    .pricing-stage__inner {
+      gap: 34px;
+      padding-bottom: 34px;
+    }
+
+    .pricing-stage__pattern {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 18px;
+    }
+
+    .pricing-summary__value-line {
+      gap: 10px;
+    }
+
+    .pricing-summary__button {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .pricing-preview .container {
+      width: min(100% - 40px, 1120px);
+    }
+
+    .pricing-stage__pattern {
+      inset: 22px 0 20px;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .pricing-stage__pattern span:nth-child(n + 10) {
+      display: none;
+    }
+
+    .pricing-summary__eyebrow {
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+    }
+
+    .pricing-summary__value-line {
+      font-size: 1.46rem;
+    }
+
+    .pricing-market ul {
+      gap: 10px 14px;
+    }
+  }
+</style>

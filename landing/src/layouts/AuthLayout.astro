@@ -1,0 +1,175 @@
+---
+import "@/styles/global.css";
+import BrandWordmark from "@/components/BrandWordmark.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F5F8FD" />
+    <script is:inline>
+      (() => {
+        const key = "offergo-theme";
+        let theme = "light";
+
+        try {
+          const stored = window.localStorage.getItem(key);
+          if (stored === "dark" || stored === "light") {
+            theme = stored;
+          }
+        } catch {}
+
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body class="auth-body">
+    <a class="skip-link" href="#content">К содержимому</a>
+    <main id="content" class="auth-shell">
+      <aside class="auth-hero">
+        <BrandWordmark size="sm" href="/" class="auth-brand" />
+        <div class="auth-hero-copy">
+          <p class="auth-kicker">Browser-first auth</p>
+          <h1>Вход через браузер</h1>
+          <p>Один аккаунт для сайта и Windows-клиента.</p>
+        </div>
+      </aside>
+
+      <section class="auth-workspace">
+        <div class="auth-card">
+          <slot />
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  .auth-body {
+    min-height: 100dvh;
+    background:
+      radial-gradient(circle at 14% 18%, rgba(59, 130, 246, 0.1), transparent 22%),
+      radial-gradient(circle at 82% 84%, rgba(96, 165, 250, 0.08), transparent 18%),
+      var(--bg);
+    color: var(--text);
+  }
+
+  .auth-shell {
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: minmax(240px, 0.72fr) minmax(320px, 0.88fr);
+  }
+
+  .auth-hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    padding: 24px 28px;
+    border-right: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 86%, transparent), color-mix(in srgb, var(--bg-2) 96%, transparent)),
+      var(--bg-2);
+    overflow: hidden;
+  }
+
+  .auth-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.18) 1px, transparent 0);
+    background-size: 22px 22px;
+    opacity: 0.38;
+    pointer-events: none;
+  }
+
+  .auth-brand,
+  .auth-hero-copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .auth-hero-copy {
+    max-width: 300px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .auth-kicker {
+    margin: 0;
+    color: var(--accent-2);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .auth-hero-copy h1 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.65rem, 2.8vw, 2.3rem);
+    line-height: 0.96;
+    letter-spacing: -0.06em;
+    font-weight: 600;
+  }
+
+  .auth-hero-copy p:last-child {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .auth-workspace {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 18px;
+  }
+
+  .auth-card {
+    width: min(100%, 384px);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--panel) 96%, transparent);
+    padding: 18px;
+  }
+
+  @media (max-width: 960px) {
+    .auth-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .auth-hero {
+      min-height: 180px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 20px 18px;
+      gap: 14px;
+    }
+
+    .auth-workspace {
+      padding: 12px 12px 18px;
+      align-items: flex-start;
+    }
+
+    .auth-card {
+      width: min(100%, 404px);
+      padding: 16px;
+    }
+  }
+</style>

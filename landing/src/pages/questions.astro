@@ -1,0 +1,1584 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  QUESTION_BANK_PAGE_SIZE,
+  QuestionBankSort,
+  QuestionFacetOption,
+  QuestionListItem,
+  QuestionListResponse,
+  fetchQuestionBankJson,
+  getQuestionCategoryLabel,
+} from "@/lib/question-bank";
+
+type QuestionListUiSort = "frequency" | "updated" | "title";
+
+const QUESTION_SORT_OPTIONS: Array<{ value: QuestionListUiSort; label: string; backend: QuestionBankSort }> = [
+  { value: "frequency", label: "По частоте", backend: "popular" },
+  { value: "updated", label: "Недавно обновленные", backend: "recent" },
+  { value: "title", label: "По названию", backend: "title" },
+];
+
+const QUESTION_SORT_ALIAS_MAP: Record<string, QuestionListUiSort> = {
+  frequency: "frequency",
+  popular: "frequency",
+  weight: "frequency",
+  updated: "updated",
+  recent: "updated",
+  title: "title",
+};
+
+function readMultiParam(params: URLSearchParams, key: string) {
+  return Array.from(
+    new Set(
+      params
+        .getAll(key)
+        .flatMap((value) => value.split(","))
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function appendMultiParam(params: URLSearchParams, key: string, values: string[]) {
+  params.delete(key);
+  for (const value of values) {
+    params.append(key, value);
+  }
+}
+
+function getDefaultSort(_query: string): QuestionListUiSort {
+  return "frequency";
+}
+
+function normalizeQuestionSort(value: string | null | undefined, query: string): QuestionListUiSort {
+  const normalized = value?.trim().toLowerCase() ?? "";
+  return QUESTION_SORT_ALIAS_MAP[normalized] ?? getDefaultSort(query);
+}
+
+function toBackendSort(value: QuestionListUiSort): QuestionBankSort {
+  return QUESTION_SORT_OPTIONS.find((option) => option.value === value)?.backend ?? "popular";
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("ru-RU").format(value);
+}
+
+function fallbackFacetLabel(value: string) {
+  return value
+    .split(/[-_]+/g)
+    .filter(Boolean)
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(" ");
+}
+
+function buildFacetLabelMap(...groups: QuestionFacetOption[][]) {
+  const map = new Map<string, string>();
+  for (const group of groups) {
+    for (const item of group) {
+      map.set(item.value, item.label);
+    }
+  }
+
+  return map;
+}
+
+const QUESTION_ROLE_RULES: Array<{ label: string; matchers: string[] }> = [
+  { label: "Frontend разработчик", matchers: ["frontend", "front-end", "react", "next.js", "nextjs", "vue", "angular", "javascript", "typescript", "html", "css"] },
+  { label: "Python разработчик", matchers: ["python", "django", "flask", "fastapi", "pytest"] },
+  { label: "Golang разработчик", matchers: ["golang"] },
+  { label: "QA", matchers: [" qa", "qa ", "testing", "test", "selenium", "cypress", "playwright", "postman", "jmeter"] },
+  { label: "Android разработчик", matchers: ["android", "kotlin"] },
+  { label: "iOS разработчик", matchers: ["ios", "swift", "objective-c"] },
+  { label: "Data & ML", matchers: ["machine learning", "ml", "data science", "pandas", "numpy", "tensorflow", "pytorch"] },
+  { label: "Backend разработчик", matchers: ["backend", "back-end", "node.js", "nodejs", "nestjs", "express", "java", "spring", "php", "laravel", "symfony", "c#", ".net", "dotnet", "asp.net", "ruby", "rails", "sql"] },
+];
+
+function normalizeRoleSource(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function getQuestionRoleBadges(item: QuestionListItem) {
+  const values = [...item.technologies, ...item.topTags, item.title].map(normalizeRoleSource);
+  const matched: string[] = [];
+
+  for (const rule of QUESTION_ROLE_RULES) {
+    const hasMatch = rule.matchers.some((matcher) => {
+      const normalizedMatcher = normalizeRoleSource(matcher);
+      return values.some((value) => value === normalizedMatcher || value.includes(normalizedMatcher));
+    });
+
+    if (hasMatch) {
+      matched.push(rule.label);
+    }
+  }
+
+  if (matched.length > 0) {
+    return matched;
+  }
+
+  return [getQuestionCategoryLabel(item.category)];
+}
+
+const currentParams = new URLSearchParams(Astro.url.searchParams);
+const current = {
+  q: currentParams.get("q")?.trim() ?? "",
+  sort: normalizeQuestionSort(currentParams.get("sort"), currentParams.get("q")?.trim() ?? ""),
+  categories: readMultiParam(currentParams, "category"),
+  technologies: readMultiParam(currentParams, "technology"),
+  companies: readMultiParam(currentParams, "company"),
+  tags: readMultiParam(currentParams, "tag"),
+  companySearch: currentParams.get("companySearch")?.trim() ?? "",
+  tagSearch: currentParams.get("tagSearch")?.trim() ?? "",
+  page: Math.max(Number.parseInt(currentParams.get("page") ?? "1", 10) || 1, 1),
+};
+
+function buildQuestionsUrl(
+  overrides: Partial<{
+    q: string;
+    sort: QuestionListUiSort;
+    categories: string[];
+    technologies: string[];
+    companies: string[];
+    tags: string[];
+    companySearch: string;
+    tagSearch: string;
+    page: number;
+  }>,
+  options?: { keepPage?: boolean },
+) {
+  const next = {
+    ...current,
+    ...overrides,
+    page: options?.keepPage ? overrides.page ?? current.page : overrides.page ?? 1,
+  };
+
+  const params = new URLSearchParams();
+  if (next.q) params.set("q", next.q);
+  params.set("sort", next.sort);
+  appendMultiParam(params, "category", next.categories);
+  appendMultiParam(params, "technology", next.technologies);
+  appendMultiParam(params, "company", next.companies);
+  appendMultiParam(params, "tag", next.tags);
+  if (next.companySearch) params.set("companySearch", next.companySearch);
+  if (next.tagSearch) params.set("tagSearch", next.tagSearch);
+  if (next.page > 1) params.set("page", String(next.page));
+
+  const query = params.toString();
+  return query ? `/questions?${query}` : "/questions";
+}
+
+function buildPaginationUrl(page: number) {
+  return buildQuestionsUrl({ page }, { keepPage: true });
+}
+
+const listParams = new URLSearchParams();
+if (current.q) listParams.set("q", current.q);
+listParams.set("sort", toBackendSort(current.sort));
+if (current.categories.length) listParams.set("category", current.categories.join(","));
+if (current.technologies.length) listParams.set("technology", current.technologies.join(","));
+if (current.companies.length) listParams.set("company", current.companies.join(","));
+if (current.tags.length) listParams.set("tag", current.tags.join(","));
+listParams.set("page", String(current.page));
+listParams.set("pageSize", String(QUESTION_BANK_PAGE_SIZE));
+
+let list: QuestionListResponse | null = null;
+let listError = "";
+
+try {
+  list = await fetchQuestionBankJson<QuestionListResponse>(`/question-bank/questions?${listParams.toString()}`);
+} catch (error) {
+  listError = error instanceof Error ? error.message : "Не удалось загрузить список вопросов.";
+}
+
+const companyFacetParams = new URLSearchParams();
+if (current.q) companyFacetParams.set("search", current.q);
+if (current.categories.length) companyFacetParams.set("category", current.categories.join(","));
+if (current.technologies.length) companyFacetParams.set("technology", current.technologies.join(","));
+if (current.companies.length) companyFacetParams.set("company", current.companies.join(","));
+if (current.tags.length) companyFacetParams.set("tag", current.tags.join(","));
+if (current.companySearch) companyFacetParams.set("q", current.companySearch);
+companyFacetParams.set("limit", current.companySearch ? "24" : "12");
+
+const tagFacetParams = new URLSearchParams();
+if (current.q) tagFacetParams.set("search", current.q);
+if (current.categories.length) tagFacetParams.set("category", current.categories.join(","));
+if (current.technologies.length) tagFacetParams.set("technology", current.technologies.join(","));
+if (current.companies.length) tagFacetParams.set("company", current.companies.join(","));
+if (current.tags.length) tagFacetParams.set("tag", current.tags.join(","));
+if (current.tagSearch) tagFacetParams.set("q", current.tagSearch);
+tagFacetParams.set("limit", current.tagSearch ? "24" : "12");
+
+let companyFacets: QuestionFacetOption[] = list?.facets.companies ?? [];
+let tagFacets: QuestionFacetOption[] = list?.facets.tags ?? [];
+
+if (!listError) {
+  try {
+    companyFacets = await fetchQuestionBankJson<QuestionFacetOption[]>(
+      `/question-bank/facets/companies?${companyFacetParams.toString()}`,
+    );
+  } catch {
+    companyFacets = list?.facets.companies ?? [];
+  }
+
+  try {
+    tagFacets = await fetchQuestionBankJson<QuestionFacetOption[]>(`/question-bank/facets/tags?${tagFacetParams.toString()}`);
+  } catch {
+    tagFacets = list?.facets.tags ?? [];
+  }
+}
+
+const technologyFacets = list?.facets.technologies ?? [];
+const hasMoreTechnologies = technologyFacets.length > 9;
+const hasMoreTags = tagFacets.length > 9;
+const hasActiveFilters = Boolean(
+  current.q ||
+    current.categories.length ||
+    current.technologies.length ||
+    current.companies.length ||
+    current.tags.length ||
+    current.companySearch ||
+    current.tagSearch,
+);
+
+const technologyLabelMap = buildFacetLabelMap(technologyFacets, list?.facets.technologies ?? []);
+const companyLabelMap = buildFacetLabelMap(companyFacets, list?.facets.companies ?? []);
+const tagLabelMap = buildFacetLabelMap(tagFacets, list?.facets.tags ?? []);
+
+const activeFilterChips = [
+  ...(current.q
+    ? [
+        {
+          key: `q:${current.q}`,
+          label: `Поиск: ${current.q}`,
+          href: buildQuestionsUrl({ q: "" }),
+        },
+      ]
+    : []),
+  ...current.categories.map((value) => ({
+    key: `category:${value}`,
+    label: getQuestionCategoryLabel(value),
+    href: buildQuestionsUrl({
+      categories: current.categories.filter((item) => item !== value),
+    }),
+  })),
+  ...current.technologies.map((value) => ({
+    key: `technology:${value}`,
+    label: technologyLabelMap.get(value) ?? fallbackFacetLabel(value),
+    href: buildQuestionsUrl({
+      technologies: current.technologies.filter((item) => item !== value),
+    }),
+  })),
+  ...current.companies.map((value) => ({
+    key: `company:${value}`,
+    label: companyLabelMap.get(value) ?? fallbackFacetLabel(value),
+    href: buildQuestionsUrl({
+      companies: current.companies.filter((item) => item !== value),
+    }),
+  })),
+  ...current.tags.map((value) => ({
+    key: `tag:${value}`,
+    label: tagLabelMap.get(value) ?? fallbackFacetLabel(value),
+    href: buildQuestionsUrl({
+      tags: current.tags.filter((item) => item !== value),
+    }),
+  })),
+];
+
+const hasVisibleActiveFilters = activeFilterChips.length > 0;
+const selectedTechnologyCount = current.technologies.length;
+const selectedCompanyCount = current.companies.length;
+const selectedTagCount = current.tags.length;
+const clearTechnologiesUrl = buildQuestionsUrl({ technologies: [] });
+const clearCompaniesUrl = buildQuestionsUrl({ companies: [] });
+const clearTagsUrl = buildQuestionsUrl({ tags: [] });
+
+function getVisiblePages(currentPage: number, pageCount: number) {
+  if (pageCount <= 7) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1);
+  }
+
+  const items: Array<number | string> = [1];
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(pageCount - 1, currentPage + 1);
+
+  if (start > 2) {
+    items.push("left");
+  }
+
+  for (let page = start; page <= end; page += 1) {
+    items.push(page);
+  }
+
+  if (end < pageCount - 1) {
+    items.push("right");
+  }
+
+  items.push(pageCount);
+  return items;
+}
+---
+
+<BaseLayout
+  title="Банк вопросов для собеседований — offerGO"
+  description="Изучайте реальные вопросы, которые задают на собеседованиях в IT-компаниях: поиск, фильтры по позициям, компаниям и тегам, быстрый переход к подробному разбору."
+>
+  <section class="question-bank-page section-tight">
+    <div class="container question-bank-shell">
+      <form class="question-bank-grid" method="get" action="/questions" data-question-bank-form>
+        {current.categories.map((value) => <input type="hidden" name="category" value={value} />)}
+
+        <aside class="question-bank-sidebar">
+          <div class="question-filter-panel question-filter-panel--title">
+            <div class="question-filter-title">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5c0 .38-.14.75-.4 1.03L14 13.13V19a1 1 0 0 1-1.45.9l-3-1.5A1 1 0 0 1 9 17.5v-4.37L3.4 6.53A1.5 1.5 0 0 1 3 5.5Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.7"
+                />
+              </svg>
+              <span>Фильтры</span>
+            </div>
+          </div>
+
+          <section class="question-filter-panel" data-filter-section>
+            <div class="question-filter-panel__head">
+              <div class="question-filter-panel__title-group">
+                <h2>Позиции</h2>
+                {selectedTechnologyCount > 0 && <span class="question-filter-panel__selected">{selectedTechnologyCount}</span>}
+              </div>
+
+              <div class="question-filter-panel__actions">
+                {selectedTechnologyCount > 0 && <a class="question-filter-panel__clear" href={clearTechnologiesUrl}>Очистить</a>}
+                <button class="question-filter-panel__collapse" type="button" data-section-toggle aria-expanded="true" aria-label="Свернуть секцию позиций">
+                  <svg viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="question-filter-panel__body">
+              <div class="question-filter-list" data-expand-list="positions">
+                {
+                  technologyFacets.map((facet, index) => {
+                    const checked = current.technologies.includes(facet.value);
+                    return (
+                      <label class={`question-filter-option ${checked ? "is-checked" : ""} ${index >= 9 ? "question-filter-option--extra" : ""}`}>
+                        <input type="checkbox" name="technology" value={facet.value} checked={checked} data-autosubmit />
+                        <span class="question-filter-option__mark" aria-hidden="true"></span>
+                        <span class="question-filter-option__label">{facet.label}</span>
+                        <span class="question-filter-option__count">{formatNumber(facet.count)}</span>
+                      </label>
+                    );
+                  })
+                }
+              </div>
+
+              {
+                hasMoreTechnologies && (
+                  <button
+                    class="question-filter-expand"
+                    type="button"
+                    data-expand-toggle="positions"
+                    aria-expanded="false"
+                  >
+                    <span class="question-filter-expand__icon" aria-hidden="true">
+                      <svg viewBox="0 0 12 12">
+                        <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                      </svg>
+                    </span>
+                    <span class="question-filter-expand__label">Показать все позиции</span>
+                  </button>
+                )
+              }
+            </div>
+          </section>
+
+          <section class="question-filter-panel" data-filter-section>
+            <div class="question-filter-panel__head">
+              <div class="question-filter-panel__title-group">
+                <h2>Компании</h2>
+                {selectedCompanyCount > 0 && <span class="question-filter-panel__selected">{selectedCompanyCount}</span>}
+              </div>
+
+              <div class="question-filter-panel__actions">
+                {selectedCompanyCount > 0 && <a class="question-filter-panel__clear" href={clearCompaniesUrl}>Очистить</a>}
+                <button class="question-filter-panel__collapse" type="button" data-section-toggle aria-expanded="true" aria-label="Свернуть секцию компаний">
+                  <svg viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="question-filter-panel__body">
+              <label class="question-filter-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                  <path d="M16 16l4.1 4.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"></path>
+                </svg>
+                <input
+                  type="search"
+                  name="companySearch"
+                  value={current.companySearch}
+                  placeholder="Поиск компаний..."
+                  data-autosubmit-text
+                />
+              </label>
+
+              <div class="question-filter-list question-filter-list--scroll">
+                {
+                  companyFacets.map((facet) => {
+                    const checked = current.companies.includes(facet.value);
+                    return (
+                      <label class={`question-filter-option ${checked ? "is-checked" : ""}`}>
+                        <input type="checkbox" name="company" value={facet.value} checked={checked} data-autosubmit />
+                        <span class="question-filter-option__mark" aria-hidden="true"></span>
+                        <span class="question-filter-option__label">{facet.label}</span>
+                        <span class="question-filter-option__count">{formatNumber(facet.count)}</span>
+                      </label>
+                    );
+                  })
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="question-filter-panel" data-filter-section>
+            <div class="question-filter-panel__head">
+              <div class="question-filter-panel__title-group">
+                <h2>Теги</h2>
+                {selectedTagCount > 0 && <span class="question-filter-panel__selected">{selectedTagCount}</span>}
+              </div>
+
+              <div class="question-filter-panel__actions">
+                {selectedTagCount > 0 && <a class="question-filter-panel__clear" href={clearTagsUrl}>Очистить</a>}
+                <button class="question-filter-panel__collapse" type="button" data-section-toggle aria-expanded="true" aria-label="Свернуть секцию тегов">
+                  <svg viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="question-filter-panel__body">
+              <label class="question-filter-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+                  <path d="M16 16l4.1 4.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"></path>
+                </svg>
+                <input
+                  type="search"
+                  name="tagSearch"
+                  value={current.tagSearch}
+                  placeholder="Поиск тегов..."
+                  data-autosubmit-text
+                />
+              </label>
+
+              <div class="question-filter-list question-filter-list--scroll" data-expand-list="tags">
+                {
+                  tagFacets.map((facet, index) => {
+                    const checked = current.tags.includes(facet.value);
+                    return (
+                      <label class={`question-filter-option ${checked ? "is-checked" : ""} ${index >= 9 ? "question-filter-option--extra" : ""}`}>
+                        <input type="checkbox" name="tag" value={facet.value} checked={checked} data-autosubmit />
+                        <span class="question-filter-option__mark" aria-hidden="true"></span>
+                        <span class="question-filter-option__label">{facet.label}</span>
+                        <span class="question-filter-option__count">{formatNumber(facet.count)}</span>
+                      </label>
+                    );
+                  })
+                }
+              </div>
+
+              {
+                hasMoreTags && (
+                  <button
+                    class="question-filter-expand"
+                    type="button"
+                    data-expand-toggle="tags"
+                    aria-expanded="false"
+                  >
+                    <span class="question-filter-expand__icon" aria-hidden="true">
+                      <svg viewBox="0 0 12 12">
+                        <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                      </svg>
+                    </span>
+                    <span class="question-filter-expand__label">Показать все теги</span>
+                  </button>
+                )
+              }
+            </div>
+          </section>
+
+          {
+            hasActiveFilters && (
+              <a class="question-filter-reset" href="/questions">
+                Сбросить фильтры
+              </a>
+            )
+          }
+        </aside>
+
+        <div class="question-bank-main">
+          <label class="question-searchbar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6"></circle>
+              <path d="M16 16l4.1 4.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"></path>
+            </svg>
+            <input type="search" name="q" value={current.q} placeholder="Поиск по названию или тексту вопроса..." />
+          </label>
+
+          {
+            hasVisibleActiveFilters && (
+              <div class="question-active-filters" aria-label="Активные фильтры">
+                <div class="question-active-filters__list">
+                  {activeFilterChips.map((chip) => (
+                    <a class="question-active-filter-chip" href={chip.href}>
+                      <span class="question-active-filter-chip__label">{chip.label}</span>
+                      <span class="question-active-filter-chip__remove" aria-hidden="true"></span>
+                    </a>
+                  ))}
+                </div>
+
+                <a class="question-active-filters__reset" href="/questions">Сбросить все</a>
+              </div>
+            )
+          }
+
+          <div class="question-bank-toolbar">
+            <p class="question-bank-found">
+              {listError ? "Каталог временно недоступен" : `Найдено ${formatNumber(list?.total ?? 0)} вопросов`}
+            </p>
+
+            <label class="question-sort">
+              <span class="question-sort__label">Сортировка</span>
+              <select name="sort" data-autosubmit>
+                {
+                  QUESTION_SORT_OPTIONS.map((option) => (
+                    <option value={option.value} selected={current.sort === option.value}>
+                      {option.label}
+                    </option>
+                  ))
+                }
+              </select>
+            </label>
+          </div>
+
+          {
+            listError ? (
+              <div class="question-list-state question-list-state--error">
+                <h2>Не удалось загрузить банк вопросов</h2>
+                <p>{listError}</p>
+              </div>
+            ) : list && list.items.length === 0 ? (
+              <div class="question-list-state">
+                <h2>Ничего не найдено</h2>
+                <p>Попробуйте снять часть фильтров или изменить поисковый запрос.</p>
+              </div>
+            ) : (
+              <>
+                <div class="question-card-list">
+                  {
+                    list?.items.map((item) => (
+                      <a class="question-card" href={`/questions/${item.slug}`}>
+                        {(() => {
+                          const roleBadges = getQuestionRoleBadges(item);
+                          const visibleRoleBadges = roleBadges.slice(0, 2);
+                          const remainingRoleBadgeCount = Math.max(roleBadges.length - visibleRoleBadges.length, 0);
+
+                          return (
+                            <div class="question-card__role-row">
+                              {visibleRoleBadges.map((badge) => (
+                                <span class="question-card__role-badge">{badge}</span>
+                              ))}
+                              {remainingRoleBadgeCount > 0 && (
+                                <span class="question-card__role-badge">+{remainingRoleBadgeCount}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                        <div class="question-card__header">
+                          <h2>{item.title}</h2>
+                          <span class="question-card__badge">
+                            <span class="question-card__badge-icon">↗</span>
+                            <span>{formatNumber(item.occurrences)}</span>
+                          </span>
+                        </div>
+
+                        <div class="question-card__meta-grid">
+                          <div class="question-card__meta-row">
+                            <span class="question-card__meta-label">
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                  d="M7 7.5A2.5 2.5 0 0 1 9.5 5h5A2.5 2.5 0 0 1 17 7.5v9A2.5 2.5 0 0 1 14.5 19h-5A2.5 2.5 0 0 1 7 16.5v-9Z"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                />
+                                <path d="M10 9.5h4M10 12h4M10 14.5h2.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"></path>
+                              </svg>
+                              <span>Компании:</span>
+                            </span>
+
+                            {
+                              item.topCompanies.map((company) => (
+                                <span class="question-card__chip">{company}</span>
+                              ))
+                            }
+                            {
+                              item.remainingCompaniesCount > 0 && (
+                                <span class="question-card__chip">+{item.remainingCompaniesCount}</span>
+                              )
+                            }
+                          </div>
+
+                          <div class="question-card__meta-row question-card__meta-row--tags">
+                            <span class="question-card__meta-label">
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                  d="M12.8 4H8a2 2 0 0 0-2 2v4.8a2 2 0 0 0 .59 1.41l5.2 5.2a2 2 0 0 0 2.82 0l3.38-3.38a2 2 0 0 0 0-2.82l-5.2-5.2A2 2 0 0 0 12.8 4Z"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="1.5"
+                                  stroke-linejoin="round"
+                                />
+                                <circle cx="9" cy="9" r="1" fill="currentColor"></circle>
+                              </svg>
+                              <span>Теги:</span>
+                            </span>
+
+                            {
+                              item.topTags.map((tag) => (
+                                <span class="question-card__chip">{tag}</span>
+                              ))
+                            }
+                            {
+                              item.remainingTagsCount > 0 && (
+                                <span class="question-card__chip">+{item.remainingTagsCount}</span>
+                              )
+                            }
+                          </div>
+                        </div>
+                      </a>
+                    ))
+                  }
+                </div>
+
+                {
+                  (list?.pageCount ?? 0) > 1 && (
+                    <nav class="question-pagination" aria-label="Пагинация банка вопросов">
+                      <a
+                        class={`question-pagination__button ${current.page === 1 ? "is-disabled" : ""}`}
+                        href={current.page === 1 ? undefined : buildPaginationUrl(current.page - 1)}
+                        aria-disabled={current.page === 1}
+                      >
+                        ←
+                      </a>
+
+                      {
+                        getVisiblePages(current.page, list?.pageCount ?? 0).map((item) =>
+                          typeof item === "number" ? (
+                            <a
+                              class={`question-pagination__button ${item === current.page ? "is-current" : ""}`}
+                              href={buildPaginationUrl(item)}
+                            >
+                              {item}
+                            </a>
+                          ) : (
+                            <span class="question-pagination__ellipsis">…</span>
+                          ),
+                        )
+                      }
+
+                      <a
+                        class={`question-pagination__button ${current.page >= (list?.pageCount ?? 0) ? "is-disabled" : ""}`}
+                        href={current.page >= (list?.pageCount ?? 0) ? undefined : buildPaginationUrl(current.page + 1)}
+                        aria-disabled={current.page >= (list?.pageCount ?? 0)}
+                      >
+                        →
+                      </a>
+                    </nav>
+                  )
+                }
+              </>
+            )
+          }
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script is:inline>
+    const form = document.querySelector("[data-question-bank-form]");
+
+    if (form instanceof HTMLFormElement) {
+      const submitForm = () => form.requestSubmit();
+
+      form.querySelectorAll("[data-autosubmit]").forEach((input) => {
+        input.addEventListener("change", () => submitForm());
+      });
+
+      form.querySelectorAll("[data-autosubmit-text]").forEach((input) => {
+        let timer;
+        input.addEventListener("input", () => {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => submitForm(), 260);
+        });
+      });
+
+      form.querySelectorAll("[data-expand-toggle]").forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          const key = toggle.getAttribute("data-expand-toggle");
+          const list = key ? form.querySelector(`[data-expand-list="${key}"]`) : null;
+          if (!(toggle instanceof HTMLButtonElement) || !(list instanceof HTMLElement)) return;
+
+          const expanded = toggle.getAttribute("aria-expanded") === "true";
+          toggle.setAttribute("aria-expanded", String(!expanded));
+          list.classList.toggle("is-expanded", !expanded);
+
+          const label = toggle.querySelector(".question-filter-expand__label");
+
+          if (label) {
+            label.textContent =
+              key === "positions"
+                ? expanded
+                  ? "Показать все позиции"
+                  : "Скрыть лишние позиции"
+                : expanded
+                  ? "Показать все теги"
+                  : "Скрыть лишние теги";
+          }
+        });
+      });
+
+      form.querySelectorAll("[data-section-toggle]").forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          if (!(toggle instanceof HTMLButtonElement)) return;
+
+          const panel = toggle.closest("[data-filter-section]");
+          if (!(panel instanceof HTMLElement)) return;
+
+          const expanded = toggle.getAttribute("aria-expanded") === "true";
+          toggle.setAttribute("aria-expanded", String(!expanded));
+          panel.classList.toggle("is-collapsed", expanded);
+        });
+      });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  .question-bank-page {
+    position: relative;
+    padding-top: calc(var(--header) + 38px);
+    padding-bottom: 96px;
+    background: var(--bg);
+  }
+
+  .question-bank-shell {
+    width: min(1520px, calc(100% - 52px));
+  }
+
+  .question-bank-grid {
+    display: grid;
+    grid-template-columns: 306px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .question-bank-sidebar {
+    position: sticky;
+    top: calc(var(--header) + 16px);
+    align-self: start;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    gap: 14px;
+    max-height: calc(100vh - var(--header) - 32px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding-right: 6px;
+    padding-bottom: 4px;
+  }
+
+  .question-bank-sidebar::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  .question-bank-sidebar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(71, 85, 105, 0.9);
+  }
+
+  .question-bank-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .question-filter-panel {
+    flex: 0 0 auto;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 14px;
+    background: var(--bg);
+    padding: 18px 18px 16px;
+    min-width: 0;
+  }
+
+  .question-filter-panel--title {
+    padding: 0 20px;
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+  }
+
+  .question-filter-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .question-filter-title svg {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-2);
+  }
+
+  .question-filter-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    min-height: 28px;
+  }
+
+  .question-filter-panel__title-group {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .question-filter-panel__head h2 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.06rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .question-filter-panel__selected {
+    color: var(--accent-2);
+    font-size: 0.86rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .question-filter-panel__selected::before {
+    content: "\00B7";
+    margin-right: 6px;
+    color: var(--muted);
+  }
+
+  .question-filter-panel__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  .question-filter-panel__clear {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 2px;
+    color: var(--soft);
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: color 180ms var(--ease), background 180ms var(--ease);
+  }
+
+  .question-filter-panel__clear:hover {
+    color: var(--text);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .question-filter-panel__collapse {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
+  }
+
+  .question-filter-panel__collapse:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--text);
+  }
+
+  .question-filter-panel__collapse svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+  }
+
+  .question-filter-panel.is-collapsed .question-filter-panel__collapse {
+    transform: rotate(-90deg);
+  }
+
+  .question-filter-panel__body {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .question-filter-panel.is-collapsed .question-filter-panel__body {
+    display: none;
+  }
+
+  .question-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .question-filter-list--scroll {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .question-filter-option {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
+    cursor: pointer;
+    color: var(--soft);
+    padding: 5px 8px;
+    border-radius: 10px;
+    transition: background 180ms var(--ease), color 180ms var(--ease);
+  }
+
+  .question-filter-option:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--text);
+  }
+
+  .question-filter-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .question-filter-option__mark {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.85);
+    border-radius: 5px;
+    background: transparent;
+    transition:
+      border-color 180ms var(--ease),
+      background 180ms var(--ease),
+      box-shadow 180ms var(--ease);
+  }
+
+  .question-filter-option__mark::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 4px;
+    height: 8px;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: translate(-50%, -50%) rotate(45deg) scale(0);
+    transform-origin: center;
+    transition: transform 180ms var(--ease);
+  }
+
+  .question-filter-option.is-checked .question-filter-option__mark {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  }
+
+  .question-filter-option.is-checked .question-filter-option__mark::after {
+    transform: translate(-50%, -58%) rotate(45deg) scale(1);
+  }
+
+  .question-filter-option.is-checked {
+    color: var(--text);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .question-filter-option__label {
+    min-width: 0;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .question-filter-option__count {
+    display: inline-flex;
+    min-width: 44px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(59, 130, 246, 0.36);
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.16);
+    color: var(--accent-2);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0 9px;
+  }
+
+  .question-filter-option.is-checked .question-filter-option__count {
+    border-color: rgba(96, 165, 250, 0.54);
+    background: rgba(59, 130, 246, 0.22);
+    color: var(--text);
+  }
+
+  .question-filter-option--extra {
+    display: none;
+  }
+
+  .question-filter-list.is-expanded .question-filter-option--extra {
+    display: grid;
+  }
+
+  .question-filter-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  .question-filter-search svg {
+    position: absolute;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+  }
+
+  .question-filter-search input {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid rgba(59, 130, 246, 0.16);
+    border-radius: 9px;
+    background: var(--bg);
+    padding: 0 12px 0 36px;
+    color: var(--text);
+    outline: none;
+  }
+
+  .question-filter-search input::placeholder {
+    color: var(--muted);
+  }
+
+  .question-filter-search input:focus,
+  .question-searchbar input:focus {
+    border-color: rgba(96, 165, 250, 0.62);
+  }
+
+  .question-filter-expand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 0;
+    padding-top: 12px;
+    padding-inline: 8px;
+    min-height: 36px;
+    border-top: 1px solid rgba(59, 130, 246, 0.12);
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background 180ms var(--ease), color 180ms var(--ease);
+  }
+
+  .question-filter-expand:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--text);
+  }
+
+  .question-filter-expand__icon {
+    display: inline-flex;
+    align-items: center;
+    width: 12px;
+    height: 12px;
+    justify-content: center;
+    flex: 0 0 12px;
+    color: var(--muted);
+    transition: transform 180ms var(--ease), color 180ms var(--ease);
+  }
+
+  .question-filter-expand__icon svg {
+    display: block;
+    width: 12px;
+    height: 12px;
+  }
+
+  .question-filter-expand[aria-expanded="true"] .question-filter-expand__icon {
+    transform: rotate(180deg);
+  }
+
+  .question-filter-expand__label {
+    flex: 1 1 auto;
+    line-height: 1.2;
+  }
+
+  .question-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--soft);
+    font-weight: 700;
+  }
+
+  .question-bank-main {
+    min-width: 0;
+  }
+
+  .question-searchbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .question-searchbar svg {
+    position: absolute;
+    left: 14px;
+    width: 17px;
+    height: 17px;
+    color: var(--muted);
+  }
+
+  .question-searchbar input {
+    width: 100%;
+    min-height: 54px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 0 18px 0 42px;
+    color: var(--text);
+    font-size: 0.96rem;
+    outline: none;
+  }
+
+  .question-searchbar input::placeholder {
+    color: var(--muted);
+  }
+
+  .question-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px 14px;
+    margin: 0 0 16px;
+  }
+
+  .question-active-filters__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .question-active-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid rgba(59, 130, 246, 0.24);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1;
+    transition:
+      border-color 180ms var(--ease),
+      background 180ms var(--ease),
+      color 180ms var(--ease);
+  }
+
+  .question-active-filter-chip:hover {
+    border-color: rgba(96, 165, 250, 0.48);
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .question-active-filter-chip__label {
+    white-space: nowrap;
+  }
+
+  .question-active-filter-chip__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.14);
+    color: var(--accent-2);
+    position: relative;
+    flex: 0 0 18px;
+  }
+
+  .question-active-filter-chip__remove::before,
+  .question-active-filter-chip__remove::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 1.5px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .question-active-filter-chip__remove::before {
+    transform: rotate(45deg);
+  }
+
+  .question-active-filter-chip__remove::after {
+    transform: rotate(-45deg);
+  }
+
+  .question-active-filters__reset {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    color: var(--soft);
+    font-size: 0.84rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: color 180ms var(--ease);
+  }
+
+  .question-active-filters__reset:hover {
+    color: var(--text);
+  }
+
+  .question-bank-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 18px;
+    margin: 0 0 18px;
+  }
+
+  .question-bank-found {
+    margin: 0;
+    color: var(--question-found);
+    font-size: 0.94rem;
+  }
+
+  .question-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .question-sort__label {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .question-sort select {
+    min-height: 38px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    padding: 0 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .question-sort select:focus {
+    border-color: rgba(96, 165, 250, 0.62);
+  }
+
+  .question-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .question-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 14px;
+    background: var(--bg);
+    padding: 18px 18px 16px;
+    transition:
+      border-color 180ms var(--ease),
+      transform 180ms var(--ease),
+      background 180ms var(--ease);
+  }
+
+  .question-card__role-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .question-card__role-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid rgba(96, 165, 250, 0.42);
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.14);
+    color: #dbeafe;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .question-card:hover {
+    border-color: rgba(96, 165, 250, 0.54);
+    background: var(--bg);
+    transform: translateY(-1px);
+  }
+
+  .question-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .question-card__header h2 {
+    margin: 0;
+    max-width: 900px;
+    font-size: clamp(1.15rem, 1.55vw, 1.44rem);
+    line-height: 1.34;
+    letter-spacing: -0.035em;
+  }
+
+  .question-card__badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 58px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--question-badge-border);
+    border-radius: 999px;
+    background: var(--question-badge-bg);
+    color: var(--question-badge-text);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .question-card__badge-icon {
+    font-size: 0.72rem;
+    transform: translateY(-1px);
+  }
+
+  .question-card__meta-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 22px;
+    align-items: start;
+  }
+
+  .question-card__meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .question-card__meta-row--tags {
+    justify-self: end;
+    justify-content: flex-end;
+  }
+
+  .question-card__meta-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--question-label);
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .question-card__meta-label svg {
+    width: 13px;
+    height: 13px;
+    color: var(--accent-2);
+    flex: none;
+  }
+
+  .question-card__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--question-chip);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .question-list-state {
+    padding: 26px 0 10px;
+  }
+
+  .question-list-state h2 {
+    margin: 0 0 10px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: -0.04em;
+  }
+
+  .question-list-state p {
+    margin: 0;
+    color: var(--soft);
+    line-height: 1.6;
+  }
+
+  .question-list-state--error p {
+    color: #fda4af;
+  }
+
+  .question-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-top: 24px;
+  }
+
+  .question-pagination__button,
+  .question-pagination__ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .question-pagination__button {
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    color: var(--soft);
+    background: var(--bg);
+  }
+
+  .question-pagination__button:hover,
+  .question-pagination__button.is-current {
+    border-color: rgba(96, 165, 250, 0.46);
+    color: var(--text);
+  }
+
+  .question-pagination__button.is-disabled {
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .question-pagination__ellipsis {
+    color: var(--muted);
+  }
+
+  @media (max-width: 1180px) {
+    .question-bank-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .question-bank-sidebar {
+      position: static;
+      order: 2;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .question-bank-main {
+      order: 1;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .question-bank-shell {
+      width: min(1520px, calc(100% - 36px));
+    }
+
+    .question-active-filters,
+    .question-bank-toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .question-card__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .question-card__meta-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .question-card__meta-row--tags {
+      justify-self: start;
+      justify-content: flex-start;
+    }
+  }
+</style>

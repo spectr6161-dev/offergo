@@ -1,0 +1,302 @@
+---
+---
+
+<div class="overlay-stage" aria-label="Визуальный пример Windows overlay offerGO">
+  <div class="screen-grid" aria-hidden="true"></div>
+  <div class="call-window glass">
+    <div class="call-topline">
+      <span></span>
+      <span></span>
+      <span></span>
+      <strong>Live call</strong>
+    </div>
+    <div class="speaker-lines">
+      <i></i>
+      <i></i>
+      <i></i>
+      <i></i>
+    </div>
+  </div>
+
+  <div class="offergo-bar glass">
+    <strong>offerGO</strong>
+    <button type="button">Стоп</button>
+    <div class="signal">
+      <span class="bar b1"></span>
+      <span class="bar b2"></span>
+      <span class="bar b3"></span>
+      <small>72%</small>
+    </div>
+    <button type="button" class="ghost">Ответ AI</button>
+    <button type="button" class="ghost">Скриншот</button>
+  </div>
+
+  <div class="answer-panel glass">
+    <div class="answer-meta">
+      <span>Думаю...</span>
+      <small>live streaming</small>
+    </div>
+    <p>
+      Начните с короткого определения, затем покажите практический пример. Если вопрос про архитектуру,
+      назовите trade-off и способ проверки решения.
+    </p>
+    <div class="prompt-row">
+      <span>Короткий запрос</span>
+      <strong>Умная модель</strong>
+      <strong>Авто</strong>
+    </div>
+  </div>
+</div>
+
+<style>
+  .overlay-stage {
+    position: relative;
+    min-height: 560px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: linear-gradient(145deg, rgba(14, 20, 32, 0.86), rgba(3, 5, 10, 0.72));
+  }
+
+  .screen-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 40%, black, transparent 72%);
+  }
+
+  .call-window {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 14%;
+    min-height: 250px;
+    border-radius: 8px;
+    padding: 22px;
+    opacity: 0.86;
+  }
+
+  .call-topline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+  }
+
+  .call-topline span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .call-topline strong {
+    margin-left: auto;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .speaker-lines {
+    display: grid;
+    gap: 14px;
+    margin-top: 50px;
+  }
+
+  .speaker-lines i {
+    display: block;
+    height: 14px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(248, 250, 252, 0.1), rgba(59, 130, 246, 0.2), rgba(248, 250, 252, 0.04));
+  }
+
+  .speaker-lines i:nth-child(1) {
+    width: 72%;
+  }
+
+  .speaker-lines i:nth-child(2) {
+    width: 54%;
+  }
+
+  .speaker-lines i:nth-child(3) {
+    width: 80%;
+  }
+
+  .speaker-lines i:nth-child(4) {
+    width: 44%;
+  }
+
+  .offergo-bar {
+    position: absolute;
+    left: 50%;
+    top: 46px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(92%, 548px);
+    padding: 12px;
+    border-radius: 8px;
+    transform: translateX(-50%);
+    animation: float-bar 5s var(--ease) infinite;
+  }
+
+  .offergo-bar strong {
+    margin-right: 4px;
+    white-space: nowrap;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+  }
+
+  .offergo-bar button {
+    border: 0;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    padding: 9px 12px;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .offergo-bar .ghost {
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+  }
+
+  .signal {
+    display: inline-flex;
+    align-items: end;
+    gap: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .bar {
+    width: 4px;
+    border-radius: 8px;
+    background: var(--accent);
+    animation: pulse-bar 1s ease-in-out infinite;
+  }
+
+  .b1 {
+    height: 11px;
+  }
+
+  .b2 {
+    height: 17px;
+    animation-delay: 120ms;
+  }
+
+  .b3 {
+    height: 23px;
+    animation-delay: 240ms;
+  }
+
+  .signal small {
+    margin-left: 4px;
+    color: var(--soft);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .answer-panel {
+    position: absolute;
+    left: 50%;
+    bottom: 46px;
+    width: min(88%, 490px);
+    border-radius: 8px;
+    padding: 18px;
+    transform: translateX(-50%);
+  }
+
+  .answer-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .answer-meta small {
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .answer-panel p {
+    margin: 14px 0 18px;
+    color: var(--soft);
+    line-height: 1.65;
+  }
+
+  .prompt-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .prompt-row span,
+  .prompt-row strong {
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.055);
+    padding: 9px 12px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .prompt-row span {
+    flex: 1;
+  }
+
+  .prompt-row strong {
+    color: var(--text);
+  }
+
+  @keyframes pulse-bar {
+    50% {
+      transform: scaleY(0.62);
+      opacity: 0.65;
+    }
+  }
+
+  @keyframes float-bar {
+    50% {
+      transform: translate(-50%, 8px);
+    }
+  }
+
+  @media (max-width: 620px) {
+    .overlay-stage {
+      min-height: 510px;
+      border-radius: 8px;
+    }
+
+    .offergo-bar {
+      top: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      border-radius: 8px;
+    }
+
+    .call-window {
+      top: 130px;
+      min-height: 190px;
+    }
+
+    .answer-panel {
+      bottom: 24px;
+    }
+
+    .prompt-row {
+      flex-wrap: wrap;
+    }
+
+    .prompt-row span {
+      flex-basis: 100%;
+    }
+  }
+</style>

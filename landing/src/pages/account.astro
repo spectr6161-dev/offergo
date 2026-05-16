@@ -1,0 +1,1007 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { brand } from "@/data/site";
+import BrandWordmark from "@/components/BrandWordmark.astro";
+import { Sheet } from "webcoreui/astro";
+const accountNavGroups = [
+  [
+    { label: "Резюме", href: "/promo/resume", icon: "file", badge: "NEW" },
+    { label: "Банк вопросов", href: "/questions", icon: "stack" },
+    { label: "Скачать для Windows", href: brand.downloadUrl, icon: "desktop" },
+  ],
+  [
+    { label: "Подписка", href: "/pricing", icon: "diamond" },
+    { label: "Профиль", href: "/account", icon: "user", active: true },
+    { label: "Поддержка", href: `mailto:${brand.supportEmail}`, icon: "help" },
+  ],
+] as const;
+const telegramSettings = [
+  {
+    title: "Отчёт по каждому отклику",
+    description: "Мгновенное уведомление после новой активности в системе.",
+    enabled: true,
+  },
+  {
+    title: "Ежедневный отчёт со статистикой",
+    description: "Короткая сводка по резюме, вопросам и активности за сутки.",
+    enabled: false,
+  },
+  {
+    title: "Напоминание о новых инструментах",
+    description: "Сообщения о свежих веб-модулях и важных обновлениях offerGO.",
+    enabled: false,
+  },
+] as const;
+---
+
+<BaseLayout hideFooter={true} hideTelegramFab={true} title="Кабинет | offerGO" description="Личный кабинет offerGO">
+  <section class="account-page">
+    <div class="account-shell reveal">
+      <aside class="account-sidebar">
+        <div class="account-sidebar__brand">
+          <BrandWordmark size="md" href="/" class="account-sidebar__logo" />
+        </div>
+        {accountNavGroups.map((group) => (
+          <nav class="account-nav" aria-label="Разделы кабинета">
+            {group.map((item) => (
+              <a class:list={["account-nav__link", item.active && "is-active"]} href={item.href}>
+                <span class="account-nav__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    {item.icon === "file" && (
+                      <>
+                        <path d="M8 3.5h6l4 4V20.5H8z" />
+                        <path d="M14 3.5v4h4" />
+                        <path d="M10.5 12.5h5" />
+                        <path d="M10.5 16h5" />
+                      </>
+                    )}
+                    {item.icon === "stack" && (
+                      <>
+                        <path d="M12 3.5 4 7.5 12 11.5 20 7.5 12 3.5Z" />
+                        <path d="M6.5 11 12 14l5.5-3" />
+                        <path d="M6.5 15 12 18l5.5-3" />
+                      </>
+                    )}
+                    {item.icon === "desktop" && (
+                      <>
+                        <path d="M4.5 6.5h15v9h-15z" />
+                        <path d="M10 19.5h4" />
+                        <path d="M12 15.5v4" />
+                      </>
+                    )}
+                    {item.icon === "diamond" && <path d="M12 3.5 17.5 9 12 20.5 6.5 9 12 3.5Z" />}
+                    {item.icon === "user" && (
+                      <>
+                        <path d="M12 12.25a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" />
+                        <path d="M5.5 20c1.2-3 4-4.5 6.5-4.5s5.3 1.5 6.5 4.5" />
+                      </>
+                    )}
+                    {item.icon === "help" && (
+                      <>
+                        <path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17Z" />
+                        <path d="M9.75 9.25a2.35 2.35 0 1 1 3.45 2.08c-.9.45-1.45 1.02-1.45 2.17" />
+                        <path d="M12 17h.01" />
+                      </>
+                    )}
+                  </svg>
+                </span>
+                <span class="account-nav__label">{item.label}</span>
+                {item.badge && <span class="account-nav__badge">{item.badge}</span>}
+              </a>
+            ))}
+          </nav>
+        ))}
+        <a class="account-sidebar__cta" href="/pricing">
+          <span>Тарифы</span>
+          <span class="account-sidebar__cta-mark" aria-hidden="true">+</span>
+        </a>
+      </aside>
+      <div class="account-main">
+        <header class="account-topbar">
+          <div class="account-topbar__lead">
+            <div class="account-topbar__copy">
+              <p class="account-kicker">Личный кабинет</p>
+              <h1>Профиль</h1>
+            </div>
+          </div>
+          <div class="account-topbar__actions">
+            <button id="logout-button" class="account-switch" type="button" data-account-logout>
+              <span class="account-switch__icon" aria-hidden="true"></span>
+              <span>Выйти из аккаунта</span>
+            </button>
+            <button
+              class="account-mobile-drawer-toggle"
+              type="button"
+              aria-label="Открыть меню"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M4 7h16" />
+                <path d="M4 12h16" />
+                <path d="M4 17h16" />
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div id="account-loading" hidden aria-hidden="true"></div>
+        <div id="account-guest" hidden aria-hidden="true"></div>
+        <div id="account-card" class="account-content" hidden>
+          <section class="account-panel account-panel--profile">
+            <div class="account-panel__top">
+              <div class="account-panel__title">
+                <h2 id="account-name">—</h2>
+                <p>Основные данные аккаунта и доступ к рабочему профилю.</p>
+              </div>
+              <a class="account-support-link" href={`mailto:${brand.supportEmail}`}>Написать в поддержку</a>
+            </div>
+            <div class="account-profile-layout">
+              <div class="account-profile-fields">
+                <div class="account-field">
+                  <span>ID пользователя</span>
+                  <strong id="account-id">—</strong>
+                </div>
+                <div class="account-field">
+                  <span>E-Mail</span>
+                  <strong id="account-email">—</strong>
+                </div>
+                <div class="account-field">
+                  <span>Номер телефона</span>
+                  <strong id="account-phone">Не добавлен</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="account-panel account-panel--telegram">
+            <div class="account-panel__top">
+              <div class="account-panel__title">
+                <h2>Уведомления Telegram</h2>
+                <p>Пока это только UI-болванка под будущую настройку уведомлений внутри кабинета.</p>
+              </div>
+              <a class="account-connect" href={brand.telegramUrl}>Подключить Telegram</a>
+            </div>
+            <div class="account-settings">
+              {telegramSettings.map((item) => (
+                <div class="account-setting">
+                  <div class="account-setting__copy">
+                    <strong>{item.title}</strong>
+                    <span>{item.description}</span>
+                  </div>
+                  <span class:list={["account-toggle", item.enabled && "is-active"]} aria-hidden="true"></span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+        <p id="account-feedback" class="account-feedback" aria-live="polite"></p>
+      </div>
+      <Sheet className="account-mobile-sheet" showCloseIcon={false} transparent={true}>
+        <div class="account-mobile-sheet__body">
+          <div class="account-mobile-sheet__header">
+            <BrandWordmark size="md" href="/" class="account-sidebar__logo" />
+            <button class="account-mobile-sheet__close" type="button" aria-label="Закрыть меню" data-account-sheet-close>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 6 18 18" />
+                <path d="M18 6 6 18" />
+              </svg>
+            </button>
+          </div>
+          {accountNavGroups.map((group) => (
+            <nav class="account-nav" aria-label="Разделы кабинета">
+              {group.map((item) => (
+                <a class:list={["account-nav__link", item.active && "is-active"]} href={item.href}>
+                  <span class="account-nav__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                      {item.icon === "file" && (
+                        <>
+                          <path d="M8 3.5h6l4 4V20.5H8z" />
+                          <path d="M14 3.5v4h4" />
+                          <path d="M10.5 12.5h5" />
+                          <path d="M10.5 16h5" />
+                        </>
+                      )}
+                      {item.icon === "stack" && (
+                        <>
+                          <path d="M12 3.5 4 7.5 12 11.5 20 7.5 12 3.5Z" />
+                          <path d="M6.5 11 12 14l5.5-3" />
+                          <path d="M6.5 15 12 18l5.5-3" />
+                        </>
+                      )}
+                      {item.icon === "desktop" && (
+                        <>
+                          <path d="M4.5 6.5h15v9h-15z" />
+                          <path d="M10 19.5h4" />
+                          <path d="M12 15.5v4" />
+                        </>
+                      )}
+                      {item.icon === "diamond" && <path d="M12 3.5 17.5 9 12 20.5 6.5 9 12 3.5Z" />}
+                      {item.icon === "user" && (
+                        <>
+                          <path d="M12 12.25a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" />
+                          <path d="M5.5 20c1.2-3 4-4.5 6.5-4.5s5.3 1.5 6.5 4.5" />
+                        </>
+                      )}
+                      {item.icon === "help" && (
+                        <>
+                          <path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17Z" />
+                          <path d="M9.75 9.25a2.35 2.35 0 1 1 3.45 2.08c-.9.45-1.45 1.02-1.45 2.17" />
+                          <path d="M12 17h.01" />
+                        </>
+                      )}
+                    </svg>
+                  </span>
+                  <span class="account-nav__label">{item.label}</span>
+                  {item.badge && <span class="account-nav__badge">{item.badge}</span>}
+                </a>
+              ))}
+            </nav>
+          ))}
+          <div class="account-mobile-sheet__footer">
+            <a class="account-sidebar__cta" href="/pricing">
+              <span>Тарифы</span>
+              <span class="account-sidebar__cta-mark" aria-hidden="true">+</span>
+            </a>
+            <button class="account-sidebar__logout account-switch" type="button" data-account-logout>
+              <span class="account-switch__icon" aria-hidden="true"></span>
+              <span>Выйти из аккаунта</span>
+            </button>
+          </div>
+        </div>
+      </Sheet>
+    </div>
+  </section>
+</BaseLayout>
+
+<script define:vars={{ apiBaseUrl: brand.apiBaseUrl }} is:inline>
+  const pageNode = document.querySelector(".account-page");
+  const bodyNode = document.body;
+  const loadingNode = document.getElementById("account-loading");
+  const guestNode = document.getElementById("account-guest");
+  const cardNode = document.getElementById("account-card");
+  const feedbackNode = document.getElementById("account-feedback");
+  const nameNode = document.getElementById("account-name");
+  const emailNode = document.getElementById("account-email");
+  const idNode = document.getElementById("account-id");
+  const phoneNode = document.getElementById("account-phone");
+  const logoutButtons = document.querySelectorAll("[data-account-logout]");
+
+  const getText = (value, fallback = "—") => {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+
+    if (typeof value === "number") {
+      return String(value);
+    }
+
+    return fallback;
+  };
+
+  const showGuest = () => {
+    if (pageNode instanceof HTMLElement) pageNode.classList.remove("is-auth");
+    if (bodyNode instanceof HTMLBodyElement) bodyNode.classList.remove("account-app-shell");
+    if (loadingNode instanceof HTMLElement) loadingNode.hidden = true;
+    if (cardNode instanceof HTMLElement) cardNode.hidden = true;
+    if (guestNode instanceof HTMLElement) guestNode.hidden = true;
+  };
+
+  const showAccount = (user) => {
+    if (pageNode instanceof HTMLElement) pageNode.classList.add("is-auth");
+    if (bodyNode instanceof HTMLBodyElement) bodyNode.classList.add("account-app-shell");
+    const userName = getText(user.displayName || user.name, "Пользователь offerGO");
+    const userEmail = getText(user.email);
+    const userId = getText(user.id || user.userId || user.externalId);
+    const userPhone = getText(user.phone || user.phoneNumber || user.phone_number, "Не добавлен");
+    if (loadingNode instanceof HTMLElement) loadingNode.hidden = true;
+    if (guestNode instanceof HTMLElement) guestNode.hidden = true;
+    if (cardNode instanceof HTMLElement) cardNode.hidden = false;
+    if (nameNode instanceof HTMLElement) nameNode.textContent = userName;
+    if (emailNode instanceof HTMLElement) emailNode.textContent = userEmail;
+    if (idNode instanceof HTMLElement) idNode.textContent = userId === "—" ? userId : `#${userId}`;
+    if (phoneNode instanceof HTMLElement) phoneNode.textContent = userPhone;
+  };
+
+  const loadAccount = async () => {
+    const response = await fetch(`${apiBaseUrl}/auth/me`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      showGuest();
+      return;
+    }
+
+    const data = await response.json().catch(() => null);
+    if (!data?.user) {
+      showGuest();
+      return;
+    }
+
+    showAccount(data.user);
+  };
+
+  const handleLogout = async () => {
+    if (feedbackNode instanceof HTMLElement) {
+      feedbackNode.textContent = "Выходим...";
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (feedbackNode instanceof HTMLElement) {
+          feedbackNode.textContent = "Не удалось завершить сессию.";
+        }
+        return;
+      }
+
+      window.location.href = "/";
+    } catch (error) {
+      if (feedbackNode instanceof HTMLElement) {
+        feedbackNode.textContent = error instanceof Error ? error.message : "Не удалось подключиться к серверу.";
+      }
+    }
+  };
+
+  logoutButtons.forEach((button) => button.addEventListener("click", handleLogout));
+
+  loadAccount().catch((error) => {
+    showGuest();
+    if (feedbackNode instanceof HTMLElement) {
+      feedbackNode.textContent = error instanceof Error ? error.message : "Не удалось загрузить аккаунт.";
+    }
+  });
+</script>
+
+<script>
+  import { closeModal, modal } from "webcoreui";
+
+  const sheetSelector = ".account-mobile-sheet";
+  modal({
+    trigger: ".account-mobile-drawer-toggle",
+    modal: sheetSelector,
+  });
+
+  document.querySelectorAll("[data-account-sheet-close]").forEach((button) => {
+    button.addEventListener("click", () => closeModal(sheetSelector));
+  });
+</script>
+
+<style>
+  .account-page {
+    min-height: calc(100vh - var(--header));
+    padding: calc(var(--header) + 24px) 0 56px;
+    background: #f3f4f7;
+    --w-color-scheme: light;
+    --w-color-primary: #0f172a;
+    --w-color-primary-10: #1e293b;
+    --w-color-primary-20: #475569;
+    --w-color-primary-30: #64748b;
+    --w-color-primary-40: #cbd5e1;
+    --w-color-primary-50: #e2e8f0;
+    --w-color-primary-60: #f8fafc;
+    --w-color-primary-70: #ffffff;
+    --w-color-overlay: rgba(15, 23, 42, 0.28);
+    --w-sm-radius: 0;
+    --w-md-radius: 0;
+    --w-lg-radius: 0;
+    --w-xl-radius: 0;
+  }
+  :root[data-theme="dark"] .account-page {
+    --w-color-scheme: dark;
+    --w-color-primary: #f8fafc;
+    --w-color-primary-10: #e2e8f0;
+    --w-color-primary-20: #cbd5e1;
+    --w-color-primary-30: #94a3b8;
+    --w-color-primary-40: #334155;
+    --w-color-primary-50: #243047;
+    --w-color-primary-60: #111827;
+    --w-color-primary-70: #0e1420;
+    --w-color-overlay: rgba(3, 5, 10, 0.44);
+  }
+  .account-page:not(.is-auth) {
+    display: grid;
+    align-items: center;
+  }
+  .account-page.is-auth {
+    min-height: 100dvh;
+    height: 100dvh;
+    padding: 12px 0;
+    overflow: hidden;
+  }
+  .account-page:not(.is-auth) .account-shell {
+    grid-template-columns: 1fr;
+    width: min(640px, calc(100% - 24px));
+  }
+  .account-page:not(.is-auth) .account-sidebar,
+  .account-page:not(.is-auth) .account-topbar,
+  .account-page:not(.is-auth) .account-feedback,
+  .account-page:not(.is-auth) .account-content {
+    display: none;
+  }
+  .account-page:not(.is-auth) .account-main {
+    justify-items: center;
+  }
+  :global(body.account-app-shell .site-header) {
+    display: none;
+  }
+  .account-shell {
+    width: calc(100% - 24px);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr);
+    gap: 12px;
+    height: 100%;
+    align-items: stretch;
+  }
+  .account-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+    top: 0;
+    min-height: 0;
+    height: 100%;
+    align-self: stretch;
+    overflow: hidden;
+    padding: 18px 18px 16px;
+    border-radius: 26px;
+    background: var(--panel);
+    box-shadow: 0 18px 50px rgba(10, 16, 30, 0.06);
+  }
+  .account-sidebar__brand {
+    display: flex;
+    align-items: center;
+    padding-bottom: 6px;
+  }
+  .account-mobile-drawer-toggle,
+  .account-mobile-sheet__close {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: none;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--text);
+    appearance: none;
+    cursor: pointer;
+  }
+  .account-mobile-drawer-toggle svg,
+  .account-mobile-sheet__close svg {
+    width: 20px;
+    height: 20px;
+  }
+    :global(.account-mobile-sheet) {
+      display: none;
+    }
+    .account-mobile-sheet__body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding: 16px 16px max(28px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      background: #fff;
+  }
+  :root[data-theme="dark"] .account-mobile-sheet__body {
+    background: var(--panel);
+  }
+  .account-mobile-sheet__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .account-mobile-sheet__footer {
+    display: grid;
+    gap: 14px;
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .account-mobile-sheet__footer .account-sidebar__cta {
+    margin-top: 0;
+    margin-bottom: 14px;
+  }
+  .account-nav {
+    display: grid;
+    gap: 4px;
+  }
+  .account-nav + .account-nav {
+    padding-top: 16px;
+    margin-top: 4px;
+    border-top: 1px solid color-mix(in srgb, var(--line) 84%, transparent);
+  }
+  .account-nav__link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 14px;
+    color: var(--text);
+    transition: background 180ms var(--ease), color 180ms var(--ease);
+  }
+  .account-nav__link:hover {
+    background: transparent;
+    color: var(--accent);
+  }
+  .account-nav__link.is-active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .account-nav__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+  .account-nav__icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .account-nav__label {
+    font-size: 0.96rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .account-nav__badge {
+    margin-left: auto;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .account-nav__link.is-active .account-nav__badge {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
+  .account-sidebar__cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    margin-top: auto;
+    padding: 0 14px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--text) 3%, var(--panel));
+    color: var(--text);
+    font-weight: 700;
+  }
+  .account-sidebar__logout {
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .account-sidebar__cta-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: #c8ff43;
+    color: #0b101b;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .account-main {
+    display: grid;
+    gap: 16px;
+    height: 100%;
+    min-width: 0;
+    overflow-y: auto;
+    align-content: start;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+  }
+  .account-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 4px 0;
+  }
+  .account-topbar__lead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .account-topbar__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex: 0 0 auto;
+  }
+  .account-topbar__copy {
+    display: grid;
+    gap: 6px;
+  }
+  .account-kicker {
+    display: none;
+  }
+  .account-topbar h1 {
+    margin: 0;
+    font-size: clamp(1.55rem, 2.2vw, 2rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    font-weight: 700;
+  }
+  .account-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--text);
+    appearance: none;
+    font: inherit;
+    font-size: 0.98rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 180ms var(--ease), color 180ms var(--ease), background 180ms var(--ease);
+  }
+  .account-switch__icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    background: currentColor;
+    -webkit-mask: url("/promo/icons/logout.svg") center / contain no-repeat;
+    mask: url("/promo/icons/logout.svg") center / contain no-repeat;
+  }
+  .account-switch:hover {
+    transform: translateY(-1px);
+    color: var(--accent);
+    background: #fff;
+  }
+  .account-copy,
+  .account-feedback,
+  .account-state-card {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .account-state-card,
+  .account-panel {
+    display: grid;
+    gap: 20px;
+    padding: 24px 26px;
+    border-radius: 26px;
+    background: var(--panel);
+    box-shadow: 0 18px 50px rgba(10, 16, 30, 0.06);
+  }
+  .account-content {
+    display: grid;
+    gap: 16px;
+  }
+  .account-state-card--guest {
+    display: grid;
+    justify-items: start;
+  }
+  .account-panel__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .account-panel__title {
+    display: grid;
+    gap: 10px;
+  }
+  .account-panel__title h2 {
+    margin: 0;
+    font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .account-panel__title p {
+    margin: 0;
+    color: var(--muted);
+    max-width: 48ch;
+    font-size: 0.95rem;
+  }
+  .account-support-link {
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .account-profile-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    align-items: start;
+  }
+  .account-profile-fields {
+    display: grid;
+    gap: 26px;
+  }
+  .account-field {
+    display: grid;
+    gap: 8px;
+  }
+  .account-field span {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .account-field strong {
+    font-size: clamp(0.98rem, 1.2vw, 1.12rem);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .account-connect {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 14px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .account-settings {
+    display: grid;
+    gap: 2px;
+  }
+  .account-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 72px;
+    padding: 14px 0;
+    border-top: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
+  }
+  .account-setting:first-child {
+    border-top: none;
+  }
+  .account-setting__copy {
+    display: grid;
+    gap: 6px;
+  }
+  .account-setting__copy strong {
+    font-size: 0.98rem;
+    line-height: 1.25;
+  }
+  .account-setting__copy span {
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .account-toggle {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text) 18%, transparent);
+    flex: 0 0 auto;
+  }
+  .account-toggle::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(10, 16, 30, 0.18);
+    transition: transform 180ms var(--ease);
+  }
+  .account-toggle.is-active {
+    background: color-mix(in srgb, var(--accent) 70%, white 10%);
+  }
+  .account-toggle.is-active::after {
+    transform: translateX(20px);
+  }
+  .account-guest-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .account-guest-actions .btn {
+    min-height: 46px;
+  }
+  @media (max-width: 1080px) {
+    .account-page.is-auth {
+      min-height: auto;
+      height: auto;
+      padding: 16px 0 42px;
+      overflow: visible;
+    }
+    .account-shell {
+      grid-template-columns: 1fr;
+      height: auto;
+      align-items: start;
+    }
+    .account-sidebar {
+      display: none;
+    }
+    .account-main {
+      height: auto;
+      overflow: visible;
+      padding-right: 0;
+      scrollbar-gutter: auto;
+    }
+    .account-mobile-drawer-toggle,
+    .account-mobile-sheet__close {
+      display: inline-flex;
+    }
+    :global(.account-mobile-sheet) {
+      display: block !important;
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 70 !important;
+      width: auto !important;
+      max-width: none !important;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
+      pointer-events: none;
+    }
+    .account-mobile-sheet__body {
+      position: fixed;
+      inset: 0 0 0 auto;
+      z-index: 70;
+      width: min(320px, 100vw);
+      max-width: 100vw;
+      height: 100dvh;
+      min-height: 100dvh;
+      transform: translateX(100%);
+      transition: transform 220ms var(--ease);
+      pointer-events: auto;
+    }
+    :global(.account-mobile-sheet[data-show="true"]) .account-mobile-sheet__body {
+      transform: translateX(0);
+    }
+    :global(.account-mobile-sheet) + :global(div) {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 60 !important;
+      background: rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      pointer-events: none;
+    }
+    :root[data-theme="dark"] :global(.account-mobile-sheet) + :global(div) {
+      background: rgba(3, 5, 10, 0.44);
+    }
+    :global(.account-mobile-sheet[data-show="true"]) + :global(div) {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .account-topbar__actions .account-switch {
+      display: none;
+    }
+  }
+  @media (max-width: 860px) {
+    .account-page {
+      padding: 16px 0 42px;
+    }
+    .account-shell {
+      width: calc(100% - 16px);
+    }
+    .account-panel__top,
+    .account-setting {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .account-topbar {
+      padding-inline: 2px;
+      align-items: center;
+    }
+    .account-topbar__actions {
+      margin-left: auto;
+    }
+    .account-state-card,
+    .account-panel {
+      padding: 20px;
+      border-radius: 24px;
+    }
+    .account-profile-layout {
+      gap: 22px;
+    }
+    .account-support-link,
+    .account-connect,
+    .account-guest-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    .account-setting {
+      gap: 14px;
+    }
+  }
+</style>
+
+<style is:global>
+  .account-mobile-sheet {
+    display: none;
+  }
+
+  @media (max-width: 1080px) {
+    .account-mobile-sheet {
+      display: block !important;
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 70 !important;
+      width: auto !important;
+      max-width: none !important;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
+      pointer-events: none;
+    }
+
+    .account-mobile-sheet__body {
+      position: fixed;
+      inset: 0 0 0 auto;
+      z-index: 70;
+      display: flex;
+      flex-direction: column;
+      width: min(320px, 100vw);
+      max-width: 100vw;
+      height: 100dvh;
+      min-height: 100dvh;
+      padding: 16px 16px max(28px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      background: #fff;
+      transform: translateX(100%);
+      transition: transform 220ms var(--ease);
+      pointer-events: auto;
+    }
+
+    :root[data-theme="dark"] .account-mobile-sheet__body {
+      background: var(--panel);
+    }
+
+    .account-mobile-sheet[data-show="true"] .account-mobile-sheet__body {
+      transform: translateX(0);
+    }
+
+    .account-mobile-sheet + div {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 60 !important;
+      background: rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    :root[data-theme="dark"] .account-mobile-sheet + div {
+      background: rgba(3, 5, 10, 0.44);
+    }
+
+    .account-mobile-sheet[data-show="true"] + div {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+</style>

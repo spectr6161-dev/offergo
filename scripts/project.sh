@@ -36,6 +36,7 @@ require_deploy_images() {
   : "${API_IMAGE:?API_IMAGE is required for deploy-images}"
   : "${WEB_IMAGE:?WEB_IMAGE is required for deploy-images}"
   : "${WORKER_IMAGE:?WORKER_IMAGE is required for deploy-images}"
+  : "${LANDING_IMAGE:?LANDING_IMAGE is required for deploy-images}"
 }
 
 pull_deploy_images() {
@@ -45,6 +46,8 @@ pull_deploy_images() {
   docker pull "${WEB_IMAGE}"
   echo "> docker pull ${WORKER_IMAGE}"
   docker pull "${WORKER_IMAGE}"
+  echo "> docker pull ${LANDING_IMAGE}"
+  docker pull "${LANDING_IMAGE}"
 }
 
 write_deploy_image_env() {
@@ -52,6 +55,7 @@ write_deploy_image_env() {
 API_IMAGE=${API_IMAGE}
 WEB_IMAGE=${WEB_IMAGE}
 WORKER_IMAGE=${WORKER_IMAGE}
+LANDING_IMAGE=${LANDING_IMAGE}
 EOF
 }
 
@@ -99,7 +103,8 @@ case "$command_name" in
     pull_deploy_images
     compose up -d postgres redis minio
     sync_database
-    compose up -d --no-build api web worker reverse-proxy
+    mkdir -p landing
+    compose up -d --no-build api web worker landing reverse-proxy
     compose ps
     ;;
   restart)

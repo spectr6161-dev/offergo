@@ -1,0 +1,385 @@
+﻿---
+import { brand, navigation } from "@/data/site";
+import BrandWordmark from "@/components/BrandWordmark.astro";
+import DownloadButton from "@/components/DownloadButton.astro";
+
+const currentPath = Astro.url.pathname;
+const isResumePage = currentPath.startsWith("/promo/resume") || currentPath.startsWith("/resume");
+
+function isActive(href: string) {
+  if (href === "/") return currentPath === "/";
+  if (href.startsWith("/#")) return false;
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+---
+
+<header class="site-header" data-header>
+  <nav class="header-inner" aria-label="РћСЃРЅРѕРІРЅР°СЏ РЅР°РІРёРіР°С†РёСЏ">
+    <BrandWordmark size="md" href="/promo" class="header-wordmark" />
+    <button
+      class="mobile-toggle"
+      type="button"
+      aria-label="РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ"
+      aria-expanded="false"
+      aria-controls="primary-menu"
+      data-menu-toggle
+    >
+      <span class="sr-only">РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ</span>
+    </button>
+    <div class="nav-cluster" id="primary-menu" data-menu>
+      {navigation.map((item) => (
+        <a class={`nav-link ${isActive(item.href) ? "is-active" : ""}`} href={item.href}>{item.label}</a>
+      ))}
+      <a class={`nav-link ${isActive("/promo/resume") ? "is-active" : ""}`} href="/promo/resume">РђРЅР°Р»РёР· СЂРµР·СЋРјРµ</a>
+      {!isResumePage && (
+        <a
+          class="btn header-telegram"
+          href={brand.telegramUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="РћС‚РєСЂС‹С‚СЊ Telegram-РєР°РЅР°Р»"
+        >
+          <svg class="header-telegram__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21.7 4.1 18.5 19c-.24 1.05-.88 1.3-1.78.8l-4.92-3.63-2.37 2.28c-.26.26-.48.48-.98.48l.35-5.02 9.13-8.25c.4-.35-.09-.55-.61-.2L6.03 12.56 1.17 11.04c-1.06-.33-1.08-1.06.22-1.57L20.4 2.15c.88-.32 1.65.2 1.3 1.95Z" />
+          </svg>
+          <span>Telegram</span>
+        </a>
+      )}
+      <a
+        class="btn btn-secondary header-login"
+        href={brand.loginUrl}
+        data-auth-link
+        data-login-href={brand.loginUrl}
+        data-account-href="https://offergo.ru/dashboard"
+      >Р’РѕР№С‚Рё</a>
+      <DownloadButton class="header-cta" />
+      <button
+        class="theme-toggle"
+        type="button"
+        data-theme-toggle
+        aria-label="Р’РєР»СЋС‡РёС‚СЊ С‚С‘РјРЅСѓСЋ С‚РµРјСѓ"
+        title="Р’РєР»СЋС‡РёС‚СЊ С‚С‘РјРЅСѓСЋ С‚РµРјСѓ"
+      >
+        <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.2A8.6 8.6 0 1 1 9.8 3.8a7.2 7.2 0 1 0 10.4 10.4Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+        </svg>
+        <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1 5.3 5.3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8" />
+        </svg>
+        <span class="sr-only">РЎРјРµРЅРёС‚СЊ С‚РµРјСѓ</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<script define:vars={{ apiBaseUrl: brand.apiBaseUrl }} is:inline>
+  const toggle = document.querySelector("[data-menu-toggle]");
+  const menu = document.querySelector("[data-menu]");
+  const authLink = document.querySelector("[data-auth-link]");
+
+  toggle?.addEventListener("click", () => {
+    const isOpen = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!isOpen));
+    menu?.classList.toggle("is-open", !isOpen);
+  });
+
+  const syncAuthState = async () => {
+    if (!(authLink instanceof HTMLAnchorElement)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/me`, {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        authLink.href = authLink.dataset.loginHref || "https://offergo.ru/login";
+        authLink.textContent = "Р’РѕР№С‚Рё";
+        authLink.classList.remove("is-authenticated");
+        return;
+      }
+
+      const data = await response.json().catch(() => null);
+      if (!data?.user) {
+        authLink.href = authLink.dataset.loginHref || "https://offergo.ru/login";
+        authLink.textContent = "Р’РѕР№С‚Рё";
+        authLink.classList.remove("is-authenticated");
+        return;
+      }
+
+      authLink.href = authLink.dataset.accountHref || "https://offergo.ru/dashboard";
+      authLink.textContent = "РљР°Р±РёРЅРµС‚";
+      authLink.classList.add("is-authenticated");
+    } catch {
+      authLink.href = authLink.dataset.loginHref || "https://offergo.ru/login";
+      authLink.textContent = "Р’РѕР№С‚Рё";
+      authLink.classList.remove("is-authenticated");
+    }
+  };
+
+  syncAuthState();
+</script>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    border-bottom: 1px solid var(--line);
+    background: var(--header-bg);
+    backdrop-filter: blur(14px);
+  }
+
+  .header-inner {
+    width: min(1380px, calc(100% - 56px));
+    height: var(--header);
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 26px;
+  }
+
+  .header-wordmark {
+    flex: 0 0 auto;
+  }
+
+  .nav-cluster {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-link {
+    position: relative;
+    border-radius: 8px;
+    color: var(--muted);
+    padding: 11px 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: color 180ms var(--ease), background 180ms var(--ease);
+  }
+
+  .nav-link::after {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 7px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--accent);
+    content: "";
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 180ms var(--ease);
+  }
+
+  .nav-link:hover {
+    background: rgba(59, 130, 246, 0.14);
+    color: var(--text);
+  }
+
+  .nav-link.is-active {
+    color: var(--text);
+  }
+
+  .nav-link.is-active::after {
+    transform: scaleX(1);
+  }
+
+  .header-cta {
+    min-height: 44px;
+    margin-left: 4px;
+    padding-inline: 16px;
+    font-size: 0.92rem;
+  }
+
+  .header-login {
+    min-height: 44px;
+    margin-left: 10px;
+    padding-inline: 16px;
+    font-size: 0.92rem;
+    background: var(--header-login-bg);
+  }
+
+  .header-login.is-authenticated {
+    border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+    color: var(--text);
+  }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+      transform 180ms var(--ease),
+      border-color 180ms var(--ease),
+      background 180ms var(--ease),
+      color 180ms var(--ease);
+  }
+
+  .theme-toggle:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+    background: var(--panel-strong);
+  }
+
+  .theme-toggle:focus-visible {
+    outline: 3px solid rgba(59, 130, 246, 0.55);
+    outline-offset: 4px;
+  }
+
+  .theme-toggle__icon {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+  }
+
+  .theme-toggle__icon--sun {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .theme-toggle__icon--sun {
+    display: block;
+  }
+
+  :root[data-theme="dark"] .theme-toggle__icon--moon {
+    display: none;
+  }
+
+  .header-telegram {
+    display: none;
+    min-height: 44px;
+    padding-inline: 14px 16px;
+    border-color: rgba(255, 255, 255, 0.14);
+    background: linear-gradient(180deg, #2aabee 0%, #229ed9 100%);
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 800;
+    gap: 8px;
+  }
+
+  .header-telegram:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: linear-gradient(180deg, #33b5f2 0%, #229ed9 100%);
+  }
+
+  .header-telegram__icon {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+    flex: 0 0 auto;
+  }
+
+  .mobile-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--mobile-toggle-bg);
+    color: var(--text);
+    padding: 0;
+    line-height: 1;
+    font-size: 0;
+    position: relative;
+  }
+
+  .mobile-toggle::before {
+    content: "";
+    width: 20px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 -6px 0 currentColor, 0 6px 0 currentColor;
+  }
+
+  @media (max-width: 900px) {
+    .header-inner {
+      width: calc(100% - 28px);
+      gap: 14px;
+      position: relative;
+    }
+
+    .header-wordmark {
+      max-width: calc(100% - 72px);
+    }
+
+    .mobile-toggle {
+      display: inline-flex;
+      flex: 0 0 auto;
+      position: absolute;
+      right: 0;
+      top: 50%;
+      width: 48px;
+      height: 48px;
+      justify-content: center;
+      padding-inline: 0;
+      transform: translateY(-50%);
+      z-index: 3;
+    }
+
+    .nav-cluster {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: calc(var(--header) + 10px);
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--menu-bg);
+      padding: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
+      transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+      z-index: 2;
+    }
+
+    .nav-cluster.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .header-telegram {
+      display: inline-flex;
+      justify-content: center;
+    }
+
+    .nav-link,
+    .header-telegram,
+    .header-login,
+    .header-cta {
+      justify-content: center;
+      text-align: center;
+    }
+
+    .header-login,
+    .header-cta {
+      margin-left: 0;
+    }
+
+    .theme-toggle {
+      justify-self: center;
+    }
+  }
+
+  @media (min-width: 901px) and (max-width: 1120px) {
+    .nav-link {
+      display: none;
+    }
+  }
+</style>
+

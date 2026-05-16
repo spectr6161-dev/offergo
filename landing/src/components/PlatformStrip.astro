@@ -1,0 +1,198 @@
+---
+import { platforms } from "@/data/site";
+
+const rows = [
+  { id: "top", items: platforms.filter((platform) => platform.row === 1) },
+  { id: "middle", items: platforms.filter((platform) => platform.row === 2) },
+  { id: "bottom", items: platforms.filter((platform) => platform.row === 3) },
+];
+---
+
+<section class="platform-section section-tight reveal" aria-labelledby="platform-title">
+  <div class="container">
+    <div class="platform-head">
+      <h2 id="platform-title">Работает с основными платформами для звонков</h2>
+    </div>
+
+    <div class="platform-wall" aria-label="Поддерживаемые платформы">
+      {
+        rows.map((row) => (
+          <div class="platform-row">
+            <ul class="platform-list">
+              {row.items.map((platform) => (
+                <li class="platform-item">
+                  <div class="platform-logo-frame">
+                    <img
+                      class:list={[
+                        "platform-logo",
+                        platform.logoTone === "light" && "platform-logo--light",
+                      ]}
+                      src={platform.assetPath}
+                      alt={platform.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <span class="platform-name">{platform.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="platform-note">И со всеми другими технологиями звонков</p>
+  </div>
+</section>
+
+<style>
+  .platform-section {
+    position: relative;
+    background: transparent;
+  }
+
+  .platform-section .container {
+    width: min(1360px, calc(100% - 56px));
+  }
+
+  .platform-head {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .platform-head h2 {
+    margin: 0;
+    max-width: 760px;
+    text-align: center;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.1rem, 2vw, 1.55rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.05em;
+  }
+
+  .platform-wall {
+    display: grid;
+    gap: 20px;
+  }
+
+  .platform-row {
+    display: flex;
+    justify-content: center;
+  }
+
+  .platform-list {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 18px;
+    width: min(1080px, 100%);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .platform-item {
+    flex: 0 1 128px;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .platform-logo-frame {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+  }
+
+  .platform-logo {
+    display: block;
+    max-width: 48px;
+    max-height: 48px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .platform-logo--light {
+    filter: brightness(0) invert(1);
+    opacity: 0.92;
+  }
+
+  .platform-item:hover .platform-logo-frame {
+    transform: translateY(-2px);
+  }
+
+  .platform-item:hover .platform-name {
+    color: var(--soft);
+  }
+
+  .platform-logo-frame,
+  .platform-name {
+    transition:
+      transform 180ms var(--ease),
+      color 180ms var(--ease),
+      opacity 180ms var(--ease);
+  }
+
+  .platform-name {
+    color: var(--muted);
+    font-size: 0.83rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+
+  .platform-note {
+    margin: 22px 0 0;
+    text-align: center;
+    color: var(--soft);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  @media (max-width: 860px) {
+    .platform-section .container {
+      width: min(100% - 28px, 1360px);
+    }
+
+    .platform-head {
+      margin-bottom: 22px;
+    }
+
+    .platform-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px 10px;
+      width: 100%;
+    }
+
+    .platform-item {
+      flex-basis: auto;
+      width: 100%;
+    }
+
+    .platform-logo-frame,
+    .platform-logo {
+      max-width: 40px;
+      max-height: 40px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .platform-name {
+      font-size: 0.78rem;
+    }
+
+    .platform-note {
+      margin-top: 18px;
+      font-size: 0.8rem;
+    }
+  }
+</style>

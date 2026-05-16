@@ -1,0 +1,449 @@
+---
+import { hero } from "@/data/site";
+
+const proofAvatars = [
+  { label: "FE", tone: "tone-1" },
+  { label: "PY", tone: "tone-2" },
+  { label: "PM", tone: "tone-3" },
+  { label: "QA", tone: "tone-4" },
+];
+---
+
+<section class="hero-section" id="hero" aria-labelledby="hero-title">
+  <div class="hero-shell container reveal">
+    <div class="hero-stage">
+      <div class="hero-stage__bg" aria-hidden="true">
+        <div class="hero-blob hero-blob--left"></div>
+        <div class="hero-blob hero-blob--top"></div>
+        <div class="hero-blob hero-blob--right"></div>
+        <div class="hero-ring"></div>
+        <div class="hero-grid"></div>
+      </div>
+
+      <div class="hero-stage__inner">
+        <p class="hero-badge">{hero.badge}</p>
+
+        <h1 class="hero-title" id="hero-title">
+          <span class="hero-title__main">{hero.titleMain}</span>
+          <span class="hero-title__accent">{hero.titleAccent}</span>
+        </h1>
+
+        <p class="hero-description">{hero.description}</p>
+
+        <div class="hero-proof" aria-label="Социальное доказательство">
+          <div class="hero-proof__avatars" aria-hidden="true">
+            {proofAvatars.map((avatar) => (
+              <span class:list={["hero-proof__avatar", avatar.tone]}>{avatar.label}</span>
+            ))}
+          </div>
+
+          <div class="hero-proof__content">
+            <div class="hero-proof__rating">
+              <span class="hero-proof__stars" aria-hidden="true">★★★★★</span>
+              <span class="hero-proof__score">4.9</span>
+            </div>
+            <p class="hero-proof__text">1 000+ пользователей уже используют offerGO для подготовки и live-собеседований</p>
+          </div>
+        </div>
+
+        <a class="hero-scrollcue" href="/#features" aria-label="Перейти к возможностям offerGO">
+          <span class="hero-scrollcue__text">Что мы умеем?</span>
+          <span class="hero-scrollcue__arrow" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M10 3.5v11m0 0-4.25-4.25M10 14.5l4.25-4.25" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section {
+    padding: calc(var(--header) + 8px) 0 26px;
+  }
+
+  .hero-shell {
+    width: min(100% - 40px, 1880px);
+  }
+
+  .hero-stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: 40px;
+    background:
+      radial-gradient(circle at 16% 2%, rgba(48, 236, 255, 0.44), transparent 26%),
+      radial-gradient(circle at 52% -8%, rgba(121, 210, 255, 0.2), transparent 30%),
+      radial-gradient(circle at 88% 88%, rgba(134, 255, 179, 0.34), transparent 24%),
+      linear-gradient(180deg, rgba(17, 37, 166, 0.98) 0%, rgba(23, 56, 188, 0.97) 50%, rgba(16, 44, 163, 0.95) 100%),
+      #1838b7;
+    min-height: 540px;
+    padding: 34px 38px 42px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 34px 110px rgba(7, 19, 71, 0.44);
+  }
+
+  .hero-stage__bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .hero-blob,
+  .hero-ring {
+    position: absolute;
+    filter: blur(54px);
+    border-radius: 999px;
+  }
+
+  .hero-blob--left {
+    left: -12%;
+    top: -4%;
+    width: 30vw;
+    height: 34vw;
+    background:
+      radial-gradient(circle, rgba(33, 238, 255, 0.9) 0%, rgba(33, 238, 255, 0.4) 38%, transparent 72%);
+  }
+
+  .hero-blob--top {
+    left: 50%;
+    top: -24%;
+    width: 36vw;
+    height: 24vw;
+    transform: translateX(-50%);
+    background:
+      radial-gradient(circle, rgba(200, 236, 255, 0.32) 0%, rgba(200, 236, 255, 0.12) 42%, transparent 80%);
+  }
+
+  .hero-blob--right {
+    right: -12%;
+    bottom: -16%;
+    width: 34vw;
+    height: 24vw;
+    background:
+      radial-gradient(circle, rgba(149, 255, 177, 0.64) 0%, rgba(149, 255, 177, 0.22) 42%, transparent 74%);
+  }
+
+  .hero-ring {
+    right: -16%;
+    bottom: -24%;
+    width: 42vw;
+    height: 26vw;
+    border: 48px solid rgba(171, 255, 197, 0.36);
+    background: transparent;
+    filter: blur(14px);
+    opacity: 0.92;
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.1) 1px, transparent 0),
+      linear-gradient(180deg, rgba(219, 245, 255, 0.1), transparent 26%),
+      linear-gradient(90deg, transparent 0 56%, rgba(77, 245, 255, 0.12) 72%, transparent 88%);
+    background-size: 26px 26px, 100% 100%, 100% 100%;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.98), rgba(0, 0, 0, 0.94) 76%, rgba(0, 0, 0, 0.7));
+  }
+
+  .hero-stage__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 0;
+    max-width: 1220px;
+    margin: 36px auto 0;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    margin: 0 0 18px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(111, 245, 255, 0.4);
+    background: linear-gradient(180deg, rgba(18, 64, 145, 0.74), rgba(11, 37, 92, 0.66));
+    box-shadow: 0 16px 40px rgba(8, 20, 74, 0.3);
+    color: #f3ffff;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .hero-title {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .hero-title__main {
+    color: #fff;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(3.2rem, 5.7vw, 5.55rem);
+    font-weight: 600;
+    line-height: 0.96;
+    letter-spacing: -0.08em;
+    text-wrap: balance;
+  }
+
+  .hero-title__accent {
+    display: block;
+    color: #cbfff3;
+    background: linear-gradient(90deg, #82f3ff 0%, #bcffd8 48%, #f0fff8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.85rem, 5.1vw, 5rem);
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.05em;
+    padding-bottom: 0.08em;
+    text-wrap: balance;
+  }
+
+  .hero-description {
+    max-width: 840px;
+    margin: 16px 0 0;
+    color: rgba(241, 249, 255, 0.94);
+    font-size: clamp(1.05rem, 1.55vw, 1.22rem);
+    line-height: 1.46;
+    text-wrap: balance;
+  }
+
+  .hero-proof {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 30px;
+    padding: 14px 18px 14px 14px;
+    border: 1px solid rgba(121, 245, 255, 0.34);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(20, 67, 146, 0.52), rgba(14, 40, 90, 0.48));
+    box-shadow: 0 20px 44px rgba(8, 18, 70, 0.28);
+    backdrop-filter: blur(16px);
+  }
+
+  .hero-proof__avatars {
+    display: flex;
+    align-items: center;
+    padding-left: 2px;
+  }
+
+  .hero-proof__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin-left: -10px;
+    border: 2px solid rgba(245, 248, 255, 0.92);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 24px rgba(6, 10, 34, 0.22);
+  }
+
+  .hero-proof__avatar:first-child {
+    margin-left: 0;
+  }
+
+  .hero-proof__avatar.tone-1 {
+    background: linear-gradient(135deg, #36f0ff, #1f8df2);
+  }
+
+  .hero-proof__avatar.tone-2 {
+    background: linear-gradient(135deg, #ff8d73, #ad4e52);
+  }
+
+  .hero-proof__avatar.tone-3 {
+    background: linear-gradient(135deg, #9dffc2, #11ba8e);
+  }
+
+  .hero-proof__avatar.tone-4 {
+    background: linear-gradient(135deg, #ffffff, #b4ecff);
+    color: #12385b;
+  }
+
+  .hero-proof__content {
+    display: grid;
+    gap: 3px;
+    text-align: left;
+  }
+
+  .hero-proof__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #b8ffe1;
+  }
+
+  .hero-proof__stars {
+    font-size: 1.02rem;
+    letter-spacing: 0.1em;
+  }
+
+  .hero-proof__score {
+    color: #f8fbff;
+    font-size: 1.28rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .hero-proof__text {
+    margin: 0;
+    color: rgba(244, 251, 255, 0.96);
+    font-size: 0.98rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .hero-scrollcue {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    margin-top: 26px;
+    color: rgba(228, 236, 255, 0.92);
+    text-decoration: none;
+    transition: color 180ms ease;
+  }
+
+  .hero-scrollcue:hover {
+    color: #effffe;
+  }
+
+  .hero-scrollcue__text {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.18rem;
+    font-style: italic;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #c9fff0;
+  }
+
+  .hero-scrollcue__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    animation: hero-bounce 1.8s ease-in-out infinite;
+  }
+
+  .hero-scrollcue__arrow svg {
+    width: 20px;
+    height: 20px;
+    overflow: visible;
+  }
+
+  @keyframes hero-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.74;
+    }
+
+    50% {
+      transform: translateY(7px);
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .hero-stage {
+      min-height: 500px;
+      padding-inline: 28px;
+    }
+
+    .hero-stage__inner {
+      max-width: 980px;
+      margin-top: 28px;
+    }
+  }
+
+  @media (max-width: 820px) {
+    .hero-shell {
+      width: min(100% - 28px, 1880px);
+    }
+
+    .hero-stage {
+      min-height: auto;
+      padding: 26px 18px 30px;
+      border-radius: 30px;
+    }
+
+    .hero-stage__inner {
+      margin-top: 14px;
+      max-width: 100%;
+    }
+
+    .hero-badge {
+      margin-bottom: 16px;
+      font-size: 0.84rem;
+    }
+
+    .hero-title__main {
+      font-size: clamp(2.5rem, 10.2vw, 3.85rem);
+    }
+
+    .hero-title__accent {
+      font-size: clamp(2.25rem, 9.2vw, 3.45rem);
+    }
+
+    .hero-description {
+      font-size: 0.98rem;
+    }
+
+    .hero-proof {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 420px;
+      margin-top: 24px;
+      padding: 16px 16px 18px;
+      border-radius: 24px;
+      text-align: center;
+    }
+
+    .hero-proof__content {
+      justify-items: center;
+      text-align: center;
+    }
+
+    .hero-proof__rating {
+      justify-content: center;
+    }
+
+    .hero-proof__text {
+      font-size: 0.92rem;
+    }
+
+    .hero-scrollcue {
+      margin-top: 22px;
+      gap: 6px;
+    }
+
+    .hero-scrollcue__text {
+      font-size: 1.02rem;
+    }
+
+    .hero-ring {
+      right: -34%;
+      bottom: -16%;
+      width: 72vw;
+      height: 38vw;
+      border-width: 34px;
+    }
+  }
+</style>

@@ -1,0 +1,159 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import { brand } from "@/data/site";
+---
+
+<AuthLayout title="Вход | offerGO" description="Вход в offerGO через браузер">
+  <section class="auth-panel">
+    <div class="auth-panel-copy">
+      <p class="auth-panel-kicker">Авторизация</p>
+      <h2>Войти</h2>
+      <p>Тот же аккаунт используется в сайте и Windows-клиенте.</p>
+    </div>
+
+    <form id="login-form" class="auth-form">
+      <label class="auth-field">
+        <span>Email</span>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+      </label>
+
+      <label class="auth-field">
+        <span>Пароль</span>
+        <input id="password" name="password" type="password" autocomplete="current-password" required minlength="6" />
+      </label>
+
+      <button class="btn btn-primary auth-submit" type="submit">Войти</button>
+    </form>
+
+    <p id="auth-feedback" class="auth-feedback" aria-live="polite"></p>
+
+    <div class="auth-links">
+      <a href="/auth/register">Создать аккаунт</a>
+      <a href="/">На главную</a>
+    </div>
+  </section>
+</AuthLayout>
+
+<script define:vars={{ apiBaseUrl: brand.apiBaseUrl }} is:inline>
+  const form = document.getElementById("login-form");
+  const feedback = document.getElementById("auth-feedback");
+  const params = new URLSearchParams(window.location.search);
+  const returnTo = params.get("returnTo") || "/account";
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    feedback.textContent = "Выполняем вход...";
+
+    const formData = new FormData(form);
+    const payload = {
+      email: String(formData.get("email") || "").trim(),
+      password: String(formData.get("password") || ""),
+    };
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        feedback.textContent = data?.message || data?.error || "Не удалось войти.";
+        return;
+      }
+
+      window.location.href = returnTo;
+    } catch (error) {
+      feedback.textContent = error instanceof Error ? error.message : "Не удалось подключиться к серверу.";
+    }
+  });
+</script>
+
+<style>
+  .auth-panel {
+    display: grid;
+    gap: 14px;
+  }
+
+  .auth-panel-copy {
+    display: grid;
+    gap: 6px;
+  }
+
+  .auth-panel-kicker {
+    margin: 0;
+    color: var(--accent-2);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .auth-panel h2 {
+    margin: 0;
+    font-size: 1.55rem;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-weight: 600;
+  }
+
+  .auth-panel-copy p:last-child,
+  .auth-feedback {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.45;
+    font-size: 0.92rem;
+  }
+
+  .auth-form {
+    display: grid;
+    gap: 10px;
+  }
+
+  .auth-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .auth-field span {
+    font-size: 0.88rem;
+    color: var(--soft);
+  }
+
+  .auth-field input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    padding: 0 12px;
+    outline: none;
+  }
+
+  .auth-field input:focus {
+    border-color: var(--accent);
+  }
+
+  .auth-submit {
+    width: 100%;
+    min-height: 46px;
+    margin-top: 2px;
+  }
+
+  .auth-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .auth-links a {
+    color: var(--soft);
+    font-size: 0.9rem;
+  }
+</style>

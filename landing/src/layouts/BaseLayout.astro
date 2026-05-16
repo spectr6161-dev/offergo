@@ -1,0 +1,207 @@
+---
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import { brand } from "@/data/site";
+import "@/styles/global.css";
+
+const currentPath = Astro.url.pathname;
+
+interface Props {
+  title?: string;
+  description?: string;
+  hideHeader?: boolean;
+  hideFooter?: boolean;
+  hideTelegramFab?: boolean;
+}
+
+const {
+  title = "offerGO - скрытый AI-ассистент для live-ситуаций",
+  description = "offerGO слушает вопросы в звонке, анализирует экран и показывает подсказки в компактном Windows overlay.",
+  hideHeader = false,
+  hideFooter = false,
+  hideTelegramFab = false,
+} = Astro.props;
+
+const showTelegramFab = !hideTelegramFab && !currentPath.startsWith("/promo/resume") && !currentPath.startsWith("/resume");
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F5F8FD" />
+    <script is:inline>
+      (() => {
+        const key = "offergo-theme";
+        let theme = "light";
+
+        try {
+          const stored = window.localStorage.getItem(key);
+          if (stored === "dark" || stored === "light") {
+            theme = stored;
+          }
+        } catch {}
+
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/promo/favicon.svg" />
+    <link rel="shortcut icon" href="/promo/favicon.svg" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">К содержимому</a>
+    <div class="site-shell">
+      {!hideHeader && <Header />}
+      <main id="content">
+        <slot />
+      </main>
+      {!hideFooter && <Footer />}
+      {showTelegramFab && (
+        <a class="telegram-fab" href={brand.telegramUrl} target="_blank" rel="noreferrer" aria-label="Открыть Telegram-канал">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21.7 4.1 18.5 19c-.24 1.05-.88 1.3-1.78.8l-4.92-3.63-2.37 2.28c-.26.26-.48.48-.98.48l.35-5.02 9.13-8.25c.4-.35-.09-.55-.61-.2L6.03 12.56 1.17 11.04c-1.06-.33-1.08-1.06.22-1.57L20.4 2.15c.88-.32 1.65.2 1.3 1.95Z" />
+          </svg>
+        </a>
+      )}
+    </div>
+    <script is:inline>
+      const revealItems = document.querySelectorAll(".reveal");
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.16 });
+        revealItems.forEach((item) => observer.observe(item));
+      } else {
+        revealItems.forEach((item) => item.classList.add("is-visible"));
+      }
+
+      const downloadButtons = document.querySelectorAll("[data-download-installer]");
+      downloadButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!(button instanceof HTMLElement) || button.dataset.busy === "true") {
+            return;
+          }
+
+          const label = button.querySelector("[data-download-label]");
+          if (!(label instanceof HTMLElement)) {
+            return;
+          }
+
+          const idleLabel = button.dataset.idleLabel || label.textContent || "";
+          const loadingLabel = button.dataset.loadingLabel || "Пожалуйста, подождите";
+          button.dataset.busy = "true";
+          button.classList.add("is-busy");
+          label.textContent = loadingLabel;
+
+          window.setTimeout(() => {
+            label.textContent = "Загрузка началась";
+          }, 1200);
+
+          window.setTimeout(() => {
+            label.textContent = idleLabel;
+            button.classList.remove("is-busy");
+            delete button.dataset.busy;
+          }, 5200);
+        });
+      });
+
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      const themeButtons = document.querySelectorAll("[data-theme-toggle]");
+      const THEME_KEY = "offergo-theme";
+
+      const applyTheme = (theme) => {
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+
+        try {
+          window.localStorage.setItem(THEME_KEY, theme);
+        } catch {}
+
+        if (themeMeta instanceof HTMLMetaElement) {
+          themeMeta.setAttribute("content", theme === "dark" ? "#03050A" : "#F5F8FD");
+        }
+
+        const nextTheme = theme === "dark" ? "light" : "dark";
+        const nextLabel = nextTheme === "dark" ? "Включить тёмную тему" : "Включить светлую тему";
+
+        themeButtons.forEach((button) => {
+          if (!(button instanceof HTMLButtonElement)) {
+            return;
+          }
+
+          button.setAttribute("aria-label", nextLabel);
+          button.setAttribute("title", nextLabel);
+        });
+      };
+
+      const initialTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      applyTheme(initialTheme);
+
+      themeButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+          applyTheme(currentTheme === "dark" ? "light" : "dark");
+        });
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .telegram-fab {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    z-index: 60;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #2aabee 0%, #229ed9 100%);
+    box-shadow: 0 16px 40px rgba(34, 158, 217, 0.28);
+    transition:
+      transform 180ms var(--ease),
+      box-shadow 180ms var(--ease),
+      filter 180ms var(--ease);
+  }
+
+  .telegram-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 48px rgba(34, 158, 217, 0.34);
+    filter: saturate(1.06);
+  }
+
+  .telegram-fab:focus-visible {
+    outline: 3px solid rgba(96, 165, 250, 0.6);
+    outline-offset: 4px;
+  }
+
+  .telegram-fab svg {
+    width: 25px;
+    height: 25px;
+    fill: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .telegram-fab {
+      display: none;
+    }
+  }
+</style>

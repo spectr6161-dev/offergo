@@ -1,0 +1,52 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { brand } from "@/data/site";
+---
+
+<BaseLayout title="Контакты - offerGO" description="Контакты поддержки и beta-доступа offerGO.">
+  <section class="simple-page">
+    <div class="container simple-card">
+      <p class="eyebrow">Contacts</p>
+      <h1>Связаться с offerGO</h1>
+      <p>Для beta-доступа, вопросов по Windows-клиенту и пилотным внедрениям пишите в Telegram или на почту.</p>
+      <div class="contact-links">
+        <a class="btn btn-primary" href={brand.telegramUrl}>Telegram</a>
+        <a class="btn btn-secondary" href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .simple-page {
+    padding: calc(var(--header) + 80px) 0 100px;
+  }
+
+  .simple-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(8, 14, 10, 0.82);
+    padding: clamp(28px, 6vw, 68px);
+  }
+
+  h1 {
+    margin: 12px 0 18px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.08em;
+  }
+
+  p:not(.eyebrow) {
+    max-width: 680px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+</style>

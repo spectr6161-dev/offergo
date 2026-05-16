@@ -1,0 +1,166 @@
+---
+import { brand } from "@/data/site";
+import DownloadButton from "@/components/DownloadButton.astro";
+
+const outcomes = [
+  {
+    title: "Скрытый overlay",
+    text: "Компактное окно с live-подсказками, которое не мешает работе во время звонка.",
+  },
+  {
+    title: "Ответы по голосу и скриншоту",
+    text: "Сервис слушает вопрос, анализирует экран и возвращает короткий ответ без лишних действий.",
+  },
+  {
+    title: "Бесплатный демо-режим",
+    text: "После установки можно проверить сценарий звонка в течение 15 минут без оплаты.",
+  },
+];
+---
+
+<section class="final-cta section-tight" aria-labelledby="final-cta-title">
+  <div class="container final-cta__wrap reveal">
+    <div class="final-cta__head">
+      <h2 id="final-cta-title">Что вы получите сразу после установки</h2>
+      <p>Скачиваете клиент, входите через браузер и сразу переходите к живому сценарию работы.</p>
+    </div>
+
+    <div class="final-cta__grid" role="list" aria-label="Что доступно после установки">
+      {outcomes.map((item) => (
+        <article class="final-cta__item" role="listitem">
+          <h3>{item.title}</h3>
+          <p>{item.text}</p>
+        </article>
+      ))}
+    </div>
+
+    <div class="final-cta__actions">
+      <DownloadButton class="final-cta__primary" />
+      <a class="btn btn-secondary" href={brand.telegramUrl}>Написать в Telegram</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .final-cta__wrap {
+    position: relative;
+    display: grid;
+    gap: 34px;
+    padding: 34px 0 0;
+    border-top: 1px solid rgba(59, 130, 246, 0.22);
+  }
+
+  .final-cta__wrap::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -34px;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.18), transparent);
+  }
+
+  .final-cta__head {
+    display: grid;
+    gap: 14px;
+    max-width: 760px;
+  }
+
+  .final-cta__head h2 {
+    margin: 0;
+    color: var(--text);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(2.3rem, 4.9vw, 4.8rem);
+    font-weight: 600;
+    line-height: 0.94;
+    letter-spacing: -0.08em;
+  }
+
+  .final-cta__head p {
+    margin: 0;
+    color: var(--soft);
+    font-size: 1.04rem;
+    line-height: 1.72;
+  }
+
+  .final-cta__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 28px;
+  }
+
+  .final-cta__item {
+    padding: 0 20px;
+    border-left: 1px solid rgba(148, 163, 184, 0.14);
+  }
+
+  .final-cta__item:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .final-cta__item h3 {
+    margin: 0 0 12px;
+    color: var(--text);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.28rem, 2.1vw, 1.72rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.05em;
+  }
+
+  .final-cta__item p {
+    margin: 0;
+    color: var(--soft);
+    line-height: 1.72;
+  }
+
+  .final-cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 6px;
+  }
+
+  .final-cta__primary {
+    min-width: 248px;
+  }
+
+  @media (max-width: 920px) {
+    .final-cta .container {
+      width: min(100% - 40px, var(--max));
+    }
+
+    .final-cta__grid {
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    .final-cta__item {
+      padding: 0;
+      border-left: 0;
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
+      padding-top: 22px;
+    }
+
+    .final-cta__item:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .final-cta__wrap {
+      gap: 28px;
+      padding-top: 28px;
+    }
+
+    .final-cta__actions .btn {
+      width: 100%;
+    }
+
+    .final-cta__primary {
+      min-width: 0;
+    }
+  }
+</style>

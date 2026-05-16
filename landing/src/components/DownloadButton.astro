@@ -1,0 +1,38 @@
+---
+import { brand } from "@/data/site";
+
+interface Props {
+  class?: string;
+  label?: string;
+  loadingLabel?: string;
+  variant?: "primary" | "secondary";
+  animated?: boolean;
+}
+
+const {
+  class: className = "",
+  label = "Скачать для Windows",
+  loadingLabel = "Пожалуйста, подождите",
+  variant = "primary",
+  animated = true,
+} = Astro.props;
+---
+
+<a
+  class:list={[
+    "btn",
+    variant === "primary" ? "btn-primary" : "btn-secondary",
+    animated && variant === "primary" && "btn-download",
+    className,
+  ]}
+  href={brand.windowsInstallerUrl ?? brand.installerUrl}
+  download={brand.windowsInstallerFileName}
+  data-download-installer
+  data-idle-label={label}
+  data-loading-label={loadingLabel}
+>
+  <svg class="btn-icon windows-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 5.2 10.6 4v7.2H3V5.2Zm8.6-1.35L21 2.5v8.7h-9.4V3.85ZM3 12.8h7.6V20L3 18.8v-6Zm8.6 0H21v8.7l-9.4-1.35V12.8Z" />
+  </svg>
+  <span data-download-label>{label}</span>
+</a>

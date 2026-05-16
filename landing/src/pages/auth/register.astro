@@ -1,0 +1,171 @@
+---
+import AuthLayout from "@/layouts/AuthLayout.astro";
+import { brand } from "@/data/site";
+---
+
+<AuthLayout title="Регистрация | offerGO" description="Регистрация в offerGO">
+  <section class="auth-panel">
+    <div class="auth-panel-copy">
+      <p class="auth-panel-kicker">Регистрация</p>
+      <h2>Создать аккаунт</h2>
+      <p>После регистрации можно сразу подтвердить вход в приложении.</p>
+    </div>
+
+    <form id="register-form" class="auth-form">
+      <label class="auth-field">
+        <span>Имя</span>
+        <input id="displayName" name="displayName" type="text" autocomplete="name" required minlength="2" />
+      </label>
+
+      <label class="auth-field">
+        <span>Email</span>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+      </label>
+
+      <label class="auth-field">
+        <span>Пароль</span>
+        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="6" />
+      </label>
+
+      <label class="auth-field">
+        <span>Повторите пароль</span>
+        <input id="passwordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" required minlength="6" />
+      </label>
+
+      <button class="btn btn-primary auth-submit" type="submit">Создать аккаунт</button>
+    </form>
+
+    <p id="auth-feedback" class="auth-feedback" aria-live="polite"></p>
+
+    <div class="auth-links">
+      <a href="/auth/login">Уже есть аккаунт</a>
+      <a href="/">На главную</a>
+    </div>
+  </section>
+</AuthLayout>
+
+<script define:vars={{ apiBaseUrl: brand.apiBaseUrl }} is:inline>
+  const form = document.getElementById("register-form");
+  const feedback = document.getElementById("auth-feedback");
+  const params = new URLSearchParams(window.location.search);
+  const returnTo = params.get("returnTo") || "/account";
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    feedback.textContent = "Создаём аккаунт...";
+
+    const formData = new FormData(form);
+    const payload = {
+      displayName: String(formData.get("displayName") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      password: String(formData.get("password") || ""),
+      passwordConfirm: String(formData.get("passwordConfirm") || ""),
+    };
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/register`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        feedback.textContent = data?.message || data?.error || "Не удалось создать аккаунт.";
+        return;
+      }
+
+      window.location.href = returnTo;
+    } catch (error) {
+      feedback.textContent = error instanceof Error ? error.message : "Не удалось подключиться к серверу.";
+    }
+  });
+</script>
+
+<style>
+  .auth-panel {
+    display: grid;
+    gap: 12px;
+  }
+
+  .auth-panel-copy {
+    display: grid;
+    gap: 6px;
+  }
+
+  .auth-panel-kicker {
+    margin: 0;
+    color: var(--accent-2);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .auth-panel h2 {
+    margin: 0;
+    font-size: 1.55rem;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-weight: 600;
+  }
+
+  .auth-panel-copy p:last-child,
+  .auth-feedback {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.4;
+    font-size: 0.9rem;
+  }
+
+  .auth-form {
+    display: grid;
+    gap: 9px;
+  }
+
+  .auth-field {
+    display: grid;
+    gap: 5px;
+  }
+
+  .auth-field span {
+    font-size: 0.86rem;
+    color: var(--soft);
+  }
+
+  .auth-field input {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    padding: 0 12px;
+    outline: none;
+  }
+
+  .auth-field input:focus {
+    border-color: var(--accent);
+  }
+
+  .auth-submit {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 2px;
+  }
+
+  .auth-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .auth-links a {
+    color: var(--soft);
+    font-size: 0.88rem;
+  }
+</style>

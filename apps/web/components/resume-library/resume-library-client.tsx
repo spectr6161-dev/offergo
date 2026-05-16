@@ -2114,7 +2114,7 @@ export function ResumeLibraryClient() {
                 </ToggleGroup>
                 <div className="hidden flex-1 sm:block" />
                 <Button
-                  className="hidden h-8 gap-1 px-2 text-sm sm:inline-flex"
+                  className="h-8 gap-1 px-2 text-sm"
                   disabled={isUploading}
                   size="sm"
                   variant="outline"
@@ -2123,9 +2123,10 @@ export function ResumeLibraryClient() {
                   {isUploading ? (
                     <Loader2Icon className="animate-spin" data-icon="inline-start" />
                   ) : (
-                    <PlusIcon data-icon="inline-start" />
+                    <UploadIcon data-icon="inline-start" />
                   )}
-                  Загрузить резюме
+                  <span className="sm:hidden">Загрузить</span>
+                  <span className="hidden sm:inline">Загрузить резюме</span>
                 </Button>
               </div>
             </div>
@@ -2228,21 +2229,6 @@ export function ResumeLibraryClient() {
             </div>
           </div>
         ) : null}
-        <Button
-          aria-label="Добавить резюме"
-          className="fixed bottom-6 right-6 z-30 size-14 rounded-full shadow-xl sm:hidden"
-          data-library-control
-          disabled={isUploading}
-          size="icon"
-          onClick={openUploadPicker}
-        >
-          {isUploading ? (
-            <Loader2Icon className="animate-spin" />
-          ) : (
-            <PlusIcon />
-          )}
-          <span className="sr-only">Добавить резюме</span>
-        </Button>
       </div>
 
       <AlertDialog

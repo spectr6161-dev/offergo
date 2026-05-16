@@ -1,0 +1,124 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import DownloadButton from "@/components/DownloadButton.astro";
+import { brand } from "@/data/site";
+---
+
+<BaseLayout title="Скачать Windows - offerGO" description="Скачайте setup-файл Windows-клиента offerGO.">
+  <section class="download-hero">
+    <div class="container download-grid">
+      <div>
+        <p class="eyebrow">Windows setup</p>
+        <h1>Скачайте установщик Windows</h1>
+        <p>
+          Нажмите кнопку ниже: сайт подготовит загрузку setup-файла, после установки приложение появится в системе как
+          обычная программа Windows.
+        </p>
+        <div class="download-actions">
+          <DownloadButton class="download-primary" />
+          <a class="btn btn-secondary" href={brand.telegramUrl}>Telegram-канал</a>
+        </div>
+        <p class="download-note">Если загрузка не началась автоматически, используйте прямую ссылку ниже.</p>
+        <a class="download-link" href={brand.windowsInstallerUrl} download={brand.windowsInstallerFileName}>Скачать setup напрямую</a>
+      </div>
+      <aside class="download-panel glass">
+        <h2>Как установить</h2>
+        <ol>
+          <li>Скачайте setup-файл.</li>
+          <li>Запустите установщик и завершите стандартные шаги установки.</li>
+          <li>Откройте приложение из меню «Пуск» или с рабочего стола.</li>
+          <li>Авторизуйтесь через браузер и переходите к работе.</li>
+        </ol>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .download-hero {
+    min-height: calc(100svh - var(--header));
+    padding: calc(var(--header) + 88px) 0 90px;
+  }
+
+  .download-grid {
+    display: grid;
+    grid-template-columns: 1fr 0.72fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  h1 {
+    max-width: 780px;
+    margin: 12px 0 20px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(3.2rem, 8vw, 7rem);
+    line-height: 0.88;
+    letter-spacing: -0.08em;
+  }
+
+  p {
+    max-width: 680px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.12rem;
+    line-height: 1.75;
+  }
+
+  .download-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+
+  .download-note {
+    margin-top: 18px;
+    font-size: 0.98rem;
+  }
+
+  .download-link {
+    display: inline-flex;
+    margin-top: 8px;
+    color: var(--soft);
+    text-decoration: underline;
+    text-decoration-color: rgba(216, 230, 248, 0.28);
+    text-underline-offset: 4px;
+  }
+
+  .download-link:hover {
+    color: var(--text);
+    text-decoration-color: var(--line-strong);
+  }
+
+  .download-panel {
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .download-panel h2 {
+    margin: 0 0 18px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 2rem;
+  }
+
+  .download-panel ol {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding-left: 22px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 900px) {
+    .download-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .download-actions .btn {
+      width: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,463 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  QuestionDetailResponse,
+  QuestionListItem,
+  fetchQuestionBankJson,
+  getQuestionCategoryLabel,
+} from "@/lib/question-bank";
+
+const slug = Astro.params.slug?.trim() ?? "";
+let question: QuestionDetailResponse | null = null;
+let relatedQuestions: QuestionListItem[] = [];
+let loadError = "";
+
+if (slug) {
+  try {
+    question = await fetchQuestionBankJson<QuestionDetailResponse>(`/question-bank/questions/${encodeURIComponent(slug)}`);
+    relatedQuestions = await fetchQuestionBankJson<QuestionListItem[]>(
+      `/question-bank/questions/${encodeURIComponent(slug)}/similar`,
+    ).catch(() => []);
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Не удалось загрузить вопрос.";
+    Astro.response.status = 404;
+  }
+} else {
+  loadError = "Вопрос не найден.";
+  Astro.response.status = 404;
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("ru-RU").format(value);
+}
+
+function getPrimaryLabel(item: { category: string; technologies: string[] }) {
+  return item.technologies[0] || getQuestionCategoryLabel(item.category);
+}
+
+const visibleTechnologies = question?.technologies.slice(0, 2) ?? [];
+const hiddenTechnologiesCount = question ? Math.max(question.technologies.length - visibleTechnologies.length, 0) : 0;
+const visibleTags = question?.tags.slice(0, 10) ?? [];
+const hiddenTagsCount = question ? Math.max(question.tags.length - visibleTags.length, 0) : 0;
+---
+
+<BaseLayout
+  title={question ? `${question.title} — Банк вопросов offerGO` : "Вопрос не найден — offerGO"}
+  description={
+    question
+      ? `${question.title}. Подробный разбор вопроса из банка offerGO: стек, компании, встречаемость и готовый ответ.`
+      : "Вопрос не найден в банке вопросов offerGO."
+  }
+>
+  {
+    question ? (
+      <section class="question-detail-page section-tight">
+        <div class="container question-detail-shell">
+          <a class="question-detail-back" href="/questions">← Назад к банку вопросов</a>
+
+          <article class="question-detail-card">
+            <header class="question-detail-header">
+              <h1>{question.title}</h1>
+
+              <div class="question-detail-summary" aria-label="Основная информация о вопросе">
+                {visibleTechnologies.map((item) => <span class="question-detail-chip question-detail-chip--primary">{item}</span>)}
+                {hiddenTechnologiesCount > 0 && <span class="question-detail-chip">+{hiddenTechnologiesCount}</span>}
+                <span class="question-detail-chip question-detail-chip--occurrence">↗ {formatNumber(question.totalOccurrences)} раз встречался</span>
+              </div>
+            </header>
+
+            {
+              question.companies.length > 0 && (
+                <section class="question-detail-meta-block">
+                  <p class="question-detail-meta-label">Встречался в компаниях:</p>
+                  <div class="question-detail-company-list">
+                    {question.companies.map((item) => <span class="question-detail-company-chip">{item}</span>)}
+                  </div>
+                </section>
+              )
+            }
+
+            {
+              visibleTags.length > 0 && (
+                <section class="question-detail-meta-block question-detail-meta-block--tags">
+                  <p class="question-detail-meta-label">Теги:</p>
+                  <div class="question-detail-tag-list">
+                    {visibleTags.map((item) => <span class="question-detail-tag-chip">{item}</span>)}
+                    {hiddenTagsCount > 0 && <span class="question-detail-tag-chip">+{hiddenTagsCount}</span>}
+                  </div>
+                </section>
+              )
+            }
+
+            <div class="question-detail-body">
+              <div class="question-detail-prose" set:html={question.answerHtml}></div>
+            </div>
+          </article>
+
+          {
+            relatedQuestions.length > 0 && (
+              <section class="question-related">
+                <div class="question-related__heading">
+                  <span class="question-related__icon" aria-hidden="true">&lt;/&gt;</span>
+                  <h2>Похожие вопросы</h2>
+                </div>
+
+                <div class="question-related__list">
+                  {relatedQuestions.map((item) => (
+                    <a class="question-related-card" href={`/questions/${item.slug}`}>
+                      <h3>{item.title}</h3>
+                      <div class="question-related-card__meta">
+                        <span class="question-detail-chip question-detail-chip--primary">{getPrimaryLabel(item)}</span>
+                        <span class="question-detail-chip question-detail-chip--occurrence">↗ {formatNumber(item.occurrences)} раз встречался</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            )
+          }
+        </div>
+      </section>
+    ) : (
+      <section class="question-detail-page section-tight">
+        <div class="container question-detail-shell question-detail-shell--missing">
+          <p class="question-detail-missing__eyebrow">404</p>
+          <h1>Вопрос не найден</h1>
+          <p>{loadError || "Проверьте ссылку или вернитесь в каталог вопросов."}</p>
+          <a class="btn btn-primary" href="/questions">Открыть банк вопросов</a>
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .question-detail-page {
+    padding-top: calc(var(--header) + 34px);
+    padding-bottom: 92px;
+  }
+
+  .question-detail-shell {
+    width: min(1200px, calc(100% - 56px));
+  }
+
+  .question-detail-shell--missing {
+    display: flex;
+    min-height: 54vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .question-detail-missing__eyebrow {
+    margin: 0;
+    color: var(--accent-2);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .question-detail-shell--missing h1 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.06em;
+  }
+
+  .question-detail-shell--missing p {
+    max-width: 560px;
+    margin: 0;
+    color: var(--soft);
+    line-height: 1.65;
+  }
+
+  .question-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .question-detail-card,
+  .question-related {
+    border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--line));
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--bg) 88%, var(--panel) 12%);
+  }
+
+  .question-detail-card {
+    padding: 28px 28px 30px;
+  }
+
+  .question-detail-header {
+    display: grid;
+    gap: 16px;
+  }
+
+  .question-detail-header h1 {
+    max-width: 1080px;
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.72rem, 3vw, 2.65rem);
+    line-height: 1.12;
+    letter-spacing: -0.05em;
+    font-weight: 600;
+  }
+
+  .question-detail-summary,
+  .question-detail-company-list,
+  .question-detail-tag-list,
+  .question-related-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .question-detail-chip,
+  .question-detail-company-chip,
+  .question-detail-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .question-detail-chip {
+    border: 1px solid var(--line);
+    color: var(--soft);
+  }
+
+  .question-detail-chip--primary {
+    border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--text);
+  }
+
+  .question-detail-chip--occurrence {
+    border-color: color-mix(in srgb, var(--accent) 54%, var(--line));
+    color: var(--accent-2);
+  }
+
+  .question-detail-meta-block {
+    display: grid;
+    gap: 14px;
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  .question-detail-meta-block--tags {
+    margin-top: 18px;
+    padding-top: 18px;
+  }
+
+  .question-detail-meta-label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .question-detail-company-chip,
+  .question-detail-tag-chip {
+    border: 1px solid var(--line);
+    color: var(--soft);
+  }
+
+  .question-detail-company-chip {
+    background: color-mix(in srgb, var(--panel) 74%, transparent);
+  }
+
+  .question-detail-tag-chip {
+    min-height: 30px;
+    padding: 0 11px;
+    font-size: 0.8rem;
+  }
+
+  .question-detail-body {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  .question-detail-prose {
+    color: var(--text);
+    font-size: clamp(1rem, 1.05vw, 1.06rem);
+    line-height: 1.78;
+  }
+
+  .question-detail-prose > *:first-child {
+    margin-top: 0;
+  }
+
+  .question-detail-prose p {
+    margin: 0 0 1.04em;
+  }
+
+  .question-detail-prose h2,
+  .question-detail-prose h3 {
+    margin: 1.7em 0 0.7em;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    line-height: 1.18;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+
+  .question-detail-prose h2 {
+    font-size: 1.42rem;
+  }
+
+  .question-detail-prose h3 {
+    font-size: 1.16rem;
+  }
+
+  .question-detail-prose ul,
+  .question-detail-prose ol {
+    margin: 0.95em 0 1.1em;
+    padding-left: 1.45em;
+  }
+
+  .question-detail-prose li {
+    margin-bottom: 0.42em;
+  }
+
+  .question-detail-prose strong {
+    font-weight: 700;
+  }
+
+  .question-detail-prose code {
+    border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    padding: 2px 7px;
+    color: var(--accent-2);
+    font-family: "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.9em;
+  }
+
+  .question-detail-prose pre {
+    position: relative;
+    margin: 1.25em 0 1.55em;
+    overflow-x: auto;
+    border: 1px solid rgba(96, 165, 250, 0.22);
+    border-radius: 16px;
+    background: #0b1120;
+    padding: 18px 20px 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .question-detail-prose pre::before {
+    content: "</> code";
+    display: block;
+    margin-bottom: 12px;
+    color: rgba(191, 219, 254, 0.72);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .question-detail-prose pre code {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #e5eefc;
+    font-family: "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.92rem;
+    line-height: 1.72;
+    white-space: pre;
+  }
+
+  .question-detail-prose blockquote {
+    margin: 1.2em 0;
+    padding: 0 0 0 16px;
+    border-left: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    color: var(--soft);
+  }
+
+  .question-related {
+    display: grid;
+    gap: 16px;
+    margin-top: 22px;
+    padding: 22px 22px 18px;
+  }
+
+  .question-related__heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .question-related__heading h2 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+
+  .question-related__icon {
+    color: var(--accent-2);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .question-related__list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .question-related-card {
+    display: grid;
+    gap: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg) 88%, var(--panel) 12%);
+    transition:
+      border-color 180ms var(--ease),
+      transform 180ms var(--ease);
+  }
+
+  .question-related-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 36%, var(--line));
+    transform: translateY(-1px);
+  }
+
+  .question-related-card h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.04rem;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+
+  @media (max-width: 720px) {
+    .question-detail-shell {
+      width: min(1200px, calc(100% - 36px));
+    }
+
+    .question-detail-card,
+    .question-related {
+      padding-inline: 18px;
+    }
+
+    .question-detail-header h1 {
+      font-size: clamp(1.52rem, 8vw, 2rem);
+    }
+
+    .question-related__heading h2 {
+      font-size: 1.36rem;
+    }
+  }
+</style>

@@ -1,0 +1,95 @@
+﻿---
+import { brand, navigation } from "@/data/site";
+import BrandWordmark from "@/components/BrandWordmark.astro";
+---
+
+<footer class="footer">
+  <div class="container footer-grid">
+    <div>
+      <BrandWordmark size="md" href="/promo" class="footer-brand" />
+      <p>РђСЃСЃРёСЃС‚РµРЅС‚ РІ РїРѕРёСЃРєРµ СЂР°Р±РѕС‚С‹</p>
+    </div>
+    <div>
+      <h2>РќР°РІРёРіР°С†РёСЏ</h2>
+      {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+    </div>
+    <div>
+      <h2>Р”РѕРєСѓРјРµРЅС‚С‹</h2>
+      <a href="/promo/privacy">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
+      <a href="/promo/terms">РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРµ СЃРѕРіР»Р°С€РµРЅРёРµ</a>
+      <a href="/promo/contacts">РљРѕРЅС‚Р°РєС‚С‹</a>
+    </div>
+    <div>
+      <h2>РЎРІСЏР·Р°С‚СЊСЃСЏ</h2>
+      <a href={brand.telegramUrl}>Telegram beta-РґРѕСЃС‚СѓРї</a>
+      <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>В© 2026 offerGO.</span>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--footer-bg);
+    padding: 54px 0 28px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.6fr) repeat(3, 1fr);
+    gap: 34px;
+  }
+
+  .footer-brand {
+    margin-bottom: 14px;
+  }
+
+  .footer p {
+    max-width: 360px;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .footer h2 {
+    margin: 0 0 12px;
+    color: var(--soft);
+    font-size: 0.82rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .footer a:not(.footer-brand) {
+    display: block;
+    margin: 9px 0;
+    color: var(--muted);
+    transition: color 180ms var(--ease);
+  }
+
+  .footer a:hover {
+    color: var(--accent);
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 42px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 820px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+    }
+  }
+</style>
+
