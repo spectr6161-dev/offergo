@@ -4,112 +4,15 @@ import { seoClusterPages } from "@/data/seo-clusters";
 const featured = seoClusterPages.slice(0, 7);
 ---
 
-<section class="section seo-hub" aria-labelledby="seo-hub-title">
-  <div class="container seo-hub__grid">
-    <div class="seo-hub__copy reveal">
-      <p class="eyebrow">SEO hub</p>
-      <h2 id="seo-hub-title" class="section-title">Подготовка к IT-собеседованию, вакансии и резюме в одной системе</h2>
-      <p class="section-lead">
-        Начните с нужного сценария: помощник для собеседования, техническое интервью, поиск работы в IT, React, Flutter, Backend или проверка резюме.
-      </p>
-    </div>
-
-    <div class="seo-hub__links" aria-label="Разделы подготовки">
-      {featured.map((page) => (
-        <a class="seo-hub__item reveal" href={page.path}>
-          <span>{page.eyebrow}</span>
-          <strong>{page.h1}</strong>
-          <small>{page.primaryKeywords.slice(0, 3).join(" · ")}</small>
+<nav class="seo-hub sr-only" aria-label="SEO-разделы подготовки к собеседованию и поиску работы">
+  <h2>Подготовка к IT-собеседованию, вакансии и резюме</h2>
+  <ul>
+    {featured.map((page) => (
+      <li>
+        <a href={page.path}>
+          {page.h1}: {page.primaryKeywords.join(", ")}
         </a>
-      ))}
-    </div>
-  </div>
-</section>
-
-<style>
-  .seo-hub {
-    padding-top: 64px;
-  }
-
-  .seo-hub__grid {
-    display: grid;
-    grid-template-columns: 0.72fr 1.28fr;
-    gap: 44px;
-    align-items: start;
-  }
-
-  .seo-hub__copy {
-    position: sticky;
-    top: calc(var(--header) + 24px);
-  }
-
-  .seo-hub__links {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .seo-hub__item {
-    display: grid;
-    gap: 12px;
-    min-height: 188px;
-    align-content: start;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--panel);
-    padding: 22px;
-    transition:
-      border-color 180ms var(--ease),
-      transform 180ms var(--ease),
-      background 180ms var(--ease);
-  }
-
-  .seo-hub__item:hover {
-    transform: translateY(-2px);
-    border-color: var(--line-strong);
-    background: var(--panel-strong);
-  }
-
-  .seo-hub__item span {
-    color: var(--accent);
-    font-size: 0.76rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .seo-hub__item strong {
-    color: var(--text);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: clamp(1.35rem, 2vw, 2rem);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.05em;
-  }
-
-  .seo-hub__item small {
-    color: var(--muted);
-    font-size: 0.92rem;
-    line-height: 1.55;
-  }
-
-  @media (max-width: 980px) {
-    .seo-hub__grid {
-      grid-template-columns: 1fr;
-    }
-
-    .seo-hub__copy {
-      position: static;
-    }
-  }
-
-  @media (max-width: 680px) {
-    .seo-hub__links {
-      grid-template-columns: 1fr;
-    }
-
-    .seo-hub__item {
-      min-height: 0;
-    }
-  }
-</style>
+      </li>
+    ))}
+  </ul>
+</nav>
