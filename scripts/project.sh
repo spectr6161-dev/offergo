@@ -104,7 +104,8 @@ case "$command_name" in
     compose up -d postgres redis minio
     sync_database
     mkdir -p landing
-    compose up -d --no-build api web worker landing reverse-proxy
+    compose up -d --no-build api web worker landing
+    compose up -d --no-build --force-recreate reverse-proxy
     compose ps
     ;;
   restart)
