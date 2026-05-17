@@ -36,7 +36,25 @@ require_deploy_images() {
   : "${API_IMAGE:?API_IMAGE is required for deploy-images}"
   : "${WEB_IMAGE:?WEB_IMAGE is required for deploy-images}"
   : "${WORKER_IMAGE:?WORKER_IMAGE is required for deploy-images}"
-  : "${LANDING_IMAGE:?LANDING_IMAGE is required for deploy-images}"
+}
+
+read_ci_image() {
+  key="$1"
+  if [ -f .ci-images.env ]; then
+    grep "^${key}=" .ci-images.env 2>/dev/null | tail -n 1 | cut -d= -f2- || true
+  fi
+}
+
+resolve_landing_image() {
+  if [ -z "${LANDING_IMAGE:-}" ]; then
+    LANDING_IMAGE="$(read_ci_image LANDING_IMAGE)"
+  fi
+  : "${LANDING_IMAGE:?LANDING_IMAGE is required. Run promo CI/CD first or pass LANDING_IMAGE explicitly.}"
+  export LANDING_IMAGE
+}
+
+require_landing_image() {
+  : "${LANDING_IMAGE:?LANDING_IMAGE is required for deploy-landing-image}"
 }
 
 pull_deploy_images() {
@@ -46,6 +64,9 @@ pull_deploy_images() {
   docker pull "${WEB_IMAGE}"
   echo "> docker pull ${WORKER_IMAGE}"
   docker pull "${WORKER_IMAGE}"
+}
+
+pull_landing_image() {
   echo "> docker pull ${LANDING_IMAGE}"
   docker pull "${LANDING_IMAGE}"
 }
@@ -55,6 +76,18 @@ write_deploy_image_env() {
 API_IMAGE=${API_IMAGE}
 WEB_IMAGE=${WEB_IMAGE}
 WORKER_IMAGE=${WORKER_IMAGE}
+LANDING_IMAGE=${LANDING_IMAGE}
+EOF
+}
+
+write_landing_image_env() {
+  api_image="${API_IMAGE:-$(read_ci_image API_IMAGE)}"
+  web_image="${WEB_IMAGE:-$(read_ci_image WEB_IMAGE)}"
+  worker_image="${WORKER_IMAGE:-$(read_ci_image WORKER_IMAGE)}"
+  cat > .ci-images.env <<EOF
+API_IMAGE=${api_image}
+WEB_IMAGE=${web_image}
+WORKER_IMAGE=${worker_image}
 LANDING_IMAGE=${LANDING_IMAGE}
 EOF
 }
@@ -99,6 +132,7 @@ case "$command_name" in
   deploy-images)
     ensure_env_file
     require_deploy_images
+    resolve_landing_image
     write_deploy_image_env
     pull_deploy_images
     compose up -d postgres redis minio
@@ -107,6 +141,16 @@ case "$command_name" in
     compose up -d --no-build api web worker landing
     compose up -d --no-build --force-recreate reverse-proxy
     compose ps
+    ;;
+  deploy-landing-image)
+    ensure_env_file
+    require_landing_image
+    write_landing_image_env
+    pull_landing_image
+    mkdir -p landing
+    compose up -d --no-build landing
+    compose up -d --no-build --force-recreate reverse-proxy
+    compose ps landing reverse-proxy
     ;;
   restart)
     compose up -d --build api web worker
@@ -133,7 +177,7 @@ case "$command_name" in
     ;;
   *)
     echo "Unknown command: $command_name" >&2
-    echo "Usage: scripts/project.sh setup|dev|build|seed|deploy|deploy-images|restart|logs|ps|health|clean|clean-volumes" >&2
+    echo "Usage: scripts/project.sh setup|dev|build|seed|deploy|deploy-images|deploy-landing-image|restart|logs|ps|health|clean|clean-volumes" >&2
     exit 1
     ;;
 esac

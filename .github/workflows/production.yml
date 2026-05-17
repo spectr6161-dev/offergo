@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "landing/**"
+      - ".github/workflows/promo.yml"
   workflow_dispatch:
 
 concurrency:
@@ -20,11 +23,9 @@ env:
   API_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-api:${{ github.sha }}
   WEB_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-web:${{ github.sha }}
   WORKER_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-worker:${{ github.sha }}
-  LANDING_IMAGE_SHA: ghcr.io/spectr6161-dev/offergo-landing:${{ github.sha }}
   API_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-api:latest
   WEB_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-web:latest
   WORKER_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-worker:latest
-  LANDING_IMAGE_LATEST: ghcr.io/spectr6161-dev/offergo-landing:latest
   NEXT_PUBLIC_API_URL: https://offergo.ru
   NEXT_PUBLIC_BETTER_AUTH_URL: https://offergo.ru
   NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ""
@@ -61,10 +62,6 @@ jobs:
 
       - name: Web typecheck
         run: pnpm --filter @offergo/web typecheck
-
-      - name: Landing build
-        working-directory: landing
-        run: npm ci && npm run build
 
   build:
     name: Build and push images
@@ -128,18 +125,6 @@ jobs:
             ${{ env.WORKER_IMAGE_LATEST }}
           cache-from: type=gha,scope=offergo-worker
           cache-to: type=gha,mode=max,scope=offergo-worker
-
-      - name: Build and push Landing image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./landing
-          file: ./landing/Dockerfile
-          push: true
-          tags: |
-            ${{ env.LANDING_IMAGE_SHA }}
-            ${{ env.LANDING_IMAGE_LATEST }}
-          cache-from: type=gha,scope=offergo-landing
-          cache-to: type=gha,mode=max,scope=offergo-landing
 
   build-windows-assistant:
     name: Build Windows assistant
@@ -244,7 +229,7 @@ jobs:
           GHCR_TOKEN_B64="$(printf '%s' "${{ secrets.GITHUB_TOKEN }}" | base64 -w 0)"
           ssh -i ~/.ssh/offergo_deploy_key \
             "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}" \
-            "GHCR_USER='${{ github.actor }}' GHCR_TOKEN_B64='${GHCR_TOKEN_B64}' API_IMAGE='${{ env.API_IMAGE_SHA }}' WEB_IMAGE='${{ env.WEB_IMAGE_SHA }}' WORKER_IMAGE='${{ env.WORKER_IMAGE_SHA }}' LANDING_IMAGE='${{ env.LANDING_IMAGE_SHA }}' BUNDLE_PATH='/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz' DOWNLOADS_BUNDLE_PATH='/tmp/offergo-downloads-${{ github.sha }}.tgz' bash -s" <<'REMOTE'
+            "GHCR_USER='${{ github.actor }}' GHCR_TOKEN_B64='${GHCR_TOKEN_B64}' API_IMAGE='${{ env.API_IMAGE_SHA }}' WEB_IMAGE='${{ env.WEB_IMAGE_SHA }}' WORKER_IMAGE='${{ env.WORKER_IMAGE_SHA }}' BUNDLE_PATH='/tmp/offergo-deploy-bundle-${{ github.sha }}.tgz' DOWNLOADS_BUNDLE_PATH='/tmp/offergo-downloads-${{ github.sha }}.tgz' bash -s" <<'REMOTE'
           set -euo pipefail
 
           mkdir -p "$HOME/offergo"
@@ -258,7 +243,7 @@ jobs:
           GHCR_TOKEN="$(printf '%s' "$GHCR_TOKEN_B64" | base64 -d)"
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-          export API_IMAGE WEB_IMAGE WORKER_IMAGE LANDING_IMAGE
+          export API_IMAGE WEB_IMAGE WORKER_IMAGE
           sh scripts/project.sh deploy-images
           sh scripts/project.sh health
           docker image prune -f --filter "until=168h" || true
@@ -269,6 +254,5 @@ jobs:
           set -euo pipefail
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/v1/health
           curl --fail --show-error --location --max-time 30 https://offergo.ru > /tmp/offergo-home.html
-          curl --fail --show-error --location --max-time 30 https://offergo.ru/promo > /tmp/offergo-promo.html
           curl --fail --show-error --location --max-time 30 https://offergo.ru/api/docs > /tmp/offergo-docs.html
           curl --fail --show-error --head --location --max-time 30 https://offergo.ru/downloads/offergo-interview-assistant.zip
