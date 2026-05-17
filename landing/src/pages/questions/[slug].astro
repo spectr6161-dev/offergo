@@ -48,12 +48,13 @@ const hiddenTagsCount = question ? Math.max(question.tags.length - visibleTags.l
       ? `${question.title}. Подробный разбор вопроса из банка offerGO: стек, компании, встречаемость и готовый ответ.`
       : "Вопрос не найден в банке вопросов offerGO."
   }
+  canonicalPath={question ? `/promo/questions/${question.slug}` : "/promo/questions"}
 >
   {
     question ? (
       <section class="question-detail-page section-tight">
         <div class="container question-detail-shell">
-          <a class="question-detail-back" href="/questions">← Назад к банку вопросов</a>
+          <a class="question-detail-back" href="/promo/questions">← Назад к банку вопросов</a>
 
           <article class="question-detail-card">
             <header class="question-detail-header">
@@ -104,7 +105,7 @@ const hiddenTagsCount = question ? Math.max(question.tags.length - visibleTags.l
 
                 <div class="question-related__list">
                   {relatedQuestions.map((item) => (
-                    <a class="question-related-card" href={`/questions/${item.slug}`}>
+                    <a class="question-related-card" href={`/promo/questions/${item.slug}`}>
                       <h3>{item.title}</h3>
                       <div class="question-related-card__meta">
                         <span class="question-detail-chip question-detail-chip--primary">{getPrimaryLabel(item)}</span>
@@ -124,7 +125,7 @@ const hiddenTagsCount = question ? Math.max(question.tags.length - visibleTags.l
           <p class="question-detail-missing__eyebrow">404</p>
           <h1>Вопрос не найден</h1>
           <p>{loadError || "Проверьте ссылку или вернитесь в каталог вопросов."}</p>
-          <a class="btn btn-primary" href="/questions">Открыть банк вопросов</a>
+          <a class="btn btn-primary" href="/promo/questions">Открыть банк вопросов</a>
         </div>
       </section>
     )

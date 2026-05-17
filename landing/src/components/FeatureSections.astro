@@ -7,7 +7,7 @@ import { capabilities } from "@/data/site";
   <div class="container">
     <div class="capabilities-head reveal">
       <h2 id="features-title">Что умеет ассистент?</h2>
-      <p>offerGO слушает, анализирует, подсказывает и остаётся незаметным прямо во время звонка.</p>
+      <p>offerGO слушает, анализирует, подсказывает и помогает быстрее пройти путь от подготовки к IT-собеседованию до отклика на вакансию.</p>
     </div>
 
     <div class="stepper">
@@ -24,134 +24,43 @@ import { capabilities } from "@/data/site";
               <span class="stepper-node">{item.step}</span>
             </div>
 
-            <div
-              class:list={[
-                "stepper-visual",
-                item.visualType === "capture-shield" && "stepper-visual--capture",
-                item.visualType === "speed-pipeline" && "stepper-visual--speed",
-              ]}
-              aria-hidden="true"
-            >
+            <div class="stepper-visual" aria-hidden="true">
               {item.visualType === "capture-shield" && (
-                <img
-                  src="/promo/illustrations/step-1.png"
-                  alt=""
-                  loading="lazy"
-                  class="stepper-visual-image stepper-visual-image--capture"
-                />
+                <img src="/promo/illustrations/step-1.png" alt="" loading="lazy" class="stepper-visual-image" />
               )}
 
               {item.visualType === "dual-audio" && (
-                <div class="visual-signal">
-                  <div class="signal-track">
-                    <span class="signal-label">Вы</span>
-                    <div class="signal-lane">
-                      <span class="signal-baseline"></span>
-                      <div class="signal-marquee signal-marquee--primary">
-                        <svg class="signal-svg" viewBox="0 0 320 48" preserveAspectRatio="none" aria-hidden="true">
-                          <path d="M0 24 C12 24 16 12 28 12 S40 36 52 36 S64 24 76 24 S88 8 100 8 S112 40 124 40 S136 24 148 24 S160 14 172 14 S184 34 196 34 S208 24 220 24 S232 6 244 6 S256 42 268 42 S280 24 292 24 S304 18 320 18" />
-                        </svg>
-                        <svg class="signal-svg" viewBox="0 0 320 48" preserveAspectRatio="none" aria-hidden="true">
-                          <path d="M0 24 C12 24 16 12 28 12 S40 36 52 36 S64 24 76 24 S88 8 100 8 S112 40 124 40 S136 24 148 24 S160 14 172 14 S184 34 196 34 S208 24 220 24 S232 6 244 6 S256 42 268 42 S280 24 292 24 S304 18 320 18" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="signal-divider">
-                    <span class="signal-divider-line"></span>
-                    <span class="signal-divider-dot"></span>
-                    <span class="signal-divider-line"></span>
-                  </div>
-
-                  <div class="signal-track signal-track--secondary">
-                    <span class="signal-label">Собеседник</span>
-                    <div class="signal-lane">
-                      <span class="signal-baseline"></span>
-                      <div class="signal-marquee signal-marquee--secondary">
-                        <svg class="signal-svg" viewBox="0 0 320 48" preserveAspectRatio="none" aria-hidden="true">
-                          <path d="M0 24 C10 24 18 18 28 18 S40 30 52 30 S66 6 78 6 S92 40 106 40 S120 24 132 24 S146 12 158 12 S172 34 186 34 S198 24 212 24 S226 10 238 10 S252 38 266 38 S284 24 320 24" />
-                        </svg>
-                        <svg class="signal-svg" viewBox="0 0 320 48" preserveAspectRatio="none" aria-hidden="true">
-                          <path d="M0 24 C10 24 18 18 28 18 S40 30 52 30 S66 6 78 6 S92 40 106 40 S120 24 132 24 S146 12 158 12 S172 34 186 34 S198 24 212 24 S226 10 238 10 S252 38 266 38 S284 24 320 24" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
+                <div class="visual-panel visual-panel--signal">
+                  <span>Вы</span>
+                  <strong>Вопрос распознан</strong>
+                  <div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                  <span>Собеседник</span>
                 </div>
               )}
 
               {item.visualType === "speed-pipeline" && (
-                <div class="visual-speed">
-                  <div class="speed-stage" aria-hidden="true">
-                    <div class="speed-scene speed-scene--question">
-                      <span class="speed-role">Вопрос</span>
-                      <p>Насколько быстро ты отвечаешь?</p>
-                    </div>
-
-                    <div class="speed-scene speed-scene--thinking">
-                      <span class="speed-role">offerGO</span>
-                      <div class="speed-thinking">
-                        <span class="speed-thinking-text">Думаю...</span>
-                        <span class="speed-thinking-bar">
-                          <i></i>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="speed-scene speed-scene--answer">
-                      <span class="speed-role">Ответ</span>
-                      <p class="speed-answer">
-                        <span>Ответ максимально быстрый, до 1 секунды.</span>
-                      </p>
-                    </div>
-                  </div>
+                <div class="visual-panel">
+                  <span>Вопрос</span>
+                  <strong>Как быстро ты отвечаешь?</strong>
+                  <em>Ответ готов за секунды</em>
                 </div>
               )}
 
               {item.visualType === "screenshot-flow" && (
-                <div class="visual-shot">
-                  <div class="shot-stage" aria-hidden="true">
-                    <div class="shot-scene shot-scene--capture">
-                      <span class="visual-label">Скриншот</span>
-                      <div class="shot-desktop">
-                        <div class="shot-code">
-                          <span class="shot-code-line shot-code-line--wide"></span>
-                          <span class="shot-code-line shot-code-line--mid"></span>
-                          <span class="shot-code-line shot-code-line--short"></span>
-                          <span class="shot-code-line shot-code-line--wide"></span>
-                          <span class="shot-code-line shot-code-line--mid"></span>
-                          <span class="shot-code-line shot-code-line--short"></span>
-                        </div>
-                        <span class="shot-selection"></span>
-                        <span class="shot-scan"></span>
-                      </div>
-                    </div>
-
-                    <div class="shot-scene shot-scene--result">
-                      <span class="visual-label">Результат</span>
-                      <p class="shot-result">
-                        <span>Я вижу тут код программы на C++.</span>
-                      </p>
-                    </div>
-                  </div>
+                <div class="visual-panel">
+                  <span>Скриншот</span>
+                  <strong>Код, лог или задача на экране</strong>
+                  <em>Результат возвращается в помощник</em>
                 </div>
               )}
 
               {item.visualType === "price-compare" && (
-                <div class="visual-price">
-                  <div class="price-side">
-                    <span class="visual-label">Остальные сервисы</span>
-                    <strong>2–3 тыс. ₽</strong>
-                  </div>
-
-                  <div class="price-axis"></div>
-
-                  <div class="price-side price-side--offer">
-                    <span class="visual-label">offerGO</span>
-                    <strong>1 000 ₽</strong>
-                    <em>в месяц, без ограничений</em>
-                  </div>
+                <div class="visual-panel visual-panel--price">
+                  <span>Другие сервисы</span>
+                  <strong>2-3 тыс. ₽</strong>
+                  <span>offerGO</span>
+                  <strong>1 000 ₽</strong>
+                  <em>в месяц, без ограничений на ключевой сценарий</em>
                 </div>
               )}
             </div>
@@ -240,15 +149,7 @@ import { capabilities } from "@/data/site";
   .stepper-visual {
     grid-area: visual;
     justify-self: stretch;
-    max-width: 420px;
-  }
-
-  .stepper-visual--capture {
-    max-width: 484px;
-  }
-
-  .stepper-visual--speed {
-    max-width: 520px;
+    max-width: 460px;
   }
 
   .stepper-visual-image {
@@ -256,11 +157,6 @@ import { capabilities } from "@/data/site";
     width: 100%;
     height: auto;
     object-fit: contain;
-  }
-
-  .stepper-visual-image--capture {
-    width: 100%;
-    margin-left: auto;
   }
 
   .stepper-rail {
@@ -309,6 +205,61 @@ import { capabilities } from "@/data/site";
     line-height: 1.8;
   }
 
+  .visual-panel {
+    display: grid;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    padding: 22px;
+  }
+
+  .visual-panel span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .visual-panel strong {
+    color: var(--text);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.35rem, 2.2vw, 2.2rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .visual-panel em {
+    color: var(--soft);
+    font-style: normal;
+    line-height: 1.55;
+  }
+
+  .wave {
+    display: flex;
+    align-items: end;
+    gap: 8px;
+    min-height: 62px;
+  }
+
+  .wave i {
+    flex: 1;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--accent), rgba(96, 165, 250, 0.12));
+  }
+
+  .wave i:nth-child(1) { height: 28%; }
+  .wave i:nth-child(2) { height: 72%; }
+  .wave i:nth-child(3) { height: 44%; }
+  .wave i:nth-child(4) { height: 88%; }
+  .wave i:nth-child(5) { height: 54%; }
+  .wave i:nth-child(6) { height: 68%; }
+
+  .visual-panel--price strong:nth-of-type(2) {
+    color: var(--accent);
+  }
+
   .stepper-download {
     min-width: 236px;
     min-height: 44px;
@@ -330,646 +281,6 @@ import { capabilities } from "@/data/site";
     display: none;
     justify-content: center;
     margin-top: 34px;
-  }
-
-  .visual-label {
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-
-  .visual-capture,
-  .visual-audio,
-  .visual-wave,
-  .visual-speed,
-  .visual-shot,
-  .visual-price {
-    display: grid;
-    gap: 20px;
-  }
-
-  .capture-stage,
-  .shot-source,
-  .shot-answer,
-  .price-side {
-    display: grid;
-    gap: 10px;
-  }
-
-  .capture-layers,
-  .capture-result {
-    display: grid;
-    gap: 12px;
-    justify-items: start;
-  }
-
-  .capture-layers span,
-  .capture-result span,
-  .capture-result strong {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 6px;
-  }
-
-  .capture-layers span::after,
-  .capture-result span::after,
-  .capture-result strong::after,
-  .shot-answer strong::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: rgba(96, 165, 250, 0.28);
-  }
-
-  .capture-layers i,
-  .capture-flow span,
-  .shot-flow span {
-    display: block;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.5), transparent);
-  }
-
-  .capture-flow,
-  .shot-flow,
-  .audio-analysis,
-  .speed-line {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .capture-flow em,
-  .shot-flow em,
-  .price-side em {
-    color: var(--soft);
-    font-style: normal;
-    font-size: 0.86rem;
-    font-weight: 600;
-  }
-
-  .audio-channel {
-    display: grid;
-    gap: 10px;
-  }
-
-  .audio-wave {
-    display: flex;
-    align-items: end;
-    gap: 6px;
-    min-height: 56px;
-  }
-
-  .audio-wave i {
-    flex: 1;
-    border-radius: 999px;
-    background: linear-gradient(180deg, var(--accent), rgba(96, 165, 250, 0.12));
-  }
-
-  .audio-channel--secondary .audio-wave i {
-    background: linear-gradient(180deg, var(--soft), rgba(216, 230, 248, 0.12));
-  }
-
-  .audio-wave i:nth-child(1) { height: 28%; }
-  .audio-wave i:nth-child(2) { height: 72%; }
-  .audio-wave i:nth-child(3) { height: 44%; }
-  .audio-wave i:nth-child(4) { height: 88%; }
-  .audio-wave i:nth-child(5) { height: 54%; }
-  .audio-wave i:nth-child(6) { height: 68%; }
-  .audio-wave i:nth-child(7) { height: 38%; }
-  .audio-wave i:nth-child(8) { height: 62%; }
-
-  .audio-analysis span,
-  .price-axis {
-    flex: 1;
-    height: 1px;
-    background: rgba(96, 165, 250, 0.28);
-  }
-
-  .audio-analysis strong {
-    color: var(--soft);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-  }
-
-  .audio-found,
-  .speed-time {
-    color: var(--accent);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: clamp(1.35rem, 2vw, 2rem);
-    font-weight: 600;
-    letter-spacing: -0.05em;
-  }
-
-  .visual-signal {
-    gap: 16px;
-  }
-
-  .signal-track {
-    display: grid;
-    gap: 10px;
-  }
-
-  .signal-label {
-    color: var(--soft);
-    font-size: 0.84rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-
-  .signal-lane {
-    position: relative;
-    overflow: hidden;
-    min-height: 54px;
-  }
-
-  .signal-baseline {
-    position: absolute;
-    inset: 50% 0 auto;
-    width: 100%;
-    height: 1px;
-    background: rgba(96, 165, 250, 0.2);
-    transform: translateY(-50%);
-  }
-
-  .signal-marquee {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(100%, 1fr));
-    width: 200%;
-    animation: scrollSignal 5.2s linear infinite;
-  }
-
-  .signal-marquee--secondary {
-    animation-direction: reverse;
-    animation-duration: 6.2s;
-  }
-
-  .signal-svg {
-    display: block;
-    width: 100%;
-    height: 54px;
-  }
-
-  .signal-svg path {
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2.5;
-  }
-
-  .signal-marquee--primary .signal-svg path {
-    stroke: var(--accent);
-  }
-
-  .signal-marquee--secondary .signal-svg path {
-    stroke: var(--soft);
-  }
-
-  .signal-divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .signal-divider-line {
-    flex: 1;
-    height: 1px;
-    background: rgba(96, 165, 250, 0.28);
-  }
-
-  .signal-divider-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
-    background: var(--accent);
-    animation: signalPulse 2.2s ease-in-out infinite;
-  }
-
-  .visual-speed {
-    min-height: 152px;
-    align-content: center;
-  }
-
-  .speed-stage {
-    position: relative;
-    min-height: 152px;
-  }
-
-  .speed-scene {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    gap: 8px;
-    opacity: 0;
-    align-content: center;
-    transform: translateY(8px);
-  }
-
-  .speed-scene--question {
-    animation: speedSceneQuestion 10.2s ease-in-out infinite;
-  }
-
-  .speed-scene--thinking {
-    animation: speedSceneThinking 10.2s linear infinite;
-  }
-
-  .speed-scene--answer {
-    animation: speedSceneAnswer 10.2s linear infinite;
-  }
-
-  .speed-role {
-    color: var(--muted);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .speed-scene p {
-    margin: 0;
-    color: var(--soft);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: clamp(1.08rem, 1.5vw, 1.42rem);
-    font-weight: 500;
-    line-height: 1.28;
-    letter-spacing: -0.04em;
-  }
-
-  .speed-thinking {
-    display: grid;
-    gap: 16px;
-    width: min(100%, 480px);
-  }
-
-  .speed-thinking-text {
-    color: var(--soft);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: clamp(1.22rem, 1.58vw, 1.46rem);
-    font-weight: 500;
-    letter-spacing: -0.04em;
-  }
-
-  .speed-thinking-bar {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 3px;
-    overflow: hidden;
-    background: rgba(96, 165, 250, 0.18);
-    border-radius: 999px;
-  }
-
-  .speed-thinking-bar i {
-    position: absolute;
-    top: 0;
-    left: -28%;
-    width: 28%;
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
-    animation: speedThinkingSweep 1.25s ease-in-out infinite;
-  }
-
-  .speed-answer {
-    display: inline-block;
-    width: min(100%, 520px);
-  }
-
-  .speed-answer span {
-    display: inline-block;
-    width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    border-right: 1px solid rgba(96, 165, 250, 0.82);
-    animation: speedType 10.2s steps(44, end) infinite;
-  }
-
-  .visual-shot {
-    min-height: 180px;
-  }
-
-  .shot-stage {
-    position: relative;
-    min-height: 180px;
-  }
-
-  .shot-scene {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    gap: 12px;
-    align-content: center;
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  .shot-scene--capture {
-    animation: shotSceneCapture 8.8s ease-in-out infinite;
-  }
-
-  .shot-scene--result {
-    animation: shotSceneResult 8.8s ease-in-out infinite;
-  }
-
-  .shot-desktop {
-    position: relative;
-    width: min(100%, 360px);
-    height: 164px;
-    overflow: hidden;
-  }
-
-  .shot-code {
-    display: grid;
-    gap: 12px;
-    padding-top: 20px;
-  }
-
-  .shot-code-line {
-    display: block;
-    height: 2px;
-    background: rgba(216, 230, 248, 0.88);
-  }
-
-  .shot-code-line--wide {
-    width: 100%;
-  }
-
-  .shot-code-line--mid {
-    width: 74%;
-  }
-
-  .shot-code-line--short {
-    width: 52%;
-  }
-
-  .shot-selection {
-    position: absolute;
-    top: 52px;
-    left: 76px;
-    width: 184px;
-    height: 72px;
-    border: 1.5px solid rgba(96, 165, 250, 0.82);
-    animation: shotSelectionPulse 1.25s ease-in-out infinite;
-  }
-
-  .shot-selection::before,
-  .shot-selection::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border: inherit;
-  }
-
-  .shot-selection::before {
-    clip-path: polygon(0 0, 18px 0, 18px 2px, 2px 2px, 2px 18px, 0 18px, 0 0, 100% 0, 100% 18px, calc(100% - 2px) 18px, calc(100% - 2px) 2px, calc(100% - 18px) 2px, calc(100% - 18px) 0, 100% 0, 100% 100%, calc(100% - 18px) 100%, calc(100% - 18px) calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) calc(100% - 18px), 100% calc(100% - 18px), 100% 100%, 0 100%, 0 calc(100% - 18px), 2px calc(100% - 18px), 2px calc(100% - 2px), 18px calc(100% - 2px), 18px 100%, 0 100%);
-  }
-
-  .shot-scan {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 32%;
-    left: -34%;
-    background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.18) 50%, transparent 100%);
-    animation: shotScanSweep 2.1s ease-in-out infinite;
-  }
-
-  .shot-result {
-    margin: 0;
-    width: min(100%, 420px);
-    color: var(--soft);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: clamp(1.12rem, 1.56vw, 1.5rem);
-    font-weight: 500;
-    line-height: 1.3;
-    letter-spacing: -0.04em;
-  }
-
-  .shot-result span {
-    display: inline-block;
-    width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    border-right: 1px solid rgba(96, 165, 250, 0.82);
-    animation: shotType 8.8s steps(33, end) infinite;
-  }
-
-  .visual-price {
-    grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .price-side strong {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: clamp(1.85rem, 3vw, 3.4rem);
-    font-weight: 600;
-    line-height: 0.95;
-    letter-spacing: -0.06em;
-  }
-
-  .price-side--offer strong {
-    color: var(--accent);
-  }
-
-  @keyframes scrollSignal {
-    from {
-      transform: translateX(0);
-    }
-
-    to {
-      transform: translateX(-50%);
-    }
-  }
-
-  @keyframes signalPulse {
-    0%,
-    100% {
-      transform: scale(0.82);
-      opacity: 0.58;
-    }
-
-    50% {
-      transform: scale(1.18);
-      opacity: 1;
-    }
-  }
-
-  @keyframes speedSceneQuestion {
-    0%,
-    5% {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-
-    12%,
-    34% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    40%,
-    100% {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-  }
-
-  @keyframes speedSceneThinking {
-    0%,
-    38%,
-    100% {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-
-    44%,
-    62% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    68% {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-  }
-
-  @keyframes speedSceneAnswer {
-    0%,
-    66% {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-
-    72%,
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes speedThinkingSweep {
-    0% {
-      left: -28%;
-      opacity: 0.35;
-    }
-
-    50% {
-      opacity: 1;
-    }
-
-    100% {
-      left: 100%;
-      opacity: 0.4;
-    }
-  }
-
-  @keyframes speedType {
-    0%,
-    70% {
-      width: 0;
-      border-right-color: transparent;
-    }
-
-    74% {
-      width: 0;
-      border-right-color: rgba(96, 165, 250, 0.82);
-    }
-
-    94%,
-    100% {
-      width: 44ch;
-      border-right-color: transparent;
-    }
-  }
-
-  @keyframes shotSceneCapture {
-    0%,
-    6% {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    12%,
-    48% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    54%,
-    100% {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-  }
-
-  @keyframes shotSceneResult {
-    0%,
-    52% {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    60%,
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes shotSelectionPulse {
-    0%,
-    100% {
-      opacity: 0.55;
-      transform: scale(0.985);
-    }
-
-    50% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes shotScanSweep {
-    0% {
-      left: -34%;
-      opacity: 0.2;
-    }
-
-    50% {
-      opacity: 1;
-    }
-
-    100% {
-      left: 100%;
-      opacity: 0.3;
-    }
-  }
-
-  @keyframes shotType {
-    0%,
-    62% {
-      width: 0;
-      border-right-color: transparent;
-    }
-
-    68% {
-      width: 0;
-      border-right-color: rgba(96, 165, 250, 0.82);
-    }
-
-    92%,
-    100% {
-      width: 33ch;
-      border-right-color: transparent;
-    }
   }
 
   @media (max-width: 920px) {
@@ -1002,17 +313,6 @@ import { capabilities } from "@/data/site";
     .stepper-mobile-cta {
       display: flex;
     }
-
-    .visual-price {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .price-axis {
-      width: 100%;
-      height: 1px;
-    }
-
   }
 
   @media (max-width: 620px) {
@@ -1036,13 +336,6 @@ import { capabilities } from "@/data/site";
       font-size: clamp(1.55rem, 8vw, 2.1rem);
     }
 
-    .capture-flow,
-    .shot-flow,
-    .audio-analysis,
-    .speed-line {
-      flex-wrap: wrap;
-    }
-
     .stepper-mobile-cta {
       margin-top: 28px;
     }
@@ -1051,60 +344,6 @@ import { capabilities } from "@/data/site";
       width: min(100%, 320px);
       min-width: 0;
       justify-content: center;
-    }
-
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .signal-marquee,
-    .signal-divider-dot,
-    .speed-scene--question,
-    .speed-scene--thinking,
-    .speed-scene--answer,
-    .speed-thinking-bar i,
-    .speed-answer span,
-    .shot-scene--capture,
-    .shot-scene--result,
-    .shot-selection,
-    .shot-scan,
-    .shot-result span {
-      animation: none;
-    }
-
-    .speed-answer span {
-      width: auto;
-      border-right: 0;
-      white-space: normal;
-    }
-
-    .speed-stage {
-      min-height: auto;
-      display: grid;
-      gap: 18px;
-    }
-
-    .speed-scene {
-      position: static;
-      opacity: 1;
-      transform: none;
-    }
-
-    .shot-stage {
-      min-height: auto;
-      display: grid;
-      gap: 20px;
-    }
-
-    .shot-scene {
-      position: static;
-      opacity: 1;
-      transform: none;
-    }
-
-    .shot-result span {
-      width: auto;
-      border-right: 0;
-      white-space: normal;
     }
   }
 </style>

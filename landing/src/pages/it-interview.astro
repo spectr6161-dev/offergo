@@ -1,0 +1,8 @@
+---
+import SeoClusterPage from "@/components/SeoClusterPage.astro";
+import { getSeoClusterPage } from "@/data/seo-clusters";
+
+const page = getSeoClusterPage("it-interview");
+---
+
+<SeoClusterPage page={page} />

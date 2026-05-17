@@ -4,30 +4,34 @@ import DownloadButton from "@/components/DownloadButton.astro";
 import { brand } from "@/data/site";
 ---
 
-<BaseLayout title="Скачать Windows - offerGO" description="Скачайте setup-файл Windows-клиента offerGO.">
+<BaseLayout
+  title="Скачать Windows-помощник - offerGO"
+  description="Скачайте ZIP-файл Windows-помощника offerGO."
+  canonicalPath="/promo/download"
+  robots="noindex, nofollow"
+>
   <section class="download-hero">
     <div class="container download-grid">
       <div>
-        <p class="eyebrow">Windows setup</p>
-        <h1>Скачайте установщик Windows</h1>
+        <p class="eyebrow">Windows</p>
+        <h1>Скачайте помощник для Windows</h1>
         <p>
-          Нажмите кнопку ниже: сайт подготовит загрузку setup-файла, после установки приложение появится в системе как
-          обычная программа Windows.
+          Нажмите кнопку ниже, распакуйте ZIP-архив и запустите приложение. Если браузер предупреждает о редком файле, выберите сохранение, если доверяете offerGO.
         </p>
         <div class="download-actions">
           <DownloadButton class="download-primary" />
-          <a class="btn btn-secondary" href={brand.telegramUrl}>Telegram-канал</a>
+          <a class="btn btn-secondary" href={brand.telegramUrl}>Telegram-поддержка</a>
         </div>
         <p class="download-note">Если загрузка не началась автоматически, используйте прямую ссылку ниже.</p>
-        <a class="download-link" href={brand.windowsInstallerUrl} download={brand.windowsInstallerFileName}>Скачать setup напрямую</a>
+        <a class="download-link" href={brand.windowsInstallerUrl} download={brand.windowsInstallerFileName}>Скачать ZIP напрямую</a>
       </div>
       <aside class="download-panel glass">
         <h2>Как установить</h2>
         <ol>
-          <li>Скачайте setup-файл.</li>
-          <li>Запустите установщик и завершите стандартные шаги установки.</li>
-          <li>Откройте приложение из меню «Пуск» или с рабочего стола.</li>
-          <li>Авторизуйтесь через браузер и переходите к работе.</li>
+          <li>Скачайте ZIP-архив.</li>
+          <li>Распакуйте его в удобную папку.</li>
+          <li>Запустите файл TutorOverlay.Client.exe.</li>
+          <li>Войдите в аккаунт offerGO и выберите режим работы.</li>
         </ol>
       </aside>
     </div>
@@ -83,11 +87,6 @@ import { brand } from "@/data/site";
     text-decoration: underline;
     text-decoration-color: rgba(216, 230, 248, 0.28);
     text-underline-offset: 4px;
-  }
-
-  .download-link:hover {
-    color: var(--text);
-    text-decoration-color: var(--line-strong);
   }
 
   .download-panel {

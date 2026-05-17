@@ -3,14 +3,18 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import FinalCta from "@/components/FinalCta.astro";
 import DownloadButton from "@/components/DownloadButton.astro";
 import { pricing } from "@/data/site";
+import { buildWebPageJsonLd } from "@/lib/seo";
+
+const title = "Тарифы offerGO — помощник для IT-собеседований";
+const description = "Тарифы offerGO для подготовки к IT-собеседованиям, проверки резюме, откликов и Windows-помощника.";
 ---
 
-<BaseLayout title="Цены - offerGO" description="Тарифы и готовый Windows setup для offerGO.">
+<BaseLayout title={title} description={description} canonicalPath="/promo/pricing" jsonLd={buildWebPageJsonLd({ title, description, path: "/promo/pricing" })}>
   <section class="page-hero">
     <div class="container">
       <p class="eyebrow">Pricing</p>
       <h1>Тарифы без лишней сложности</h1>
-      <p>На первом этапе продукт доступен как beta/pilot. Windows-клиент уже можно скачать и установить, а платные тарифы остаются ориентиром на следующий этап.</p>
+      <p>На первом этапе продукт доступен как beta/pilot. Windows-помощник уже можно скачать, а платные тарифы остаются ориентиром для полного доступа.</p>
     </div>
   </section>
   <section class="page-section">
@@ -70,7 +74,7 @@ import { pricing } from "@/data/site";
     flex-direction: column;
     border: 1px solid var(--line);
     border-radius: 8px;
-    background: rgba(8, 14, 10, 0.8);
+    background: var(--panel);
     padding: 28px;
   }
 

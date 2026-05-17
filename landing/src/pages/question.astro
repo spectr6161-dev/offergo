@@ -7,7 +7,7 @@ const legacyId = Astro.url.searchParams.get("id")?.trim();
 if (legacyId) {
   try {
     const response = await fetchQuestionBankJson<{ slug: string }>(`/question-bank/questions/legacy/${encodeURIComponent(legacyId)}`);
-    return Astro.redirect(`/questions/${response.slug}`, 301);
+    return Astro.redirect(`/promo/questions/${response.slug}`, 301);
   } catch {
     Astro.response.status = 404;
   }
@@ -16,13 +16,13 @@ if (legacyId) {
 }
 ---
 
-<BaseLayout title="Вопрос не найден — offerGO" description="Вопрос не найден в банке вопросов offerGO.">
+<BaseLayout title="Вопрос не найден — offerGO" description="Вопрос не найден в банке вопросов offerGO." canonicalPath="/promo/questions" robots="noindex, follow">
   <section class="legacy-question section-tight">
     <div class="container legacy-question__inner">
       <p class="legacy-question__eyebrow">404</p>
       <h1>Вопрос не найден</h1>
       <p>Проверьте ссылку или вернитесь в каталог, чтобы открыть вопрос заново.</p>
-      <a class="btn btn-primary" href="/questions">Открыть банк вопросов</a>
+      <a class="btn btn-primary" href="/promo/questions">Открыть банк вопросов</a>
     </div>
   </section>
 </BaseLayout>

@@ -164,7 +164,7 @@ function buildQuestionsUrl(
   if (next.page > 1) params.set("page", String(next.page));
 
   const query = params.toString();
-  return query ? `/questions?${query}` : "/questions";
+  return query ? `/promo/questions?${query}` : "/promo/questions";
 }
 
 function buildPaginationUrl(page: number) {
@@ -321,10 +321,11 @@ function getVisiblePages(currentPage: number, pageCount: number) {
 <BaseLayout
   title="Банк вопросов для собеседований — offerGO"
   description="Изучайте реальные вопросы, которые задают на собеседованиях в IT-компаниях: поиск, фильтры по позициям, компаниям и тегам, быстрый переход к подробному разбору."
+  canonicalPath="/promo/questions"
 >
   <section class="question-bank-page section-tight">
     <div class="container question-bank-shell">
-      <form class="question-bank-grid" method="get" action="/questions" data-question-bank-form>
+    <form class="question-bank-grid" method="get" action="/promo/questions" data-question-bank-form>
         {current.categories.map((value) => <input type="hidden" name="category" value={value} />)}
 
         <aside class="question-bank-sidebar">
@@ -518,7 +519,7 @@ function getVisiblePages(currentPage: number, pageCount: number) {
 
           {
             hasActiveFilters && (
-              <a class="question-filter-reset" href="/questions">
+                <a class="question-filter-reset" href="/promo/questions">
                 Сбросить фильтры
               </a>
             )
@@ -546,7 +547,7 @@ function getVisiblePages(currentPage: number, pageCount: number) {
                   ))}
                 </div>
 
-                <a class="question-active-filters__reset" href="/questions">Сбросить все</a>
+                <a class="question-active-filters__reset" href="/promo/questions">Сбросить все</a>
               </div>
             )
           }
@@ -586,7 +587,7 @@ function getVisiblePages(currentPage: number, pageCount: number) {
                 <div class="question-card-list">
                   {
                     list?.items.map((item) => (
-                      <a class="question-card" href={`/questions/${item.slug}`}>
+              <a class="question-card" href={`/promo/questions/${item.slug}`}>
                         {(() => {
                           const roleBadges = getQuestionRoleBadges(item);
                           const visibleRoleBadges = roleBadges.slice(0, 2);

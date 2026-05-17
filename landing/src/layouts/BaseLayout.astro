@@ -4,25 +4,119 @@ import Footer from "@/components/Footer.astro";
 import { brand } from "@/data/site";
 import "@/styles/global.css";
 
+type JsonLd = Record<string, unknown> | Array<Record<string, unknown>>;
+
+const siteOrigin = "https://offergo.ru";
+const promoRoot = `${siteOrigin}/promo`;
 const currentPath = Astro.url.pathname;
 
 interface Props {
   title?: string;
   description?: string;
+  canonicalPath?: string;
+  robots?: string;
+  ogImage?: string;
+  jsonLd?: JsonLd;
+  pageType?: string;
   hideHeader?: boolean;
   hideFooter?: boolean;
   hideTelegramFab?: boolean;
 }
 
 const {
-  title = "offerGO - скрытый AI-ассистент для live-ситуаций",
-  description = "offerGO слушает вопросы в звонке, анализирует экран и показывает подсказки в компактном Windows overlay.",
+  title = "offerGO - AI-помощник для IT-собеседований",
+  description = "offerGO помогает готовиться к IT-собеседованиям, разбирать технические вопросы, улучшать резюме и быстрее находить подходящие вакансии.",
+  canonicalPath,
+  robots,
+  ogImage,
+  jsonLd,
+  pageType = "website",
   hideHeader = false,
   hideFooter = false,
   hideTelegramFab = false,
 } = Astro.props;
 
+function toAbsoluteUrl(value: string) {
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  return new URL(value.startsWith("/") ? value : `/${value}`, siteOrigin).toString();
+}
+
+function stripTrailingSlash(value: string) {
+  if (value === "/") {
+    return value;
+  }
+
+  return value.replace(/\/+$/, "");
+}
+
 const showTelegramFab = !hideTelegramFab && !currentPath.startsWith("/promo/resume") && !currentPath.startsWith("/resume");
+const noIndexPaths = ["/promo/auth", "/promo/account", "/promo/download"];
+const canonicalUrl = toAbsoluteUrl(stripTrailingSlash(canonicalPath ?? currentPath));
+const robotsContent = robots ?? (noIndexPaths.some((path) => currentPath.startsWith(path)) ? "noindex, nofollow" : "index, follow");
+const resolvedOgImage = ogImage ? toAbsoluteUrl(ogImage) : undefined;
+const extraJsonLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const pageName = title.replace(/\s[-—|]\s*offerGO$/i, "");
+const baseJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${promoRoot}#organization`,
+    name: brand.name,
+    url: promoRoot,
+    logo: `${promoRoot}/favicon.svg`,
+    sameAs: [brand.telegramUrl],
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        email: brand.supportEmail,
+        contactType: "customer support",
+        availableLanguage: ["ru"],
+      },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${promoRoot}#website`,
+    name: brand.name,
+    url: promoRoot,
+    inLanguage: "ru-RU",
+    publisher: {
+      "@id": `${promoRoot}#organization`,
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${promoRoot}/questions?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Главная",
+        item: promoRoot,
+      },
+      ...(canonicalUrl === promoRoot
+        ? []
+        : [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: pageName,
+              item: canonicalUrl,
+            },
+          ]),
+    ],
+  },
+];
+const jsonLdItems = [...baseJsonLd, ...extraJsonLd];
 ---
 
 <!doctype html>
@@ -49,12 +143,21 @@ const showTelegramFab = !hideTelegramFab && !currentPath.startsWith("/promo/resu
     </script>
     <link rel="icon" type="image/svg+xml" href="/promo/favicon.svg" />
     <link rel="shortcut icon" href="/promo/favicon.svg" />
+    <link rel="canonical" href={canonicalUrl} />
     <meta name="description" content={description} />
+    <meta name="robots" content={robotsContent} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={pageType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={brand.name} />
     <meta property="og:locale" content="ru_RU" />
+    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {resolvedOgImage && <meta name="twitter:image" content={resolvedOgImage} />}
+    {jsonLdItems.map((item) => <script type="application/ld+json" set:html={JSON.stringify(item)} />)}
     <title>{title}</title>
   </head>
   <body>

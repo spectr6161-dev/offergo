@@ -34,7 +34,7 @@ const telegramSettings = [
 ] as const;
 ---
 
-<BaseLayout hideFooter={true} hideTelegramFab={true} title="Кабинет | offerGO" description="Личный кабинет offerGO">
+<BaseLayout hideFooter={true} hideTelegramFab={true} title="Кабинет | offerGO" description="Личный кабинет offerGO" canonicalPath="/promo/account">
   <section class="account-page">
     <div class="account-shell reveal">
       <aside class="account-sidebar">
@@ -91,7 +91,7 @@ const telegramSettings = [
             ))}
           </nav>
         ))}
-        <a class="account-sidebar__cta" href="/pricing">
+        <a class="account-sidebar__cta" href="/promo/pricing">
           <span>Тарифы</span>
           <span class="account-sidebar__cta-mark" aria-hidden="true">+</span>
         </a>
@@ -235,7 +235,7 @@ const telegramSettings = [
             </nav>
           ))}
           <div class="account-mobile-sheet__footer">
-            <a class="account-sidebar__cta" href="/pricing">
+            <a class="account-sidebar__cta" href="/promo/pricing">
               <span>Тарифы</span>
               <span class="account-sidebar__cta-mark" aria-hidden="true">+</span>
             </a>

@@ -4,13 +4,38 @@ import Hero from "@/components/Hero.astro";
 import PlatformStrip from "@/components/PlatformStrip.astro";
 import DemoSection from "@/components/DemoSection.astro";
 import FeatureSections from "@/components/FeatureSections.astro";
+import SeoHub from "@/components/SeoHub.astro";
 import PricingPreview from "@/components/PricingPreview.astro";
 import Faq from "@/components/Faq.astro";
 import FinalCta from "@/components/FinalCta.astro";
+import { faq } from "@/data/site";
+import { buildFaqJsonLd, buildSoftwareApplicationJsonLd, buildWebPageJsonLd } from "@/lib/seo";
+
+const title = "AI-помощник для IT-собеседований — подготовка, вакансии и поиск работы в IT";
+const description =
+  "offerGO помогает пройти путь от резюме до оффера: AI-помощник для IT собеседования, подготовка к техническому интервью, поиск работы в IT, React, Flutter и Backend вакансии.";
+const jsonLd = [
+  buildWebPageJsonLd({
+    title,
+    description,
+    path: "/promo",
+    keywords: [
+      "AI помощник для IT собеседования",
+      "подготовка к техническому собеседованию",
+      "найти работу в IT",
+      "React вакансии",
+      "Flutter вакансии",
+      "backend вакансии",
+    ],
+  }),
+  buildSoftwareApplicationJsonLd(),
+  buildFaqJsonLd(faq),
+];
 ---
 
-<BaseLayout>
+<BaseLayout title={title} description={description} canonicalPath="/promo" jsonLd={jsonLd}>
   <Hero />
+  <SeoHub />
   <DemoSection />
   <PlatformStrip />
   <FeatureSections />
