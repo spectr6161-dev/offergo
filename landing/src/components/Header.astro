@@ -14,30 +14,30 @@ function isActive(href: string) {
 ---
 
 <header class="site-header" data-header>
-  <nav class="header-inner" aria-label="РћСЃРЅРѕРІРЅР°СЏ РЅР°РІРёРіР°С†РёСЏ">
+  <nav class="header-inner" aria-label="Основная навигация">
     <BrandWordmark size="md" href="/promo" class="header-wordmark" />
     <button
       class="mobile-toggle"
       type="button"
-      aria-label="РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ"
+      aria-label="Открыть меню"
       aria-expanded="false"
       aria-controls="primary-menu"
       data-menu-toggle
     >
-      <span class="sr-only">РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ</span>
+      <span class="sr-only">Открыть меню</span>
     </button>
     <div class="nav-cluster" id="primary-menu" data-menu>
       {navigation.map((item) => (
         <a class={`nav-link ${isActive(item.href) ? "is-active" : ""}`} href={item.href}>{item.label}</a>
       ))}
-      <a class={`nav-link ${isActive("/promo/resume") ? "is-active" : ""}`} href="/promo/resume">РђРЅР°Р»РёР· СЂРµР·СЋРјРµ</a>
+      <a class={`nav-link ${isActive("/promo/resume") ? "is-active" : ""}`} href="/promo/resume">Анализ резюме</a>
       {!isResumePage && (
         <a
           class="btn header-telegram"
           href={brand.telegramUrl}
           target="_blank"
           rel="noreferrer"
-          aria-label="РћС‚РєСЂС‹С‚СЊ Telegram-РєР°РЅР°Р»"
+          aria-label="Открыть Telegram-канал"
         >
           <svg class="header-telegram__icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M21.7 4.1 18.5 19c-.24 1.05-.88 1.3-1.78.8l-4.92-3.63-2.37 2.28c-.26.26-.48.48-.98.48l.35-5.02 9.13-8.25c.4-.35-.09-.55-.61-.2L6.03 12.56 1.17 11.04c-1.06-.33-1.08-1.06.22-1.57L20.4 2.15c.88-.32 1.65.2 1.3 1.95Z" />
@@ -51,14 +51,14 @@ function isActive(href: string) {
         data-auth-link
         data-login-href={brand.loginUrl}
         data-account-href="https://offergo.ru/dashboard"
-      >Р’РѕР№С‚Рё</a>
+      >Войти</a>
       <DownloadButton class="header-cta" />
       <button
         class="theme-toggle"
         type="button"
         data-theme-toggle
-        aria-label="Р’РєР»СЋС‡РёС‚СЊ С‚С‘РјРЅСѓСЋ С‚РµРјСѓ"
-        title="Р’РєР»СЋС‡РёС‚СЊ С‚С‘РјРЅСѓСЋ С‚РµРјСѓ"
+        aria-label="Включить тёмную тему"
+        title="Включить тёмную тему"
       >
         <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20.2 14.2A8.6 8.6 0 1 1 9.8 3.8a7.2 7.2 0 1 0 10.4 10.4Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
@@ -67,7 +67,7 @@ function isActive(href: string) {
           <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8" />
           <path d="M12 2.5v2.6M12 18.9v2.6M21.5 12h-2.6M5.1 12H2.5M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8M18.7 18.7l-1.8-1.8M7.1 7.1 5.3 5.3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8" />
         </svg>
-        <span class="sr-only">РЎРјРµРЅРёС‚СЊ С‚РµРјСѓ</span>
+        <span class="sr-only">Сменить тему</span>
       </button>
     </div>
   </nav>
@@ -96,7 +96,7 @@ function isActive(href: string) {
 
       if (!response.ok) {
         authLink.href = authLink.dataset.loginHref || "https://offergo.ru/login";
-        authLink.textContent = "Р’РѕР№С‚Рё";
+        authLink.textContent = "Войти";
         authLink.classList.remove("is-authenticated");
         return;
       }
@@ -104,17 +104,17 @@ function isActive(href: string) {
       const data = await response.json().catch(() => null);
       if (!data?.user) {
         authLink.href = authLink.dataset.loginHref || "https://offergo.ru/login";
-        authLink.textContent = "Р’РѕР№С‚Рё";
+        authLink.textContent = "Войти";
         authLink.classList.remove("is-authenticated");
         return;
       }
 
       authLink.href = authLink.dataset.accountHref || "https://offergo.ru/dashboard";
-      authLink.textContent = "РљР°Р±РёРЅРµС‚";
+      authLink.textContent = "Кабинет";
       authLink.classList.add("is-authenticated");
     } catch {
       authLink.href = authLink.dataset.loginHref || "https://offergo.ru/login";
-      authLink.textContent = "Р’РѕР№С‚Рё";
+      authLink.textContent = "Войти";
       authLink.classList.remove("is-authenticated");
     }
   };
