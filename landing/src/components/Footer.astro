@@ -7,26 +7,26 @@ import BrandWordmark from "@/components/BrandWordmark.astro";
   <div class="container footer-grid">
     <div>
       <BrandWordmark size="md" href="/promo" class="footer-brand" />
-      <p>РђСЃСЃРёСЃС‚РµРЅС‚ РІ РїРѕРёСЃРєРµ СЂР°Р±РѕС‚С‹</p>
+      <p>Ассистент в поиске работы</p>
     </div>
     <div>
-      <h2>РќР°РІРёРіР°С†РёСЏ</h2>
+      <h2>Навигация</h2>
       {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
     </div>
     <div>
-      <h2>Р”РѕРєСѓРјРµРЅС‚С‹</h2>
-      <a href="/promo/privacy">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
-      <a href="/promo/terms">РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРµ СЃРѕРіР»Р°С€РµРЅРёРµ</a>
-      <a href="/promo/contacts">РљРѕРЅС‚Р°РєС‚С‹</a>
+      <h2>Документы</h2>
+      <a href="/promo/privacy">Политика конфиденциальности</a>
+      <a href="/promo/terms">Пользовательское соглашение</a>
+      <a href="/promo/contacts">Контакты</a>
     </div>
     <div>
-      <h2>РЎРІСЏР·Р°С‚СЊСЃСЏ</h2>
-      <a href={brand.telegramUrl}>Telegram beta-РґРѕСЃС‚СѓРї</a>
+      <h2>Связаться</h2>
+      <a href={brand.telegramUrl}>Telegram beta-доступ</a>
       <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a>
     </div>
   </div>
   <div class="container footer-bottom">
-    <span>В© 2026 offerGO.</span>
+    <span>© 2026 offerGO.</span>
   </div>
 </footer>
 
