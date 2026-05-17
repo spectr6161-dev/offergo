@@ -1,0 +1,411 @@
+---
+import BrandWordmark from "@/components/BrandWordmark.astro";
+
+const proofAvatars = [
+  { label: "JS", className: "resume-it-hero__avatar--blue" },
+  { label: "FL", className: "resume-it-hero__avatar--sky" },
+  { label: "BE", className: "resume-it-hero__avatar--navy" },
+];
+
+const directions = ["React", "Flutter", "Backend", "TypeScript", "Node.js"];
+---
+
+<section class="resume-it-hero" aria-labelledby="resume-it-hero-title">
+  <div class="resume-it-hero__surface">
+    <nav class="resume-it-hero__nav" aria-label="Навигация страницы резюме">
+      <BrandWordmark size="md" href="/promo" class="resume-it-hero__logo" />
+
+      <div class="resume-it-hero__nav-actions">
+        <span class="resume-it-hero__lang" aria-label="Язык страницы">RU</span>
+        <a class="resume-it-hero__nav-link" href="/promo/interview-assistant">AI-инструменты</a>
+        <a class="resume-it-hero__panel" href="https://offergo.ru/dashboard">Панель</a>
+      </div>
+    </nav>
+
+    <div class="resume-it-hero__content reveal">
+      <h1 id="resume-it-hero-title">
+        <span>Хватит отправлять резюме неделями</span>
+        <strong>Начните получать IT-собеседования быстрее</strong>
+      </h1>
+
+      <p class="resume-it-hero__lead">
+        offerGO делает проверку резюме IT-специалиста, помогает усилить резюме программиста под React, Flutter
+        и Backend вакансии, подготовить отклик и быстрее перейти к IT-собеседованию.
+      </p>
+
+      <div class="resume-it-hero__proof" aria-label="Доверие пользователей">
+        <a class="resume-it-hero__cta" href="https://offergo.ru/resumes">
+          <span>Начать</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M5 10h9m0 0-3.5-3.5M14 10l-3.5 3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"></path>
+          </svg>
+        </a>
+
+        <div class="resume-it-hero__avatars" aria-hidden="true">
+          {proofAvatars.map((avatar) => (
+            <span class:list={["resume-it-hero__avatar", avatar.className]}>{avatar.label}</span>
+          ))}
+        </div>
+
+        <div class="resume-it-hero__rating">
+          <span aria-hidden="true">★★★★★</span>
+          <small>Доверяют 1 000+ пользователей</small>
+        </div>
+      </div>
+
+      <div class="resume-it-hero__directions" aria-label="Направления подготовки">
+        <p>Подготовка резюме и откликов для популярных IT-направлений</p>
+        <ul>
+          {directions.map((direction) => <li>{direction}</li>)}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .resume-it-hero {
+    background: var(--bg);
+    padding: 12px 8px 26px;
+  }
+
+  .resume-it-hero__surface {
+    position: relative;
+    min-height: clamp(650px, 92vh, 780px);
+    overflow: hidden;
+    border-bottom-right-radius: 50% 18%;
+    border-bottom-left-radius: 50% 18%;
+    background:
+      radial-gradient(circle at 13% 13%, rgba(147, 197, 253, 0.42), transparent 28%),
+      radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.2), transparent 24%),
+      linear-gradient(104deg, rgba(219, 234, 254, 0.96) 0%, rgba(224, 231, 255, 0.92) 38%, rgba(191, 219, 254, 0.88) 100%);
+    color: #020617;
+  }
+
+  .resume-it-hero__surface::before,
+  .resume-it-hero__surface::after {
+    position: absolute;
+    content: "";
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .resume-it-hero__surface::before {
+    inset: auto -12% -28% 12%;
+    height: 52%;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.2), transparent 68%);
+  }
+
+  .resume-it-hero__surface::after {
+    top: -16%;
+    right: -12%;
+    width: 42vw;
+    height: 42vw;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.18), transparent 62%);
+  }
+
+  :root[data-theme="dark"] .resume-it-hero__surface {
+    background:
+      radial-gradient(circle at 13% 13%, rgba(96, 165, 250, 0.34), transparent 28%),
+      radial-gradient(circle at 82% 18%, rgba(14, 165, 233, 0.22), transparent 24%),
+      linear-gradient(104deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 48%, rgba(15, 23, 42, 0.98) 100%);
+    color: #f8fafc;
+  }
+
+  .resume-it-hero__nav {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(100% - 72px, 1820px);
+    margin-inline: auto;
+    padding-top: 34px;
+  }
+
+  .resume-it-hero__nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    color: currentColor;
+    font-weight: 900;
+  }
+
+  .resume-it-hero__lang {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92rem;
+  }
+
+  .resume-it-hero__lang::before {
+    content: "";
+    width: 17px;
+    height: 17px;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+    opacity: 0.9;
+  }
+
+  .resume-it-hero__nav-link {
+    color: currentColor;
+    font-size: 0.95rem;
+  }
+
+  .resume-it-hero__nav-link::after {
+    content: "⌄";
+    margin-left: 7px;
+    font-size: 0.9em;
+  }
+
+  .resume-it-hero__panel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    border-radius: 999px;
+    padding: 0 24px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+    color: #020617;
+    font-weight: 900;
+  }
+
+  :root[data-theme="dark"] .resume-it-hero__panel {
+    background: rgba(248, 250, 252, 0.94);
+    color: #020617;
+  }
+
+  .resume-it-hero__content {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    width: min(100% - 44px, 1050px);
+    margin: 58px auto 0;
+    text-align: center;
+  }
+
+  .resume-it-hero h1 {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(3.4rem, 6vw, 6.25rem);
+    font-weight: 500;
+    line-height: 0.94;
+    letter-spacing: -0.08em;
+  }
+
+  .resume-it-hero h1 span,
+  .resume-it-hero h1 strong {
+    display: block;
+  }
+
+  .resume-it-hero h1 strong {
+    margin-top: 12px;
+    background: linear-gradient(92deg, #2563eb 0%, #0ea5e9 48%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800;
+  }
+
+  .resume-it-hero__lead {
+    max-width: 600px;
+    margin: 28px 0 0;
+    color: color-mix(in srgb, currentColor 82%, transparent);
+    font-size: clamp(1rem, 1.18vw, 1.22rem);
+    font-weight: 650;
+    line-height: 1.62;
+  }
+
+  .resume-it-hero__proof {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 28px;
+  }
+
+  .resume-it-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 54px;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 999px;
+    padding: 0 24px;
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 16px 34px rgba(37, 99, 235, 0.32);
+    color: #fff;
+    font-size: 1.08rem;
+    font-weight: 950;
+    transition:
+      transform 180ms var(--ease),
+      box-shadow 180ms var(--ease);
+  }
+
+  .resume-it-hero__cta:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 20px 42px rgba(37, 99, 235, 0.38);
+  }
+
+  .resume-it-hero__cta svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .resume-it-hero__avatars {
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+  }
+
+  .resume-it-hero__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 33px;
+    height: 33px;
+    margin-left: -8px;
+    border: 2px solid rgba(255, 255, 255, 0.88);
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 950;
+    letter-spacing: -0.04em;
+  }
+
+  .resume-it-hero__avatar--blue {
+    background: #2563eb;
+  }
+
+  .resume-it-hero__avatar--sky {
+    background: #0ea5e9;
+  }
+
+  .resume-it-hero__avatar--navy {
+    background: #0f172a;
+  }
+
+  .resume-it-hero__rating {
+    display: grid;
+    gap: 2px;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .resume-it-hero__rating span {
+    color: #f59e0b;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
+  .resume-it-hero__rating small {
+    color: color-mix(in srgb, currentColor 62%, transparent);
+    font-size: 0.84rem;
+    font-weight: 750;
+  }
+
+  .resume-it-hero__directions {
+    margin-top: 38px;
+  }
+
+  .resume-it-hero__directions p {
+    margin: 0;
+    color: color-mix(in srgb, currentColor 54%, transparent);
+    font-size: 0.84rem;
+    font-weight: 800;
+  }
+
+  .resume-it-hero__directions ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 28px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .resume-it-hero__directions li {
+    color: color-mix(in srgb, currentColor 38%, transparent);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: clamp(1.3rem, 2vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+  }
+
+  @media (max-width: 900px) {
+    .resume-it-hero {
+      padding: 8px 6px 20px;
+    }
+
+    .resume-it-hero__surface {
+      min-height: auto;
+      border-bottom-right-radius: 42% 8%;
+      border-bottom-left-radius: 42% 8%;
+      padding-bottom: 74px;
+    }
+
+    .resume-it-hero__nav {
+      width: min(100% - 28px, 1820px);
+      padding-top: 22px;
+    }
+
+    .resume-it-hero__nav-actions {
+      gap: 10px;
+    }
+
+    .resume-it-hero__lang,
+    .resume-it-hero__nav-link {
+      display: none;
+    }
+
+    .resume-it-hero__panel {
+      min-height: 44px;
+      padding: 0 18px;
+    }
+
+    .resume-it-hero__content {
+      width: min(100% - 28px, 1050px);
+      margin-top: 58px;
+    }
+
+    .resume-it-hero h1 {
+      font-size: clamp(3rem, 14vw, 4.6rem);
+      letter-spacing: -0.085em;
+    }
+
+    .resume-it-hero__proof {
+      display: grid;
+      gap: 16px;
+    }
+
+    .resume-it-hero__rating {
+      justify-items: center;
+      text-align: center;
+    }
+
+    .resume-it-hero__directions ul {
+      gap: 12px 18px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .resume-it-hero__cta {
+      width: min(100%, 260px);
+    }
+
+    .resume-it-hero__lead {
+      font-size: 1rem;
+    }
+  }
+</style>

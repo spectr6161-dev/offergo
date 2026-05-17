@@ -1,13 +1,21 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
+import ResumeItHero from "@/components/ResumeItHero.astro";
 import { getRelatedSeoPages, type SeoClusterPage } from "@/data/seo-clusters";
-import { buildArticleJsonLd, buildFaqJsonLd, buildItemListJsonLd, buildSoftwareApplicationJsonLd, buildWebPageJsonLd } from "@/lib/seo";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  buildArticleJsonLd,
+  buildFaqJsonLd,
+  buildItemListJsonLd,
+  buildSoftwareApplicationJsonLd,
+  buildWebPageJsonLd,
+} from "@/lib/seo";
 
 interface Props {
   page: SeoClusterPage;
 }
 
 const { page } = Astro.props;
+const isResumeItPage = page.slug === "resume-it";
 const relatedPages = getRelatedSeoPages(page);
 const jsonLd = [
   buildWebPageJsonLd({
@@ -31,28 +39,39 @@ if (page.slug === "interview-assistant") {
 }
 ---
 
-<BaseLayout title={page.title} description={page.description} canonicalPath={page.path} jsonLd={jsonLd} pageType="article">
+<BaseLayout
+  title={page.title}
+  description={page.description}
+  canonicalPath={page.path}
+  jsonLd={jsonLd}
+  pageType="article"
+  hideHeader={isResumeItPage}
+>
   <article class="seo-page">
-    <section class="seo-hero" aria-labelledby="seo-title">
-      <div class="container seo-hero__grid">
-        <div class="seo-hero__copy reveal">
-          <p class="eyebrow">{page.eyebrow}</p>
-          <h1 id="seo-title">{page.h1}</h1>
-          <p>{page.lead}</p>
-          <div class="seo-hero__actions">
-            <a class="btn btn-primary" href={page.cta.href}>{page.cta.label}</a>
-            <a class="btn btn-secondary" href="/promo">Вернуться на главную</a>
+    {isResumeItPage ? (
+      <ResumeItHero />
+    ) : (
+      <section class="seo-hero" aria-labelledby="seo-title">
+        <div class="container seo-hero__grid">
+          <div class="seo-hero__copy reveal">
+            <p class="eyebrow">{page.eyebrow}</p>
+            <h1 id="seo-title">{page.h1}</h1>
+            <p>{page.lead}</p>
+            <div class="seo-hero__actions">
+              <a class="btn btn-primary" href={page.cta.href}>{page.cta.label}</a>
+              <a class="btn btn-secondary" href="/promo">Вернуться на главную</a>
+            </div>
           </div>
-        </div>
 
-        <aside class="seo-hero__keywords reveal" aria-label="Ключевые направления страницы">
-          <span>Поисковые сценарии</span>
-          <ul>
-            {page.primaryKeywords.map((keyword) => <li>{keyword}</li>)}
-          </ul>
-        </aside>
-      </div>
-    </section>
+          <aside class="seo-hero__keywords reveal" aria-label="Ключевые направления страницы">
+            <span>Поисковые сценарии</span>
+            <ul>
+              {page.primaryKeywords.map((keyword) => <li>{keyword}</li>)}
+            </ul>
+          </aside>
+        </div>
+      </section>
+    )}
 
     <section class="seo-section" aria-labelledby="seo-covers-title">
       <div class="container">

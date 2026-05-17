@@ -38,10 +38,10 @@ const Tag = href ? "a" : "span";
     align-items: center;
     gap: 0;
     width: fit-content;
-    white-space: nowrap;
+    color: inherit;
     line-height: 1;
     text-decoration: none;
-    color: inherit;
+    white-space: nowrap;
   }
 
   .brand-wordmark--md {
@@ -91,19 +91,21 @@ const Tag = href ? "a" : "span";
     align-items: center;
     justify-content: center;
     margin-left: var(--go-gap);
-    padding: var(--go-padding-block) var(--go-padding-inline);
     overflow: hidden;
     border-radius: var(--go-radius);
+    padding: var(--go-padding-block) var(--go-padding-inline);
     background: var(--accent);
     transform: skewX(-15deg);
     transform-origin: left center;
-    transition: background 180ms var(--ease), transform 180ms var(--ease);
+    transition:
+      background 180ms var(--ease),
+      transform 180ms var(--ease);
   }
 
   .brand-wordmark__go-shell::before {
-    content: "";
     position: absolute;
     inset: 0;
+    content: "";
     background: linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0, rgba(255, 255, 255, 0.16) 18%, transparent 18.5% 100%);
     pointer-events: none;
   }
