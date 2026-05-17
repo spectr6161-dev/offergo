@@ -1753,20 +1753,6 @@ export function ResumeWorkspace({ apiBase, initialMode }: ResumeWorkspaceProps) 
                 навыков и опыта.
               </p>
 
-              <div className="resume-path-card__meta">
-                <div className="resume-path-card__social-proof" aria-hidden="true">
-                  <div className="resume-path-card__avatars">
-                    {[1, 2, 3].map((item) => (
-                      <span
-                        key={item}
-                        className={`resume-path-card__avatar resume-path-card__avatar--${item}`}
-                      />
-                    ))}
-                  </div>
-                  <span>Нравится 1,166,440 пользователям</span>
-                </div>
-              </div>
-
               <div className="resume-path-builder-preview">
                 <div className="resume-path-builder-preview__glow" aria-hidden="true" />
                 <div className="resume-path-builder-preview__sheet">
@@ -1810,10 +1796,6 @@ export function ResumeWorkspace({ apiBase, initialMode }: ResumeWorkspaceProps) 
                 Загрузите резюме и получите редакторский разбор с подсветкой проблемных мест,
                 замечаниями по ATS и готовыми заменами.
               </p>
-
-              <div className="resume-path-card__meta">
-                <div className="resume-path-card__stat">372 241+ проверенных резюме</div>
-              </div>
 
               <div className="resume-path-analysis-preview">
                 <div className="resume-path-analysis-preview__glow" aria-hidden="true" />
