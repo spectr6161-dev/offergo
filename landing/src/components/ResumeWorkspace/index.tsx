@@ -465,13 +465,6 @@ function replaceTextRange(text: string, start: number, end: number, replacement:
   return `${text.slice(0, start)}${replacement}${text.slice(end)}`;
 }
 
-function handleActionCardKeyDown(event: KeyboardEvent<HTMLElement>, action: () => void) {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    action();
-  }
-}
-
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -1239,10 +1232,6 @@ export function ResumeWorkspace({ apiBase, initialMode }: ResumeWorkspaceProps) 
     setScreen("path-select");
   };
 
-  const openResumeBuilderUnavailable = () => {
-    setUnavailableDialogOpen(true);
-  };
-
   const startAiAnalysisFlow = () => {
     resetWorkspace("upload");
   };
@@ -1747,13 +1736,9 @@ export function ResumeWorkspace({ apiBase, initialMode }: ResumeWorkspaceProps) 
       {screen === "path-select" && (
         <div className="resume-path-screen">
           <div className="resume-path-grid">
-            <div
+            <a
               className="resume-path-card resume-path-card--builder resume-path-card--interactive"
-              role="button"
-              tabIndex={0}
-              onClick={openResumeBuilderUnavailable}
-              onKeyDown={(event) => handleActionCardKeyDown(event, openResumeBuilderUnavailable)}
-              aria-haspopup="dialog"
+              href="https://offergo.ru/resumes"
               aria-label="Создатель резюме на основе ИИ"
             >
               <div className="resume-path-card__header">
@@ -1807,14 +1792,11 @@ export function ResumeWorkspace({ apiBase, initialMode }: ResumeWorkspaceProps) 
                   </span>
                 </div>
               </div>
-            </div>
+            </a>
 
-            <div
+            <a
               className="resume-path-card resume-path-card--analysis resume-path-card--interactive"
-              role="button"
-              tabIndex={0}
-              onClick={startAiAnalysisFlow}
-              onKeyDown={(event) => handleActionCardKeyDown(event, startAiAnalysisFlow)}
+              href="https://offergo.ru/resumes"
               aria-label="Перейти к ИИ-анализу резюме"
             >
               <div className="resume-path-card__header">
@@ -1861,7 +1843,7 @@ export function ResumeWorkspace({ apiBase, initialMode }: ResumeWorkspaceProps) 
                   </article>
                 ))}
               </div>
-            </div>
+            </a>
           </div>
         </div>
       )}

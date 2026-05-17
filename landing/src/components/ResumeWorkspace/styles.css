@@ -54,6 +54,7 @@
 .resume-overview-screen,
 .resume-path-screen {
   align-content: center;
+  padding: clamp(24px, 4vh, 44px) 16px clamp(34px, 5vh, 58px);
 }
 
 .resume-overview-card {
@@ -394,10 +395,10 @@
 }
 
 .resume-path-grid {
-  width: min(980px, 100%);
+  width: min(1040px, 100%);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  gap: 20px;
   align-items: stretch;
 }
 
@@ -405,15 +406,16 @@
   position: relative;
   display: grid;
   align-content: start;
-  gap: 12px;
-  min-height: 440px;
+  gap: 10px;
+  min-height: 360px;
   overflow: hidden;
   border: 1px solid rgba(203, 213, 225, 0.76);
-  border-radius: 28px;
+  border-radius: 24px;
   background: #ffffff;
-  padding: 24px 22px 20px;
-  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08);
+  padding: 18px 18px 16px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
   color: inherit;
+  text-decoration: none;
   text-align: left;
   transition:
     transform 180ms var(--ease),
@@ -485,10 +487,15 @@
   margin: 0;
   color: #09090b;
   font-family: "Manrope", "Segoe UI", sans-serif;
-  font-size: clamp(1.62rem, 2vw, 2rem);
+  font-size: clamp(1.42rem, 1.7vw, 1.74rem);
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -0.05em;
+}
+
+.resume-path-card p {
+  font-size: clamp(0.92rem, 1.05vw, 1rem);
+  line-height: 1.48;
 }
 
 .resume-path-card__meta {
@@ -496,7 +503,7 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  min-height: 30px;
+  min-height: 24px;
 }
 
 .resume-path-card__social-proof,
@@ -519,8 +526,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   margin-left: -8px;
   border: 2px solid #ffffff;
   border-radius: 999px;
@@ -551,7 +558,7 @@
 .resume-path-builder-preview,
 .resume-path-analysis-preview {
   position: relative;
-  min-height: 224px;
+  min-height: 168px;
   margin-top: auto;
 }
 
@@ -575,13 +582,13 @@
 
 .resume-path-builder-preview__sheet {
   position: absolute;
-  right: 44px;
+  right: 28px;
   bottom: 0;
-  width: min(286px, 60%);
+  width: min(252px, 58%);
   border-radius: 18px 18px 0 0;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  padding: 20px 16px 52px;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  padding: 15px 14px 42px;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07);
 }
 
 .resume-path-builder-preview__sheet::before,
@@ -604,29 +611,29 @@
 
 .resume-path-builder-preview__toolbar {
   display: flex;
-  gap: 10px;
+  gap: 7px;
   flex-wrap: wrap;
   color: #65626f;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
 }
 
 .resume-path-builder-preview__sheet h3 {
-  margin: 12px 0 0;
+  margin: 9px 0 0;
   text-align: center;
   color: #16325f;
-  font-size: 1.5rem;
+  font-size: 1.28rem;
   font-weight: 800;
 }
 
 .resume-path-builder-preview__lines {
   display: grid;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .resume-path-builder-preview__lines span {
   display: block;
-  height: 7px;
+  height: 6px;
   border-radius: 999px;
   background: linear-gradient(90deg, #dbe7ff 0%, #f2f6ff 100%);
 }
@@ -653,26 +660,26 @@
 
 .resume-path-builder-preview__prompt {
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  min-height: 56px;
-  border: 4px solid transparent;
+  min-height: 46px;
+  border: 3px solid transparent;
   border-radius: 999px;
   background:
     linear-gradient(#ffffff, #ffffff) padding-box,
     linear-gradient(90deg, #9333ea 0%, #ff2d55 100%) border-box;
-  padding: 0 16px;
-  box-shadow: 0 16px 34px rgba(147, 51, 234, 0.14);
+  padding: 0 14px;
+  box-shadow: 0 14px 28px rgba(147, 51, 234, 0.12);
 }
 
 .resume-path-builder-preview__prompt span {
   color: #09090b;
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
@@ -687,9 +694,9 @@
 
 .resume-path-analysis-preview {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   align-content: start;
-  padding: 4px 0 0 20px;
+  padding: 0 0 0 14px;
 }
 
 .resume-path-analysis-preview__glow {
@@ -706,12 +713,12 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  width: min(350px, 100%);
-  border-radius: 16px;
+  gap: 10px;
+  width: min(328px, 100%);
+  border-radius: 14px;
   background: #ffffff;
-  padding: 12px;
-  box-shadow: inset 0 0 0 1px rgba(203, 213, 225, 0.8), 0 16px 40px rgba(15, 23, 42, 0.06);
+  padding: 9px;
+  box-shadow: inset 0 0 0 1px rgba(203, 213, 225, 0.8), 0 14px 32px rgba(15, 23, 42, 0.055);
 }
 
 .resume-path-analysis-item:nth-of-type(2) {
@@ -722,9 +729,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   color: #ffffff;
   font-size: 1rem;
   font-weight: 800;
@@ -744,7 +751,7 @@
 
 .resume-path-analysis-item__body {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -757,36 +764,36 @@
 
 .resume-path-analysis-item__head strong {
   color: #09090b;
-  font-size: 1rem;
+  font-size: 0.92rem;
   line-height: 1.35;
 }
 
 .resume-path-analysis-item__head span {
   color: #a1a1aa;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
 }
 
 .resume-path-analysis-item__body p {
   margin: 0;
   color: #7b7685;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .resume-path-analysis-item__tags {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .resume-path-analysis-item__tags span {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 24px;
   border-radius: 999px;
   background: #f2f4f7;
-  padding: 0 10px;
+  padding: 0 8px;
   color: #09090b;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: 600;
 }
 
@@ -794,13 +801,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 80px;
-  min-height: 34px;
+  min-width: 70px;
+  min-height: 28px;
   border-radius: 999px;
   background: #6f4aff;
-  padding: 0 12px;
+  padding: 0 10px;
   color: #ffffff;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   font-weight: 700;
 }
 
@@ -2384,5 +2391,3 @@
     gap: 22px;
   }
 }
-
-
