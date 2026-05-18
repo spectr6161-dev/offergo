@@ -57,9 +57,11 @@ export async function POST(request: Request) {
       audio,
       mediaType: file.type,
     });
+    const payload =
+      result && typeof result === "object" ? result : { result };
 
     return Response.json({
-      ...result,
+      ...payload,
       fileName: file.name,
       latencyMs: getLatencyMs(startedAt),
     });

@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { DownloadIcon } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 type LegalDocument = {
@@ -11,6 +13,10 @@ type LegalDocument = {
   summary: string | null;
   content: string;
   publishedAt: string;
+  downloads: {
+    docx: string;
+    txt: string;
+  } | null;
 };
 
 type LegalDocumentResponse = {
@@ -65,10 +71,10 @@ export async function LegalDocumentPage({ slug }: { slug: string }) {
     <main className="min-h-screen bg-background px-6 py-12 text-foreground">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <Link
-          href="/register"
+          href="/legal"
           className="text-sm font-medium text-muted-foreground underline underline-offset-4"
         >
-          Назад к регистрации
+          Назад к правовой документации
         </Link>
 
         <section className="flex flex-col gap-4">
@@ -91,6 +97,22 @@ export async function LegalDocumentPage({ slug }: { slug: string }) {
             <p className="text-base leading-7 text-muted-foreground">
               {document.summary}
             </p>
+          ) : null}
+          {document.downloads ? (
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button asChild>
+                <a href={document.downloads.docx} download>
+                  <DownloadIcon />
+                  Скачать DOCX
+                </a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href={document.downloads.txt} download>
+                  <DownloadIcon />
+                  Скачать TXT
+                </a>
+              </Button>
+            </div>
           ) : null}
         </section>
 

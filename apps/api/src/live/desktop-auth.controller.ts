@@ -13,6 +13,7 @@ import {
 import { z } from "zod";
 import { prisma } from "@offergo/db";
 import { auth } from "@offergo/auth/core";
+import { requiredLegalConsentKinds } from "@offergo/shared";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { ApiAuthGuard } from "../auth/auth.guard";
 import type { AuthenticatedRequest } from "../auth/authenticated-request";
@@ -49,16 +50,10 @@ const extensionPollSchema = z.object({
 
 const promptSchema = z.object({
   prompt: z.string().max(10_000).optional(),
-  answerProvider: z.enum(["yandex", "gemini"]).optional(),
+  answerProvider: z.enum(["yandex"]).optional(),
 });
 
-const requiredConsentKinds = [
-  "terms",
-  "privacy_policy",
-  "personal_data_consent",
-  "offer",
-  "cookie_policy",
-] as const;
+const requiredConsentKinds = requiredLegalConsentKinds;
 
 function toEmployee(user: Pick<AuthenticatedAppUser, "id" | "email" | "name">) {
   return {

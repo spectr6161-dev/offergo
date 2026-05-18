@@ -278,13 +278,7 @@ export function SettingsDialog() {
         >
           <a
             className="flex items-center"
-            href={
-              service === 'aiGatewayApiKey'
-                ? 'https://vercel.com/docs/ai-gateway'
-                : 'https://uploadthing.com/dashboard'
-            }
-            rel="noopener noreferrer"
-            target="_blank"
+            href="/settings"
           >
             <ExternalLinkIcon className="size-4" />
             <span className="sr-only">Get {label}</span>

@@ -1,10 +1,5 @@
-import type { Metadata } from "next";
-import { LegalDocumentPage } from "@/components/legal/legal-document-page";
-
-export const metadata: Metadata = {
-  title: "Политика обработки персональных данных",
-};
+import { redirect } from "next/navigation";
 
 export default function PrivacyPolicyPage() {
-  return <LegalDocumentPage slug="privacy-policy" />;
+  redirect("/legal/privacy-policy");
 }

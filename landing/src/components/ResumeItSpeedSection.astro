@@ -9,21 +9,21 @@ const jobCards = [
   {
     icon: "◰",
     iconClass: "bg-violet-600 text-white dark:bg-sky-500",
-    title: "Аналитик данных, Stripe",
-    subtitle: "Финансы",
+    title: "Аналитик данных",
+    subtitle: "FinTech команда",
     time: "3 ч",
     tags: ["Аналитика", "Python"],
-    action: "Откликнулся",
+    action: "Письмо готово",
     actionClass: "bg-violet-600 text-white dark:bg-sky-500",
   },
   {
     icon: "■",
     iconClass: "bg-[conic-gradient(#f25022_0_25%,#7fba00_0_50%,#00a4ef_0_75%,#ffb900_0)] text-transparent",
-    title: "Стратег. партнер, Microsoft",
-    subtitle: "Корпоратив",
+    title: "Backend developer",
+    subtitle: "SaaS продукт",
     time: "4 ч",
-    tags: ["Стратегия", "Лидерство"],
-    action: "Запуск",
+    tags: ["Node.js", "SQL"],
+    action: "Проверить",
     actionClass: "bg-orange-500 text-white dark:bg-orange-400 dark:text-slate-950",
   },
 ];
@@ -35,24 +35,24 @@ const jobCards = [
       id="resume-it-speed-title"
       class="mx-auto mb-16 max-w-4xl text-center text-[clamp(1.9rem,2.8vw,3.1rem)] font-semibold leading-[1.04] tracking-[-0.055em] text-slate-950 dark:text-white lg:mb-20"
     >
-      С offerGO вы на 80% быстрее найдёте работу
+      С offerGO быстрее проходите путь от резюме до собеседования
     </h2>
 
     <div class="grid gap-7 lg:grid-cols-2">
       <article class="relative min-h-[370px] overflow-hidden rounded-[34px] bg-white p-8 shadow-[0_22px_54px_rgba(15,23,42,0.08)] dark:bg-slate-950 dark:shadow-[0_22px_64px_rgba(2,132,199,0.12)]">
         <div class="relative z-10 max-w-[27rem]">
           <p class="m-0 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-violet-300 dark:text-sky-300/80">Подготовка</p>
-          <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">ИИ-генератор резюме</h3>
+          <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">ИИ-анализ и улучшение резюме</h3>
           <p class="m-0 mt-2 text-base leading-6 text-slate-500 dark:text-slate-300">
-            Генерируйте резюме и письма для каждой вакансии на основе ваших навыков и опыта
+            Проверяйте структуру, формулировки, стек и релевантность резюме под конкретную IT-вакансию
           </p>
 
           <div class="mt-5 flex flex-wrap items-center gap-3">
             <a
               class="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-              href="https://offergo.ru/resumes"
+              href="https://offergo.ru/cover-materials/auto-responses"
             >
-              Начать <span aria-hidden="true">→</span>
+              Проверить резюме <span aria-hidden="true">→</span>
             </a>
             <div class="flex -space-x-2" aria-hidden="true">
               {avatars.map((avatar) => (
@@ -61,7 +61,7 @@ const jobCards = [
                 </span>
               ))}
             </div>
-            <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">Доверяют 1 000+ пользователей</span>
+            <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">Для IT и смежных digital-ролей</span>
           </div>
         </div>
 
@@ -94,9 +94,9 @@ const jobCards = [
       <article class="relative min-h-[370px] overflow-hidden rounded-[34px] bg-white p-8 shadow-[0_22px_54px_rgba(15,23,42,0.08)] dark:bg-slate-950 dark:shadow-[0_22px_64px_rgba(2,132,199,0.12)]">
         <div class="relative z-10 max-w-[31rem]">
           <p class="m-0 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-violet-300 dark:text-sky-300/80">Откликнуться</p>
-          <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Автоподача заявок</h3>
+          <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Автоотклики через расширение</h3>
           <p class="m-0 mt-2 text-base leading-6 text-slate-500 dark:text-slate-300">
-            offerGO автоматически откликнется на тысячи вакансий. Экономьте время и быстрее найдите работу
+            Расширение считывает вакансию, готовит письмо и вставляет текст в форму. Отправку подтверждаете вы
           </p>
 
           <div class="mt-5 flex flex-wrap items-center gap-3">
@@ -104,9 +104,9 @@ const jobCards = [
               class="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900 dark:text-white"
               href="https://offergo.ru/resumes"
             >
-              Начать <span aria-hidden="true">→</span>
+              Настроить <span aria-hidden="true">→</span>
             </a>
-            <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">372 241+ откликов отправлено</span>
+            <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">История и лимиты в панели OfferGO</span>
           </div>
         </div>
 
@@ -139,27 +139,27 @@ const jobCards = [
         <div class="grid min-h-[360px] lg:grid-cols-[0.78fr_1.22fr]">
           <div class="relative z-10 flex flex-col p-8">
             <p class="m-0 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-violet-300 dark:text-sky-300/80">Успех</p>
-            <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Interview Buddy</h3>
+            <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Помощник для собеседований</h3>
             <p class="m-0 mt-2 max-w-[29rem] text-base leading-6 text-slate-500 dark:text-slate-300">
-              Получайте помощь в реальном времени и ответы на вопросы интервью.
+              Используйте подсказки по аудио, текстовым вопросам и скриншотам во время подготовки и интервью.
             </p>
 
             <div class="mt-5 flex flex-wrap items-center gap-3">
               <a
                 class="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900 dark:text-white"
-                href="https://offergo.ru/resumes"
+                href="https://offergo.ru/interview-assistant"
               >
-                Начать <span aria-hidden="true">→</span>
+                Скачать <span aria-hidden="true">→</span>
               </a>
-              <span class="rounded-full bg-emerald-100 px-4 py-2 text-xs font-black tracking-[0.18em] text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">★★★★★</span>
-              <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">4.7 · 387 отзывов</span>
+              <span class="rounded-full bg-emerald-100 px-4 py-2 text-xs font-black tracking-[0.18em] text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">LIVE</span>
+              <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">Аудио · скриншоты · текстовые запросы</span>
             </div>
 
             <div class="mt-auto pt-10 text-sm leading-5 text-slate-600 dark:text-slate-300">
               <p class="m-0 max-w-[30rem]">
-                Interview Buddy — будущее подготовки к собеседованиям. Точные ответы, прогноз следующих вопросов и спокойствие. Стоит каждой копейки!
+                Помощник помогает быстро сформулировать ответ, разобрать вопрос интервьюера и не потеряться на техническом собеседовании.
               </p>
-              <p class="m-0 mt-4 text-xs text-slate-500 dark:text-slate-400">👤 Джейсон Т., менеджер по продажам</p>
+              <p class="m-0 mt-4 text-xs text-slate-500 dark:text-slate-400">Подходит для разработки, аналитики, QA, DevOps, продукта и менеджмента.</p>
             </div>
           </div>
 
@@ -177,9 +177,9 @@ const jobCards = [
                 <span class="size-3 rounded-full bg-red-400"></span>
               </div>
               <div class="rounded-2xl bg-white/64 p-4 text-left text-sm leading-5 text-white shadow-[0_24px_52px_rgba(15,23,42,0.22)] backdrop-blur-md ring-1 ring-white/30">
-                <p class="m-0 text-xs font-semibold text-slate-700">Наш шорт: цикл продаж — 120 дней, как сократить?</p>
+                <p class="m-0 text-xs font-semibold text-slate-700">Вопрос: как объяснить архитектуру проекта?</p>
                 <p class="m-0 mt-2 font-bold text-white drop-shadow">
-                  Привязать каждый аккаунт к тепловой карте закупочного комитета, показать персональные ROI-гипотезы на 1–5 недель и запустить техн. пилот за 30 дней.
+                  Начните с цели системы, затем опишите ключевые модули, поток данных, ограничения и компромиссы по надежности, скорости и стоимости.
                 </p>
               </div>
             </div>

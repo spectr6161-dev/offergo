@@ -1,6 +1,5 @@
 import { CheckIcon, LockIcon } from "lucide-react";
 
-import { startCheckoutAction } from "@/app/(dashboard)/billing/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -56,6 +55,8 @@ type PlanCopy = {
   featuresIntro: string;
   features: string[];
 };
+
+const checkoutDisabledMessage = "Функция пока недоступна";
 
 const planCopyByKind: Record<PlanKind, PlanCopy> = {
   basic: {
@@ -210,8 +211,6 @@ function PlanAction({
   plan: BillingPlanCard;
   subscription: BillingSubscriptionSummary;
 }) {
-  const kind = getPlanKind(plan);
-  const copy = planCopyByKind[kind];
   const isCurrentPaid =
     isPaidCurrentPlan(subscription) &&
     isCurrentPlan(plan, subscription.currentPlan);
@@ -224,6 +223,18 @@ function PlanAction({
         size="lg"
       >
         Текущий тариф
+      </Button>
+    );
+  }
+
+  if (!plan.checkoutEnabled && plan.priceRub > 0) {
+    return (
+      <Button
+        className="h-12 w-full items-center justify-center text-base leading-none"
+        disabled
+        size="lg"
+      >
+        {checkoutDisabledMessage}
       </Button>
     );
   }
@@ -241,20 +252,14 @@ function PlanAction({
     );
   }
 
-  const label = isPaidCurrentPlan(subscription)
-    ? `Улучшить до ${copy.shortTitle}`
-    : copy.cta;
-
   return (
-    <form action={startCheckoutAction}>
-      <input name="planId" type="hidden" value={plan.planId ?? plan.id} />
-      <Button
-        className="h-12 w-full items-center justify-center text-base leading-none"
-        size="lg"
-      >
-        {label}
-      </Button>
-    </form>
+    <Button
+      className="h-12 w-full items-center justify-center text-base leading-none"
+      disabled
+      size="lg"
+    >
+      {checkoutDisabledMessage}
+    </Button>
   );
 }
 

@@ -104,8 +104,16 @@ const discussionsData: TDiscussion[] = [
   },
 ];
 
-const avatarUrl = (seed: string) =>
-  `https://api.dicebear.com/9.x/glass/svg?seed=${seed}`;
+const avatarUrl = (seed: string) => {
+  const initials = seed.slice(0, 2).toUpperCase();
+  const hue = Array.from(seed).reduce(
+    (value, char) => value + char.charCodeAt(0),
+    0,
+  ) % 360;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="18" fill="hsl(${hue} 72% 90%)"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="hsl(${hue} 62% 30%)">${initials}</text></svg>`;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
 
 const usersData: Record<
   string,

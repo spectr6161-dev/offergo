@@ -24,9 +24,11 @@ export async function POST(request: Request) {
   try {
     const body = bodySchema.parse(await request.json());
     const result = await generateAiSpeech(body);
+    const payload =
+      result && typeof result === "object" ? result : { result };
 
     return Response.json({
-      ...result,
+      ...payload,
       latencyMs: getLatencyMs(startedAt),
     });
   } catch (error) {

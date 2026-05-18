@@ -390,13 +390,19 @@ function TrainingSection() {
         Обучение работе
       </h2>
 
-      <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-muted/50">
-        <video
-          className="aspect-video w-full bg-muted"
-          controls
-          preload="metadata"
-          src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
-        />
+      <div className="mx-auto flex aspect-video w-full max-w-5xl items-center justify-center overflow-hidden rounded-2xl border bg-muted/50">
+        <div className="flex flex-col items-center gap-3 text-center text-muted-foreground">
+          <div className="flex size-14 items-center justify-center rounded-full bg-background shadow-sm">
+            ▶
+          </div>
+          <div className="text-sm font-medium">
+            Локальный обучающий ролик будет добавлен в сборку приложения
+          </div>
+          <div className="max-w-md text-xs">
+            Сейчас блок не загружает видео с внешних серверов и не создаёт
+            сторонних сетевых запросов.
+          </div>
+        </div>
       </div>
 
       <Stepper

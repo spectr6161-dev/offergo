@@ -576,7 +576,7 @@ const markdownChunks = [
     {
       delay,
       texts:
-        'text](https://images.unsplash.com/photo-1712688930249-98e1963af7bd?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)\n\n',
+        'text](/window.svg)\n\n',
     },
     {
       delay,
@@ -746,7 +746,7 @@ const mdxChunks = [
     },
     {
       delay,
-      texts: 'links](https://en.wikipedia.org/wiki/Hypertext).\n\n',
+      texts: 'links](/legal/privacy-policy).\n\n',
     },
     {
       delay,
@@ -842,8 +842,7 @@ const mdxChunks = [
     },
     {
       delay,
-      texts:
-        '![](https://images.unsplash.com/photo-1712688930249-98e1963af7bd?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)\n\n',
+      texts: '![](/window.svg)\n\n',
     },
     {
       delay,
@@ -1428,7 +1427,7 @@ const mdxChunks = [
     {
       delay,
       texts:
-        'src="https://s26.q4cdn.com/900411403/files/doc_downloads/test.pdf" width="80%" isUpload="true" />\n\n',
+        'src="/downloads/sample.pdf" width="80%" isUpload="true" />\n\n',
     },
     {
       delay,
@@ -1489,7 +1488,7 @@ const mdxChunks = [
     {
       delay,
       texts:
-        'src="https://samplelib.com/lib/preview/mp3/sample-3s.mp3" width="80%" />\n\n',
+        'src="/downloads/sample.mp3" width="80%" />\n\n',
     },
     {
       delay,
@@ -1550,7 +1549,7 @@ const mdxChunks = [
     {
       delay,
       texts:
-        'src="https://videos.pexels.com/video-files/6769791/6769791-uhd_2560_1440_24fps.mp4" width="80%" isUpload="true" />',
+        'src="/downloads/sample.mp4" width="80%" isUpload="true" />',
     },
   ],
 ];

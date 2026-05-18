@@ -64,7 +64,7 @@ function validate(
   }
 
   if (!termsAccepted) {
-    errors.termsAccepted = "Подтвердите пользовательское соглашение.";
+    errors.termsAccepted = "Подтвердите публичную оферту.";
   }
 
   if (!privacyAccepted) {
@@ -96,7 +96,7 @@ function getLegalErrors(
   const errors: FieldErrors = {};
 
   if (!termsAccepted) {
-    errors.termsAccepted = "Подтвердите пользовательское соглашение.";
+    errors.termsAccepted = "Подтвердите публичную оферту.";
   }
 
   if (!privacyAccepted) {
@@ -348,11 +348,11 @@ export function RegisterForm() {
             >
               Я принимаю{" "}
               <Link
-                href="/terms"
+                href="/legal/offer"
                 className="text-white underline underline-offset-4 hover:text-white/80"
                 onClick={(event) => event.stopPropagation()}
               >
-                пользовательское соглашение
+                публичную оферту
               </Link>
             </FieldLabel>
             <FieldError>{errors.termsAccepted}</FieldError>
@@ -386,7 +386,7 @@ export function RegisterForm() {
             >
               Я согласен с{" "}
               <Link
-                href="/personal-data-consent"
+                href="/legal/personal-data-consent"
                 className="text-white underline underline-offset-4 hover:text-white/80"
                 onClick={(event) => event.stopPropagation()}
               >
@@ -394,7 +394,7 @@ export function RegisterForm() {
               </Link>{" "}
               и{" "}
               <Link
-                href="/privacy-policy"
+                href="/legal/privacy-policy"
                 className="text-white underline underline-offset-4 hover:text-white/80"
                 onClick={(event) => event.stopPropagation()}
               >

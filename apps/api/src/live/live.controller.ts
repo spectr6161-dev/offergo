@@ -41,13 +41,13 @@ const createSessionSchema = z.object({
     .enum(["default", "liveCoding"])
     .optional()
     .default("default"),
-  answerProvider: z.enum(["yandex", "gemini"]).optional().default("yandex"),
+  answerProvider: z.enum(["yandex"]).optional().default("yandex"),
 });
 
 const screenshotBodySchema = z.object({
   answerLength: z.enum(["short", "detailed"]).optional(),
   assistanceMode: z.enum(["default", "liveCoding"]).optional(),
-  answerProvider: z.enum(["yandex", "gemini"]).optional(),
+  answerProvider: z.enum(["yandex"]).optional(),
 });
 
 const supportedScreenshotMimeTypes = new Set([
@@ -72,21 +72,13 @@ export class LiveController {
       retentionDays: 30,
       screenshotMaxMb: env.LIVE_SCREENSHOT_MAX_MB,
       models: {
-        live: env.GEMINI_LIVE_MODEL,
-        generate: env.GEMINI_MODEL_TEXT,
-        geminiText: env.GEMINI_MODEL_TEXT,
         yandexText: env.YANDEX_MODEL_TEXT || YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL,
       },
       answerProviders: [
         {
           id: "yandex",
           label: "Yandex GPT",
-          note: "Текстовые и live-подсказки. Скриншоты в этой версии анализирует Gemini.",
-        },
-        {
-          id: "gemini",
-          label: "Gemini",
-          note: "Текстовые, live-подсказки и анализ скриншотов через Gemini.",
+          note: "Текстовые подсказки через российский AI-провайдер. Зарубежные AI-провайдеры отключены.",
         },
       ],
     };

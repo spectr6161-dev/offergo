@@ -59,6 +59,20 @@ const robotsContent = robots ?? (noIndexPaths.some((path) => currentPath.startsW
 const resolvedOgImage = ogImage ? toAbsoluteUrl(ogImage) : undefined;
 const extraJsonLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 const pageName = title.replace(/\s[-—|]\s*offerGO$/i, "");
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "media-src 'self' data: blob:",
+  "connect-src 'self' https://offergo.ru",
+  "frame-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://offergo.ru",
+  "upgrade-insecure-requests",
+].join("; ");
 const baseJsonLd = [
   {
     "@context": "https://schema.org",
@@ -124,6 +138,7 @@ const jsonLdItems = [...baseJsonLd, ...extraJsonLd];
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content={contentSecurityPolicy} />
     <meta name="theme-color" content="#F5F8FD" />
     <script is:inline>
       (() => {

@@ -15,6 +15,9 @@
     "baseUrl": ".",
     "paths": {
       "@offergo/shared": ["packages/shared/src/index.ts"],
+      "@offergo/shared/legal-documents": [
+        "packages/shared/src/legal-documents.ts"
+      ],
       "@offergo/db": ["packages/db/src/index.ts"],
       "@offergo/auth": ["packages/auth/src/index.ts"],
       "@offergo/auth/client": ["packages/auth/src/client.ts"],

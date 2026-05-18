@@ -3,7 +3,6 @@ import {
   appRoles,
   entitlementStatuses,
   paymentStatuses,
-  plategaStatusSchema,
 } from "@offergo/shared";
 
 export class AuthenticatedUserAccountDto {
@@ -147,7 +146,12 @@ export class MobileSignUpRequestDto {
     isArray: true,
     description:
       "IDs of all active required legal document versions shown to the user in the native app.",
-    example: ["clv_terms_id", "clv_privacy_id"],
+    example: [
+      "clv_offer_id",
+      "clv_privacy_id",
+      "clv_personal_data_consent_id",
+      "clv_cookie_id",
+    ],
   })
   acceptedDocumentIds!: string[];
 }
@@ -192,7 +196,12 @@ export class MobileSocialSignUpRequestDto extends MobileSocialSignInRequestDto {
     isArray: true,
     description:
       "IDs of all active required legal document versions shown to the user in the native app.",
-    example: ["clv_terms_id", "clv_privacy_id"],
+    example: [
+      "clv_offer_id",
+      "clv_privacy_id",
+      "clv_personal_data_consent_id",
+      "clv_cookie_id",
+    ],
   })
   acceptedDocumentIds!: string[];
 }
@@ -233,7 +242,12 @@ export class AcceptConsentsRequestDto {
     isArray: true,
     description:
       "Optional exact active legal document version IDs accepted by the client. If omitted, all active required documents are accepted for backward compatibility.",
-    example: ["clv_terms_id", "clv_privacy_id"],
+    example: [
+      "clv_offer_id",
+      "clv_privacy_id",
+      "clv_personal_data_consent_id",
+      "clv_cookie_id",
+    ],
   })
   documentIds?: string[];
 }
@@ -321,7 +335,7 @@ export class PaymentDto {
   @ApiProperty({ type: String })
   id!: string;
 
-  @ApiProperty({ type: String, example: "platega" })
+  @ApiProperty({ type: String, example: "payment_provider" })
   provider!: string;
 
   @ApiPropertyOptional({ type: String, nullable: true })
@@ -402,38 +416,6 @@ export class PaymentStatusResponseDto {
   providerSyncError?: string | null;
 }
 
-export class PlategaWebhookBodyDto {
-  @ApiProperty({ type: String, format: "uuid" })
-  id!: string;
-
-  @ApiProperty({ type: Number })
-  amount!: number;
-
-  @ApiProperty({ type: String, example: "RUB" })
-  currency!: string;
-
-  @ApiProperty({ type: String, enum: plategaStatusSchema.options })
-  status!: string;
-
-  @ApiProperty({
-    type: String,
-    oneOf: [{ type: "number" }, { type: "string" }],
-    example: 1,
-  })
-  paymentMethod!: number | string;
-}
-
-export class PlategaWebhookResponseDto {
-  @ApiProperty({ type: Boolean })
-  ok!: boolean;
-
-  @ApiProperty({ type: String, format: "uuid" })
-  transactionId!: string;
-
-  @ApiProperty({ type: String, enum: plategaStatusSchema.options })
-  status!: string;
-}
-
 export class HealthDependencyCheckDto {
   @ApiProperty({ type: Boolean })
   ok!: boolean;
@@ -463,7 +445,7 @@ export class HealthResponseDto {
   @ApiProperty({ type: [String], example: ["session", "bearer", "jwt"] })
   authModes!: string[];
 
-  @ApiProperty({ type: String, example: "platega" })
+  @ApiProperty({ type: String, example: "disabled" })
   billingProvider!: string;
 
   @ApiProperty({ type: String, format: "date-time" })

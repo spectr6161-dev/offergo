@@ -2,47 +2,39 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
   Param,
   Post,
-  Req,
+  ServiceUnavailableException,
   UseGuards,
 } from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiCreatedResponse,
   ApiCookieAuth,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiServiceUnavailableResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
-import type { Request } from "express";
-import { fromNodeHeaders } from "better-auth/node";
 import { z } from "zod";
 import {
   getUserPaymentStatus,
   getUsageOverview,
-  handleProviderWebhook,
   listActivePlans,
   listUserEntitlements,
   listUserPayments,
-  startCheckout,
 } from "@offergo/billing";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { ApiAuthGuard } from "../auth/auth.guard";
 import {
-  CheckoutResponseDto,
   EntitlementsResponseDto,
   PaymentsResponseDto,
   PaymentStatusResponseDto,
   PlansResponseDto,
-  PlategaWebhookBodyDto,
-  PlategaWebhookResponseDto,
   StartCheckoutBodyDto,
 } from "../docs/swagger.models";
 
@@ -141,17 +133,17 @@ export class BillingController {
   @Post("checkout")
   @UseGuards(ApiAuthGuard)
   @ApiOperation({
-    summary: "Запуск checkout через Platega",
+    summary: "Запуск покупки подписки",
+    description:
+      "Покупка подписки временно отключена до подключения нового банка.",
   })
   @ApiBearerAuth("bearer")
   @ApiCookieAuth("session")
   @ApiBody({
     type: StartCheckoutBodyDto,
   })
-  @ApiCreatedResponse({
-    description:
-      "Запускает checkout с ручным продлением и возвращает платёжную ссылку Platega.",
-    type: CheckoutResponseDto,
+  @ApiServiceUnavailableResponse({
+    description: "Функция покупки подписки пока недоступна.",
   })
   @ApiUnauthorizedResponse({
     description: "Отсутствуют или невалидны session/bearer credentials.",
@@ -165,12 +157,13 @@ export class BillingController {
     @Body() body: StartCheckoutBodyDto,
   ) {
     const parsed = startCheckoutSchema.parse(body);
-    const checkout = await startCheckout(user.id, parsed.planId);
+    void user;
+    void parsed;
 
-    return {
-      payment: checkout.payment,
-      paymentUrl: checkout.paymentUrl,
-    };
+    throw new ServiceUnavailableException({
+      code: "checkout_unavailable",
+      message: "Функция покупки подписки пока недоступна.",
+    });
   }
 
   @Get("payments/:paymentId/status")
@@ -187,7 +180,7 @@ export class BillingController {
   })
   @ApiOkResponse({
     description:
-      "Возвращает локальный статус платежа и при необходимости синхронизирует pending-статус с Platega.",
+      "Возвращает локальный статус платежа. Внешний платёжный провайдер временно отключён.",
     type: PaymentStatusResponseDto,
   })
   @ApiUnauthorizedResponse({
@@ -212,35 +205,6 @@ export class BillingController {
       paymentUrl: payment.paymentUrl,
       expiresAt: payment.expiresAt,
       providerSyncError,
-    };
-  }
-
-  @Post("platega")
-  @HttpCode(200)
-  @ApiOperation({
-    summary: "Обработка webhook callback от Platega",
-  })
-  @ApiBody({
-    type: PlategaWebhookBodyDto,
-  })
-  @ApiOkResponse({
-    description:
-      "Обрабатывает webhook callback от Platega и обновляет внутреннее состояние платежа.",
-    type: PlategaWebhookResponseDto,
-  })
-  async handlePlategaWebhook(
-    @Req() request: Request,
-    @Body() payload: unknown,
-  ) {
-    const callback = await handleProviderWebhook(
-      payload,
-      fromNodeHeaders(request.headers),
-    );
-
-    return {
-      ok: true,
-      transactionId: callback.id,
-      status: callback.status,
     };
   }
 }

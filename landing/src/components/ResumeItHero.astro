@@ -23,20 +23,21 @@ const directions = ["Frontend", "Backend", "Mobile", "QA", "DevOps", "Data/ML", 
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_16%_2%,rgba(48,236,255,0.44),transparent_26%),radial-gradient(circle_at_52%_-8%,rgba(121,210,255,0.2),transparent_30%),radial-gradient(circle_at_88%_88%,rgba(134,255,179,0.34),transparent_24%),linear-gradient(180deg,rgba(17,37,166,0.98)_0%,rgba(23,56,188,0.97)_50%,rgba(16,44,163,0.95)_100%)]"></div>
     </div>
 
-    <div class="relative z-10 mx-auto grid max-w-7xl justify-items-center">
+    <div class="relative z-10 mx-auto grid max-w-5xl justify-items-center">
       <h1
         id="resume-it-hero-title"
-        class="max-w-7xl text-balance font-sans text-[clamp(2.65rem,5vw,4.55rem)] font-semibold leading-[0.94] tracking-[-0.045em] text-white"
+        class="max-w-5xl text-balance font-sans text-[clamp(2.35rem,4.35vw,4.05rem)] font-semibold leading-[0.94] tracking-[-0.045em] text-white"
       >
         <span class="block">Хватит подавать заявки неделями</span>
-        <span class="relative z-0 mt-3 inline-block bg-[linear-gradient(90deg,#7dd3fc_0%,#f8fafc_28%,#a7f3d0_56%,#38bdf8_100%)] bg-clip-text text-[clamp(2.45rem,4.55vw,4.18rem)] tracking-[-0.045em] text-transparent drop-shadow-[0_18px_36px_rgba(56,189,248,0.28)] before:absolute before:inset-x-[8%] before:-bottom-2 before:-z-10 before:h-4 before:rounded-full before:bg-[linear-gradient(90deg,rgba(125,211,252,0)_0%,rgba(125,211,252,0.56)_38%,rgba(16,185,129,0.42)_68%,rgba(56,189,248,0)_100%)] before:blur-xl before:content-['']">
+        <span class="relative z-0 mt-3 inline-block bg-[linear-gradient(90deg,#82f3ff_0%,#bcffd8_48%,#f0fff8_100%)] bg-clip-text pb-[0.08em] text-[clamp(2.85rem,5.1vw,5rem)] font-semibold italic leading-[1.08] tracking-[-0.05em] text-transparent [font-family:Georgia,'Times_New_Roman',serif] before:absolute before:inset-x-[8%] before:-bottom-2 before:-z-10 before:h-4 before:rounded-full before:bg-[linear-gradient(90deg,rgba(125,211,252,0)_0%,rgba(125,211,252,0.56)_38%,rgba(16,185,129,0.42)_68%,rgba(56,189,248,0)_100%)] before:blur-xl before:content-['']">
           Начните получать собеседования за дни
         </span>
       </h1>
 
-      <p class="mt-6 max-w-5xl text-balance text-[clamp(0.98rem,1.35vw,1.16rem)] leading-7 text-blue-50/95">
-        offerGO находит подходящие вакансии, адаптирует резюме и сопроводительное письмо,
-        автоматически подает заявки и готовит вас — так вы быстро переходите от подачи к трудоустройству.
+      <p class="mt-6 max-w-4xl text-balance text-[clamp(0.95rem,1.18vw,1.08rem)] leading-[1.65] text-blue-50/95">
+        offerGO помогает собрать резюме, проверить его ИИ-анализом, подготовить сопроводительное письмо
+        под конкретную вакансию, найти IT-вакансии и подготовиться к собеседованию. Финальную отправку
+        отклика всегда подтверждаете вы.
       </p>
 
       <div class="mt-7 flex flex-col items-center justify-center gap-5 sm:flex-row">
@@ -64,7 +65,7 @@ const directions = ["Frontend", "Backend", "Mobile", "QA", "DevOps", "Data/ML", 
       </div>
 
       <div class="mt-8 grid justify-items-center gap-3">
-        <p class="m-0 text-sm font-semibold text-blue-100/70">Вас заметят лучшие команды в IT</p>
+        <p class="m-0 text-sm font-semibold text-blue-100/70">Для IT и смежных digital-направлений</p>
         <ul class="m-0 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 p-0 text-xl font-black tracking-[-0.04em] text-blue-100/45 sm:text-2xl" aria-label="Направления подготовки">
           {directions.map((direction) => <li class="list-none">{direction}</li>)}
         </ul>

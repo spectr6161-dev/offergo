@@ -65,7 +65,7 @@ export function useUploadFile({
       // toast.info('User not logged in. Mocking upload process.');
       const mockUploadedFile = {
         key: 'mock-key-0',
-        appUrl: `https://mock-app-url.com/${file.name}`,
+        appUrl: URL.createObjectURL(file),
         name: file.name,
         size: file.size,
         type: file.type,

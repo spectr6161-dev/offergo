@@ -144,11 +144,11 @@ export const mockResumeStudioData: ResumeStudioData = {
       articleLinks: [
         {
           title: "Как писать impact bullets в резюме",
-          href: "https://www.indeed.com/career-advice/resumes-cover-letters/resume-accomplishments",
+          href: "/resumes",
         },
         {
           title: "STAR-подход для достижений",
-          href: "https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/",
+          href: "/resumes",
         },
       ],
       replacementOptions: [
@@ -188,7 +188,7 @@ export const mockResumeStudioData: ResumeStudioData = {
       articleLinks: [
         {
           title: "Resume bullets: action + scope + impact",
-          href: "https://www.themuse.com/advice/185-powerful-verbs-that-will-make-your-resume-awesome",
+          href: "/resumes",
         },
       ],
       replacementOptions: [
@@ -222,7 +222,7 @@ export const mockResumeStudioData: ResumeStudioData = {
       articleLinks: [
         {
           title: "Leadership bullets in product resumes",
-          href: "https://www.productalliance.com/blog/product-manager-resume",
+          href: "/resumes",
         },
       ],
       replacementOptions: [
@@ -256,7 +256,7 @@ export const mockResumeStudioData: ResumeStudioData = {
       articleLinks: [
         {
           title: "Accomplishment statements",
-          href: "https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/",
+          href: "/resumes",
         },
       ],
       replacementOptions: [
@@ -290,7 +290,7 @@ export const mockResumeStudioData: ResumeStudioData = {
       articleLinks: [
         {
           title: "How to list skills on a resume",
-          href: "https://www.indeed.com/career-advice/resumes-cover-letters/best-resume-skills",
+          href: "/resumes",
         },
       ],
       replacementOptions: [
@@ -324,7 +324,7 @@ export const mockResumeStudioData: ResumeStudioData = {
       articleLinks: [
         {
           title: "Resume contact information best practices",
-          href: "https://www.indeed.com/career-advice/resumes-cover-letters/contact-information-on-resume",
+          href: "/resumes",
         },
       ],
       replacementOptions: [

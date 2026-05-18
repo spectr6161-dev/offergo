@@ -133,7 +133,8 @@ function getStateCopy(
 
   return {
     title: result === "success" ? "Проверяем оплату" : "Ожидаем оплату",
-    description: "Статус обновится автоматически после подтверждения Platega.",
+    description:
+      "Статус обновится после подключения нового платёжного провайдера.",
     Icon: ClockIcon,
     progress: 45,
     tone: "pending",

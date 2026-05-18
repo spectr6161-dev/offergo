@@ -50,7 +50,7 @@ function isProviderError(exception: unknown): exception is Error {
     return false;
   }
 
-  return /platega|gemini|telegram|provider|fetch failed|timeout|aborted/i.test(
+  return /gemini|telegram|provider|fetch failed|timeout|aborted/i.test(
     exception.message,
   );
 }

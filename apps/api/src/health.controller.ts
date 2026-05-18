@@ -84,7 +84,7 @@ export class HealthController {
       ok,
       app: "offergo-api",
       authModes: ["session", "bearer", "jwt"],
-      billingProvider: "platega",
+      billingProvider: "disabled",
       timestamp: checks.timestamp,
       apiUrl: env.API_URL,
       checks,

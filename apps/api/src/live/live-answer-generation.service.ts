@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
-import { GoogleGenAI } from "@google/genai";
 import {
   generateAiText,
   YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL,
@@ -41,26 +40,6 @@ type GenerateAnswerCallbacks = {
   onStart?: (answerId: string) => void | Promise<void>;
   onPartial?: (answerId: string, text: string) => void | Promise<void>;
 };
-
-function getGeminiClient() {
-  if (!env.GEMINI_API_KEY) {
-    return null;
-  }
-
-  return new GoogleGenAI({
-    apiKey: env.GEMINI_API_KEY,
-  });
-}
-
-function geminiModelList() {
-  return [
-    env.GEMINI_MODEL_TEXT,
-    ...env.GEMINI_GENERATE_FALLBACK_MODELS.split(","),
-  ]
-    .map((model) => model.trim())
-    .filter(Boolean)
-    .filter((model, index, list) => list.indexOf(model) === index);
-}
 
 function yandexModelId() {
   return env.YANDEX_MODEL_TEXT || YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL;
@@ -104,8 +83,6 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string) {
 
 @Injectable()
 export class LiveAnswerGenerationService {
-  private readonly ai = getGeminiClient();
-
   constructor(
     @Inject(LiveAiPromptService)
     private readonly liveAiPromptService: LiveAiPromptService,
@@ -249,53 +226,14 @@ export class LiveAnswerGenerationService {
     prompt: string,
     screenshot?: { bytes: Buffer; mimeType: string },
   ) {
-    if (!this.ai) {
-      return buildUnavailableAnswer(
-        "gemini",
-        new Error("GEMINI_API_KEY is not configured."),
-      );
-    }
+    void prompt;
+    void screenshot;
 
-    const parts: Array<Record<string, unknown>> = [{ text: prompt }];
-    let lastError: unknown;
-
-    if (screenshot) {
-      parts.push({
-        inlineData: {
-          mimeType: screenshot.mimeType,
-          data: screenshot.bytes.toString("base64"),
-        },
-      });
-    }
-
-    for (const model of geminiModelList()) {
-      try {
-        const response = await withTimeout(
-          this.ai.models.generateContent({
-            model,
-            contents: [
-              {
-                role: "user",
-                parts,
-              },
-            ],
-            config: {
-              temperature: 0.35,
-            },
-          }),
-          15_000,
-          `Gemini model ${model}`,
-        );
-        const text = response.text?.trim() || "";
-
-        if (text) {
-          return text;
-        }
-      } catch (error) {
-        lastError = error;
-      }
-    }
-
-    return buildUnavailableAnswer("gemini", lastError);
+    return buildUnavailableAnswer(
+      "gemini",
+      new Error(
+        "Gemini отключён: проект не выполняет запросы к зарубежным AI-провайдерам.",
+      ),
+    );
   }
 }

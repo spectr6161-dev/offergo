@@ -6,7 +6,7 @@ export async function GET() {
     ok: true,
     app: "offergo-web",
     automationEnabled: env.ENABLE_PLAYWRIGHT_AUTOMATION,
-    billingProvider: "platega",
+    billingProvider: "disabled",
     storageProvider: "s3-compatible",
     timestamp: new Date().toISOString(),
   });

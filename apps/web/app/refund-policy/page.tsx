@@ -1,10 +1,5 @@
-import type { Metadata } from "next";
-import { LegalDocumentPage } from "@/components/legal/legal-document-page";
-
-export const metadata: Metadata = {
-  title: "Политика возвратов",
-};
+import { redirect } from "next/navigation";
 
 export default function RefundPolicyPage() {
-  return <LegalDocumentPage slug="refund-policy" />;
+  redirect("/legal/refund-policy");
 }

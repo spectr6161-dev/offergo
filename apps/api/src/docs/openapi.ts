@@ -235,7 +235,7 @@ export function enhanceOpenApiDocument(document: OpenAPIObject) {
     {
       name: "billing",
       description:
-        "Тарифы, checkout, entitlements и обработка webhook от Platega.",
+        "Тарифы, entitlements и история платежей. Покупка подписки временно отключена до подключения нового банка.",
     },
     {
       name: "admin",

@@ -21,6 +21,7 @@ import {
 import type { Request } from "express";
 import { z } from "zod";
 import { prisma } from "@offergo/db";
+import { legalDocumentKindOrder } from "@offergo/shared";
 import { deleteResumeFileObject } from "../resumes/resume-storage";
 import { CurrentUser } from "../auth/current-user.decorator";
 import { ApiAuthGuard } from "../auth/auth.guard";
@@ -30,6 +31,7 @@ import {
   getConsentStatusForUser,
   requiredConsentKinds,
   toDocumentResponse,
+  toDocumentSummary,
 } from "./legal-consents";
 import {
   AcceptConsentsRequestDto,
@@ -59,14 +61,22 @@ export class LegalController {
     const documents = await prisma.legalDocumentVersion.findMany({
       where: {
         active: true,
-      },
-      orderBy: {
-        kind: "asc",
+        kind: {
+          in: [...legalDocumentKindOrder],
+        },
       },
     });
+    const order = new Map<string, number>(
+      legalDocumentKindOrder.map((kind, index) => [kind, index]),
+    );
 
     return {
-      items: documents.map(toDocumentResponse),
+      items: documents
+        .sort(
+          (left, right) =>
+            (order.get(left.kind) ?? 999) - (order.get(right.kind) ?? 999),
+        )
+        .map(toDocumentSummary),
       requiredConsentKinds,
     };
   }

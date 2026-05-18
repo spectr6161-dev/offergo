@@ -1,0 +1,224 @@
+import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import mammoth from "mammoth";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "..");
+const repositorySourceDir = path.join(repoRoot, "legal-documents", "source");
+const defaultExternalSourceDir = "C:\\Users\\Maxim\\Documents\\offergo_documents";
+const defaultSourceDir = existsSync(repositorySourceDir)
+  ? repositorySourceDir
+  : defaultExternalSourceDir;
+const sourceDir = process.env.LEGAL_DOCS_SOURCE_DIR || defaultSourceDir;
+const publicDir = path.join(
+  repoRoot,
+  "apps",
+  "web",
+  "public",
+  "legal-documents",
+);
+const generatedFile = path.join(
+  repoRoot,
+  "packages",
+  "shared",
+  "src",
+  "legal-documents.ts",
+);
+
+const version = "2026-05-19";
+
+const documents = [
+  {
+    kind: "privacy_policy",
+    slug: "privacy-policy",
+    title: "Политика обработки персональных данных",
+    summary:
+      "Порядок обработки, хранения и защиты персональных данных пользователей offerGO.",
+    sourceName:
+      "Политика_обработки_персональных_данных_offergo.ru_для_сайта_шаблон.docx",
+    docxFile: "privacy-policy.docx",
+    txtFile: "privacy-policy.txt",
+    required: true,
+  },
+  {
+    kind: "personal_data_consent",
+    slug: "personal-data-consent",
+    title: "Согласие на обработку персональных данных",
+    summary:
+      "Согласие пользователя на обработку персональных данных для работы сервиса.",
+    sourceName:
+      "Согласие_на_обработку_персональных_данных_offergo.ru_для_сайта_чистовая.docx",
+    docxFile: "personal-data-consent.docx",
+    txtFile: "personal-data-consent.txt",
+    required: true,
+  },
+  {
+    kind: "offer",
+    slug: "offer",
+    title: "Публичная оферта",
+    summary:
+      "Условия использования сервиса, тарифов, оплаты и предоставления доступа.",
+    sourceName: "Публичная_оферта_offergo.ru_для_сайта.docx",
+    docxFile: "offer.docx",
+    txtFile: "offer.txt",
+    required: true,
+  },
+  {
+    kind: "refund_policy",
+    slug: "refund-policy",
+    title: "Правила оплаты и возврата",
+    summary: "Правила оплаты услуг и порядок рассмотрения запросов на возврат.",
+    sourceName: "Правила_оплаты_и_возврата_offergo.ru_для_сайта.docx",
+    docxFile: "refund-policy.docx",
+    txtFile: "refund-policy.txt",
+    required: false,
+  },
+  {
+    kind: "cookie_policy",
+    slug: "cookie-policy",
+    title: "Политика использования cookie",
+    summary:
+      "Описание cookie, localStorage и аналогичных технологий на сайте offerGO.",
+    sourceName: "Политика_использования_cookie_offergo.ru_для_сайта.docx",
+    docxFile: "cookie-policy.docx",
+    txtFile: "cookie-policy.txt",
+    required: true,
+  },
+  {
+    kind: "requisites",
+    slug: "requisites",
+    title: "Реквизиты и контакты",
+    summary:
+      "Официальные реквизиты оператора, контакты и каналы связи по правовым вопросам.",
+    sourceName: "Реквизиты_и_контакты_offergo.ru_для_сайта.docx",
+    docxFile: "requisites.docx",
+    txtFile: "requisites.txt",
+    required: false,
+  },
+];
+
+function normalizeText(value) {
+  return value
+    .replace(/\r\n/g, "\n")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function pathExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function sync() {
+  await fs.mkdir(publicDir, { recursive: true });
+
+  const generatedDocuments = [];
+
+  for (const document of documents) {
+    const sourceCandidates = [document.sourceName, document.docxFile].map(
+      (fileName) => path.join(sourceDir, fileName),
+    );
+    let sourcePath = null;
+
+    for (const candidate of sourceCandidates) {
+      if (await pathExists(candidate)) {
+        sourcePath = candidate;
+        break;
+      }
+    }
+
+    const publicDocxPath = path.join(publicDir, document.docxFile);
+    const publicTxtPath = path.join(publicDir, document.txtFile);
+
+    if (sourcePath) {
+      await fs.copyFile(sourcePath, publicDocxPath);
+    } else if (!(await pathExists(publicDocxPath))) {
+      throw new Error(
+        `Legal document is missing: ${sourceCandidates.join(" or ")}. Set LEGAL_DOCS_SOURCE_DIR or commit ${publicDocxPath}.`,
+      );
+    }
+
+    const extracted = await mammoth.extractRawText({ path: publicDocxPath });
+    const content = normalizeText(extracted.value);
+
+    if (!content) {
+      throw new Error(`Extracted empty text from ${publicDocxPath}.`);
+    }
+
+    await fs.writeFile(publicTxtPath, `${content}\n`, "utf8");
+
+    generatedDocuments.push({
+      kind: document.kind,
+      slug: document.slug,
+      title: document.title,
+      summary: document.summary,
+      content,
+      docxFile: document.docxFile,
+      txtFile: document.txtFile,
+      required: document.required,
+    });
+  }
+
+  const fileContent = `// Generated by scripts/sync-legal-documents.mjs. Do not edit manually.
+
+export const legalDocumentVersion = ${JSON.stringify(version)};
+export const legalDocumentsPublicBasePath = "/legal-documents";
+
+export type LegalDocumentKindCode =
+  | "privacy_policy"
+  | "personal_data_consent"
+  | "offer"
+  | "refund_policy"
+  | "cookie_policy"
+  | "requisites";
+
+export type LegalDocumentDefinition = {
+  kind: LegalDocumentKindCode;
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  docxFile: string;
+  txtFile: string;
+  required: boolean;
+};
+
+export const legalDocumentDefinitions = ${JSON.stringify(
+    generatedDocuments,
+    null,
+    2,
+  )} as const satisfies readonly LegalDocumentDefinition[];
+
+export const legalDocumentKindOrder = legalDocumentDefinitions.map(
+  (document) => document.kind,
+);
+
+export const requiredLegalConsentKinds = legalDocumentDefinitions
+  .filter((document) => document.required)
+  .map((document) => document.kind);
+
+export function getLegalDocumentDefinitionBySlug(slug: string) {
+  return legalDocumentDefinitions.find((document) => document.slug === slug);
+}
+
+export function getLegalDocumentDefinitionByKind(kind: string) {
+  return legalDocumentDefinitions.find((document) => document.kind === kind);
+}
+`;
+
+  await fs.writeFile(generatedFile, fileContent, "utf8");
+}
+
+sync().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

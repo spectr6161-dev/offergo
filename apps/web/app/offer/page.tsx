@@ -1,10 +1,5 @@
-import type { Metadata } from "next";
-import { LegalDocumentPage } from "@/components/legal/legal-document-page";
-
-export const metadata: Metadata = {
-  title: "Публичная оферта",
-};
+import { redirect } from "next/navigation";
 
 export default function OfferPage() {
-  return <LegalDocumentPage slug="offer" />;
+  redirect("/legal/offer");
 }

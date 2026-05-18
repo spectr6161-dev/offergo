@@ -371,7 +371,7 @@ dotnet build wpf/TutorOverlay.Client/TutorOverlay.Client.csproj
 | Архитектура | [`docs/architecture.md`](./docs/architecture.md) |
 | Деплой | [`docs/deployment.md`](./docs/deployment.md) |
 | Workflow разработки | [`docs/development-workflow.md`](./docs/development-workflow.md) |
-| Billing | [`docs/billing-platega.md`](./docs/billing-platega.md) |
+| Billing | [`docs/billing.md`](./docs/billing.md) |
 
 ## Лицензия
 

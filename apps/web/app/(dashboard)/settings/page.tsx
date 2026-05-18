@@ -119,6 +119,18 @@ function formatMoney(value: number) {
   return `${value.toLocaleString("ru-RU")} ₽`;
 }
 
+function getUserInitials(user: Pick<WebAppUser, "email" | "name">) {
+  const source = user.name || user.email || "OfferGO";
+  const initials = source
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "OG";
+}
+
 function formatDate(value?: string | null) {
   if (!value) {
     return "—";
@@ -361,9 +373,7 @@ export default async function SettingsPage() {
   const activeEntitlement = getActiveEntitlement(entitlementsResult.items);
   const paymentRows = getPaymentRows(paymentsResult.items);
   const recentPayments = paymentRows.slice(0, 4);
-  const avatarUrl =
-    user.image ||
-    `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(user.id)}`;
+  const userInitials = getUserInitials(user);
   const planName = activeEntitlement?.plan.name ?? "Нет тарифа";
   const daysLeft = getDaysLeft(activeEntitlement?.endsAt);
 
@@ -378,12 +388,16 @@ export default async function SettingsPage() {
           <div className="relative mb-[14px] size-[128px]">
             <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_210deg,#ff5f6d,#d946ef,#4361ee,#ff5f6d)] p-[3px]">
               <div className="flex size-full items-center justify-center rounded-full bg-background p-[6px]">
-                <div className="flex size-[110px] items-center justify-center overflow-hidden rounded-full bg-[#fff1f4]">
-                  <img
-                    alt={user.name || "OfferGO avatar"}
-                    className="size-full object-cover"
-                    src={avatarUrl}
-                  />
+                <div className="flex size-[110px] items-center justify-center overflow-hidden rounded-full bg-sky-100 text-3xl font-semibold text-sky-700 dark:bg-sky-500/15 dark:text-sky-200">
+                  {user.image ? (
+                    <img
+                      alt={user.name || "OfferGO avatar"}
+                      className="size-full object-cover"
+                      src={user.image}
+                    />
+                  ) : (
+                    <span aria-hidden="true">{userInitials}</span>
+                  )}
                 </div>
               </div>
             </div>

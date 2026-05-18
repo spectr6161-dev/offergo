@@ -1,7 +1,5 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import {
   convertToModelMessages,
-  generateImage as generateSdkImage,
   generateText as generateSdkText,
   Output,
   streamText as streamSdkText,
@@ -12,8 +10,7 @@ import { z } from "zod";
 import { serializeAiError } from "./errors";
 import {
   AI_PLAYGROUND_DEFAULT_IMAGE_MODEL,
-  AI_PLAYGROUND_DEFAULT_TEXT_MODEL,
-  AI_PLAYGROUND_DEFAULT_TTS_MODEL,
+  YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL,
 } from "./model-catalog";
 import type {
   AiAudioTranscriptionInput,
@@ -44,53 +41,30 @@ const playgroundChatSystemPrompt = [
   "Use Russian by default unless the user asks for another language.",
 ].join(" ");
 
-const geminiRestTimeoutMs = 30 * 1000;
 const aiSdkGenerationTimeoutMs = 120 * 1000;
 
-async function fetchGeminiRest(input: string, init: RequestInit) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), geminiRestTimeoutMs);
-
-  try {
-    return await fetch(input, {
-      ...init,
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(
-        `Gemini REST request timeout after ${geminiRestTimeoutMs}ms`,
-      );
-    }
-
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-function getGoogleProvider() {
-  if (!env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is not configured.");
-  }
-
-  return createGoogleGenerativeAI({
-    apiKey: env.GEMINI_API_KEY,
-  });
+function assertYandexOnlyProvider(feature: string, modelId?: string): never {
+  throw new Error(
+    `${feature} через Google/Gemini отключён: проект настроен на использование российских AI-провайдеров без запросов к зарубежным серверам.${
+      modelId ? ` Запрошенная модель: ${modelId}.` : ""
+    }`,
+  );
 }
 
 function getTextModel(modelId?: AiTextInput["modelId"]) {
-  const selectedModel = modelId ?? env.GEMINI_MODEL_TEXT;
+  const selectedModel =
+    modelId ?? env.YANDEX_MODEL_TEXT ?? YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL;
 
   if (isYandexTextModelId(selectedModel)) {
     return getYandexTextModel(selectedModel);
   }
 
-  return getGoogleProvider()(selectedModel);
+  return assertYandexOnlyProvider("Генерация текста", selectedModel);
 }
 
 function getImageModel(modelId?: AiImageInput["modelId"]) {
-  return getGoogleProvider().image(
+  return assertYandexOnlyProvider(
+    "Генерация изображений",
     modelId ?? AI_PLAYGROUND_DEFAULT_IMAGE_MODEL,
   );
 }
@@ -103,8 +77,8 @@ export async function generateAiTextResult(input: string | AiTextInput) {
   const normalized = normalizeTextInput(input);
   const modelId =
     normalized.modelId ??
-    env.GEMINI_MODEL_TEXT ??
-    AI_PLAYGROUND_DEFAULT_TEXT_MODEL;
+    env.YANDEX_MODEL_TEXT ??
+    YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL;
   const result = await generateSdkText({
     model: getTextModel(modelId),
     prompt: normalized.prompt,
@@ -148,7 +122,9 @@ export async function generateAiObject<Schema extends z.ZodType>(
   input: AiObjectInput<Schema>,
 ) {
   const modelId =
-    input.modelId ?? env.GEMINI_MODEL_TEXT ?? AI_PLAYGROUND_DEFAULT_TEXT_MODEL;
+    input.modelId ??
+    env.YANDEX_MODEL_TEXT ??
+    YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL;
 
   if (isYandexTextModelId(modelId)) {
     const result = await generateSdkText({
@@ -328,132 +304,23 @@ function sanitizeStructuredJson(value: unknown): unknown {
 
 export async function generateAiImage(input: AiImageInput) {
   const modelId = input.modelId ?? AI_PLAYGROUND_DEFAULT_IMAGE_MODEL;
-  const result = await generateSdkImage({
-    model: getImageModel(modelId),
-    prompt: input.prompt,
-    aspectRatio: input.aspectRatio,
-  });
-
-  return {
-    imageBase64: result.image.base64,
-    mediaType: result.image.mediaType,
-    dataUrl: `data:${result.image.mediaType};base64,${result.image.base64}`,
-    modelId,
-    warnings: result.warnings,
-    responses: result.responses,
-  };
+  return getImageModel(modelId);
 }
 
 export async function transcribeAiAudio(input: AiAudioTranscriptionInput) {
   const modelId =
-    input.modelId ?? env.GEMINI_MODEL_TEXT ?? AI_PLAYGROUND_DEFAULT_TEXT_MODEL;
-  const result = await generateSdkText({
-    model: getTextModel(modelId),
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text:
-              input.prompt ??
-              "Transcribe this audio. Return only the transcript text.",
-          },
-          {
-            type: "file",
-            mediaType: input.mediaType,
-            data: input.audio,
-          },
-        ],
-      },
-    ],
-    timeout: aiSdkGenerationTimeoutMs,
-  });
+    input.modelId ??
+    env.YANDEX_MODEL_TEXT ??
+    YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL;
 
-  return {
-    text: result.text,
+  return assertYandexOnlyProvider(
+    "Аудиотранскрибация через Gemini",
     modelId,
-    finishReason: result.finishReason,
-    usage: result.usage,
-    warnings: result.warnings,
-  };
+  );
 }
 
 export async function generateAiSpeech(input: AiSpeechInput) {
-  if (!env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is not configured.");
-  }
-
-  const modelId = input.modelId ?? AI_PLAYGROUND_DEFAULT_TTS_MODEL;
-  const voiceName = input.voice ?? "Kore";
-  const response = await fetchGeminiRest(
-    `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: input.text,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName,
-              },
-            },
-          },
-        },
-        model: modelId,
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(
-      `Gemini TTS request failed: ${response.status} ${message.slice(0, 500)}`,
-    );
-  }
-
-  const payload = (await response.json()) as {
-    candidates?: Array<{
-      content?: {
-        parts?: Array<{
-          inlineData?: {
-            data?: string;
-            mimeType?: string;
-          };
-        }>;
-      };
-    }>;
-  };
-  const audioBase64 =
-    payload.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-
-  if (!audioBase64) {
-    throw new Error("Gemini TTS response did not include audio data.");
-  }
-
-  const wav = pcmBase64ToWavBase64(audioBase64);
-
-  return {
-    audioBase64: wav,
-    mediaType: "audio/wav",
-    dataUrl: `data:audio/wav;base64,${wav}`,
-    modelId,
-    voice: voiceName,
-  };
+  return assertYandexOnlyProvider("Озвучивание через Gemini", input.modelId);
 }
 
 function pcmBase64ToWavBase64(

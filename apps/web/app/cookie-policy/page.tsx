@@ -1,10 +1,5 @@
-import type { Metadata } from "next";
-import { LegalDocumentPage } from "@/components/legal/legal-document-page";
-
-export const metadata: Metadata = {
-  title: "Политика cookie",
-};
+import { redirect } from "next/navigation";
 
 export default function CookiePolicyPage() {
-  return <LegalDocumentPage slug="cookie-policy" />;
+  redirect("/legal/cookie-policy");
 }

@@ -188,6 +188,7 @@ enum LegalDocumentKind {
   offer
   refund_policy
   cookie_policy
+  requisites
 }
 
 enum PrivacyRequestKind {

@@ -78,7 +78,7 @@ export function CookieConsentBanner() {
           только с вашего согласия. Вы можете отказаться, и мы не будем
           использовать необязательные cookies для этого браузера. Подробнее в{" "}
           <Link
-            href="/cookie-policy"
+            href="/legal/cookie-policy"
             className="font-medium text-foreground underline underline-offset-4"
           >
             Политике cookie

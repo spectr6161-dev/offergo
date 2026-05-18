@@ -114,7 +114,7 @@ export function LegalAcceptClient({
               >
                 Я принимаю документ{" "}
                 <Link
-                  href={`/${document.slug}`}
+                  href={`/legal/${document.slug}`}
                   className="font-medium underline underline-offset-4"
                   target="_blank"
                 >

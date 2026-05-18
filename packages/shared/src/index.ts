@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
 import { z } from "zod";
 
+export * from "./legal-documents";
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(currentDir, "../../../");
 const envPath = path.join(workspaceRoot, ".env");
@@ -30,39 +32,6 @@ export type EntitlementStatus = (typeof entitlementStatuses)[number];
 
 export const trainerMessageRoles = ["system", "assistant", "user"] as const;
 export type TrainerMessageRole = (typeof trainerMessageRoles)[number];
-
-export const plategaStatusSchema = z.enum([
-  "PENDING",
-  "CONFIRMED",
-  "CANCELED",
-  "CHARGEBACK",
-  "CHARGEBACKED",
-]);
-
-export const plategaCallbackSchema = z.object({
-  id: z.string().uuid(),
-  amount: z.number(),
-  currency: z.string().min(1),
-  status: plategaStatusSchema,
-  paymentMethod: z.number().or(z.string()),
-});
-
-export const plategaTransactionStatusSchema = z
-  .object({
-    id: z.string().uuid(),
-    status: plategaStatusSchema,
-  })
-  .passthrough();
-
-export const createPaymentLinkResponseSchema = z.object({
-  transactionId: z.string().uuid(),
-  status: z.string(),
-  url: z.string().url().optional(),
-  redirect: z.string().url().optional(),
-  expiresIn: z.string().optional(),
-  rate: z.number().optional(),
-  usdtRate: z.number().optional(),
-});
 
 const envSchema = z.object({
   APP_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -125,17 +94,6 @@ const envSchema = z.object({
     .transform((value) => value === "true")
     .default(false),
   LEGAL_ALLOWED_EXTENSION_IDS: z.string().optional().default(""),
-  PLATEGA_BASE_URL: z.string().url().default("https://app.platega.io/"),
-  PLATEGA_MERCHANT_ID: z.string().optional().default(""),
-  PLATEGA_SECRET: z.string().optional().default(""),
-  PLATEGA_SUCCESS_URL: z
-    .string()
-    .url()
-    .default("http://localhost:3000/billing?status=success"),
-  PLATEGA_FAIL_URL: z
-    .string()
-    .url()
-    .default("http://localhost:3000/billing?status=fail"),
   S3_ENDPOINT: z.string().url().default("http://localhost:9000"),
   S3_REGION: z.string().min(1).default("us-east-1"),
   S3_ACCESS_KEY: z.string().min(1).default("minioadmin"),
@@ -146,7 +104,7 @@ const envSchema = z.object({
     .transform((value) => value === "true")
     .default(true),
   GEMINI_API_KEY: z.string().optional().default(""),
-  GEMINI_MODEL_TEXT: z.string().default("gemini-3.1-flash-lite-preview"),
+  GEMINI_MODEL_TEXT: z.string().default("yandex/aliceai-llm"),
   GEMINI_LIVE_MODEL: z.string().default("gemini-3.1-flash-live-preview"),
   GEMINI_LIVE_THINKING_LEVEL: z
     .enum(["minimal", "low", "medium", "high"])
@@ -154,7 +112,7 @@ const envSchema = z.object({
   GEMINI_GENERATE_FALLBACK_MODELS: z
     .string()
     .default(
-      "gemini-3.1-flash-lite-preview,gemini-2.5-flash,gemini-3.1-pro-preview",
+      "",
     ),
   LIVE_WEBSOCKET_PATH: z.string().default("/ws/live"),
   LIVE_SCREENSHOT_MAX_MB: z.coerce.number().default(6),
@@ -221,11 +179,6 @@ const parsedEnv = envSchema.parse({
   LEGAL_AI_PUBLIC_PROVIDER: process.env.LEGAL_AI_PUBLIC_PROVIDER,
   LEGAL_FISCALIZATION_CONFIRMED: process.env.LEGAL_FISCALIZATION_CONFIRMED,
   LEGAL_ALLOWED_EXTENSION_IDS: process.env.LEGAL_ALLOWED_EXTENSION_IDS,
-  PLATEGA_BASE_URL: process.env.PLATEGA_BASE_URL,
-  PLATEGA_MERCHANT_ID: process.env.PLATEGA_MERCHANT_ID,
-  PLATEGA_SECRET: process.env.PLATEGA_SECRET,
-  PLATEGA_SUCCESS_URL: process.env.PLATEGA_SUCCESS_URL,
-  PLATEGA_FAIL_URL: process.env.PLATEGA_FAIL_URL,
   S3_ENDPOINT: process.env.S3_ENDPOINT,
   S3_REGION: process.env.S3_REGION,
   S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
@@ -325,15 +278,6 @@ function validateProductionEnv(config: typeof parsedEnv) {
     );
   }
 
-  if (
-    !hasValue(config.PLATEGA_MERCHANT_ID) ||
-    !hasValue(config.PLATEGA_SECRET)
-  ) {
-    errors.push(
-      "PLATEGA_MERCHANT_ID and PLATEGA_SECRET are required in production.",
-    );
-  }
-
   if (new URL(config.APP_URL).protocol !== "https:") {
     errors.push("APP_URL must use HTTPS in production.");
   }
@@ -353,12 +297,6 @@ function validateProductionEnv(config: typeof parsedEnv) {
   ) {
     errors.push(
       "LEGAL_* operator details must be real non-placeholder values in production.",
-    );
-  }
-
-  if (!config.LEGAL_FISCALIZATION_CONFIRMED) {
-    errors.push(
-      "LEGAL_FISCALIZATION_CONFIRMED=true is required before production checkout.",
     );
   }
 

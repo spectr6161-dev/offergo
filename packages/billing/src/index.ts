@@ -6,17 +6,10 @@
   type PlanLimit,
   type UsageEventKind,
 } from "@offergo/db";
-import {
-  createPaymentLinkResponseSchema,
-  env,
-  plategaCallbackSchema,
-  plategaTransactionStatusSchema,
-  type PaymentStatus,
-} from "@offergo/shared";
-
-const checkoutTimeoutMs = 15 * 60 * 1000;
-const providerTimeoutMs = 10 * 1000;
 const freePlanCode = "free";
+const checkoutUnavailableMessage = "Функция покупки подписки пока недоступна.";
+
+export const billingCheckoutAvailable = false;
 
 export const billingFeatures = [
   "wpf_audio_seconds",
@@ -79,6 +72,22 @@ export class QuotaExceededError extends Error {
   }
 }
 
+export class CheckoutUnavailableError extends Error {
+  readonly code = "checkout_unavailable";
+  readonly statusCode = 503;
+
+  constructor() {
+    super(checkoutUnavailableMessage);
+  }
+
+  toResponse() {
+    return {
+      code: this.code,
+      message: checkoutUnavailableMessage,
+    };
+  }
+}
+
 export type UsageReservation = {
   userId: string;
   feature: BillingFeature;
@@ -97,117 +106,6 @@ type EffectivePlan = {
   periodStart: Date;
   periodEnd: Date;
 };
-
-function mapProviderStatus(
-  status: "PENDING" | "CONFIRMED" | "CANCELED" | "CHARGEBACK" | "CHARGEBACKED",
-): PaymentStatus {
-  switch (status) {
-    case "CONFIRMED":
-      return "confirmed";
-    case "CANCELED":
-      return "canceled";
-    case "CHARGEBACK":
-    case "CHARGEBACKED":
-      return "chargebacked";
-    default:
-      return "pending";
-  }
-}
-
-function addMilliseconds(date: Date, milliseconds: number) {
-  return new Date(date.getTime() + milliseconds);
-}
-
-function parseExpiresIn(expiresIn?: string) {
-  if (!expiresIn) {
-    return checkoutTimeoutMs;
-  }
-
-  const parts = expiresIn.split(":").map((part) => Number(part));
-
-  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) {
-    return checkoutTimeoutMs;
-  }
-
-  const [hours, minutes, seconds] = parts;
-  return ((hours * 60 + minutes) * 60 + seconds) * 1000;
-}
-
-function buildPaymentResultUrl(paymentId: string, status: "success" | "fail") {
-  const url = new URL("/billing", env.APP_URL);
-  url.searchParams.set("status", status);
-  url.searchParams.set("paymentId", paymentId);
-  return url.toString();
-}
-
-function getPaymentUrl(
-  parsed: ReturnType<typeof createPaymentLinkResponseSchema.parse>,
-) {
-  const paymentUrl = parsed.url ?? parsed.redirect;
-
-  if (!paymentUrl) {
-    throw new Error("Platega response does not contain payment url");
-  }
-
-  return paymentUrl;
-}
-
-async function fetchWithTimeout(input: URL, init: RequestInit = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), providerTimeoutMs);
-
-  try {
-    return await fetch(input, {
-      ...init,
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`Platega request timeout after ${providerTimeoutMs}ms`);
-    }
-
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function requestPaymentLink(
-  userId: string,
-  planId: string,
-  paymentId: string,
-  plan: { name: string; priceRub: number; durationDays: number },
-) {
-  const response = await fetchWithTimeout(
-    new URL("v2/transaction/process", env.PLATEGA_BASE_URL),
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-MerchantId": env.PLATEGA_MERCHANT_ID,
-        "X-Secret": env.PLATEGA_SECRET,
-      },
-      body: JSON.stringify({
-        paymentDetails: {
-          amount: plan.priceRub,
-          currency: "RUB",
-        },
-        description: `offerGO access: ${plan.name}`,
-        return: buildPaymentResultUrl(paymentId, "success"),
-        failedUrl: buildPaymentResultUrl(paymentId, "fail"),
-        payload: JSON.stringify({ userId, planId, paymentId }),
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Platega payment link creation failed with status ${response.status}`,
-    );
-  }
-
-  return createPaymentLinkResponseSchema.parse(await response.json());
-}
 
 type LockCapableClient = Pick<typeof prisma, "$executeRaw">;
 
@@ -680,228 +578,8 @@ export async function releaseQuotaReservation(
   });
 }
 
-export async function createPaymentLink(userId: string, planId: string) {
-  if (env.APP_ENV === "production" && !env.LEGAL_FISCALIZATION_CONFIRMED) {
-    throw new Error(
-      "Checkout is disabled until fiscalization is configured and confirmed.",
-    );
-  }
-
-  const checkout = await prisma.$transaction(async (tx) => {
-    const checkoutLockKey = `billing:checkout:${userId}:${planId}`;
-    await acquireTransactionLock(tx, checkoutLockKey);
-    const now = new Date();
-
-    const plan = await tx.plan.findFirstOrThrow({
-      where: {
-        id: planId,
-        active: true,
-      },
-    });
-
-    if (!plan.checkoutEnabled || plan.priceRub <= 0 || plan.durationDays <= 0) {
-      throw new Error("Invalid billing plan configuration");
-    }
-
-    const activeEntitlement = await tx.entitlement.findFirst({
-      where: {
-        userId,
-        status: "active",
-        startsAt: {
-          lte: now,
-        },
-        endsAt: {
-          gt: now,
-        },
-      },
-      include: {
-        plan: true,
-      },
-      orderBy: [
-        {
-          plan: {
-            rank: "desc",
-          },
-        },
-        {
-          endsAt: "desc",
-        },
-      ],
-    });
-
-    const currentPlan = activeEntitlement?.plan;
-    const hasPaidCurrentPlan =
-      currentPlan !== undefined &&
-      currentPlan.code !== freePlanCode &&
-      currentPlan.priceRub > 0;
-
-    if (currentPlan && hasPaidCurrentPlan && plan.rank <= currentPlan.rank) {
-      throw new Error("Selected plan is not an upgrade");
-    }
-
-    const checkoutAmountRub =
-      currentPlan &&
-      hasPaidCurrentPlan &&
-      plan.rank > currentPlan.rank &&
-      plan.priceRub > currentPlan.priceRub
-        ? plan.priceRub - currentPlan.priceRub
-        : plan.priceRub;
-
-    if (checkoutAmountRub <= 0) {
-      throw new Error("Invalid checkout amount");
-    }
-
-    await tx.payment.updateMany({
-      where: {
-        provider: "platega",
-        userId,
-        planId,
-        status: "pending",
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { lte: now } },
-          { amountRub: { not: checkoutAmountRub } },
-        ],
-      },
-      data: {
-        status: "expired",
-      },
-    });
-
-    const existingPendingPayment = await tx.payment.findFirst({
-      where: {
-        provider: "platega",
-        userId,
-        planId,
-        status: "pending",
-        amountRub: checkoutAmountRub,
-        expiresAt: { gt: now },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    if (existingPendingPayment?.paymentUrl) {
-      return {
-        plan,
-        payment: existingPendingPayment,
-        paymentUrl: existingPendingPayment.paymentUrl,
-        shouldRequestProviderLink: false,
-      };
-    }
-
-    const payment = await tx.payment.create({
-      data: {
-        provider: "platega",
-        userId,
-        planId,
-        amountRub: checkoutAmountRub,
-        currency: "RUB",
-        status: "pending",
-        expiresAt: addMilliseconds(now, checkoutTimeoutMs),
-      },
-    });
-
-    return {
-      plan,
-      payment,
-      paymentUrl: null,
-      shouldRequestProviderLink: true,
-    };
-  });
-
-  if (!checkout.shouldRequestProviderLink && checkout.paymentUrl) {
-    return {
-      payment: checkout.payment,
-      paymentUrl: checkout.paymentUrl,
-    };
-  }
-
-  try {
-    const parsed = await requestPaymentLink(
-      userId,
-      planId,
-      checkout.payment.id,
-      {
-        ...checkout.plan,
-        priceRub: checkout.payment.amountRub,
-      },
-    );
-    const paymentUrl = getPaymentUrl(parsed);
-    const expiresAt = addMilliseconds(
-      new Date(),
-      parseExpiresIn(parsed.expiresIn),
-    );
-
-    const paymentData = {
-      providerTransactionId: parsed.transactionId,
-      paymentUrl,
-      providerPayload: parsed,
-      expiresAt,
-    };
-
-    const payment = await prisma.payment.update({
-      where: {
-        id: checkout.payment.id,
-      },
-      data: paymentData,
-    });
-
-    return {
-      payment,
-      paymentUrl,
-    };
-  } catch (error) {
-    await prisma.payment.update({
-      where: {
-        id: checkout.payment.id,
-      },
-      data: {
-        status: "canceled",
-        canceledAt: new Date(),
-      },
-    });
-
-    throw error;
-  }
-}
-
-export async function getTransactionStatus(transactionId: string) {
-  const response = await fetchWithTimeout(
-    new URL(`transaction/${transactionId}`, env.PLATEGA_BASE_URL),
-    {
-      headers: {
-        "X-MerchantId": env.PLATEGA_MERCHANT_ID,
-        "X-Secret": env.PLATEGA_SECRET,
-      },
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Platega status request failed with status ${response.status}`,
-    );
-  }
-
-  const payload = await response.json();
-  return plategaTransactionStatusSchema.parse(payload);
-}
-
-export function verifyWebhook(headers: Headers, payload: unknown) {
-  const merchantId = headers.get("x-merchantid");
-  const secret = headers.get("x-secret");
-
-  if (!merchantId || !secret) {
-    throw new Error("Missing Platega headers");
-  }
-
-  if (merchantId !== env.PLATEGA_MERCHANT_ID || secret !== env.PLATEGA_SECRET) {
-    throw new Error("Invalid Platega credentials");
-  }
-
-  return plategaCallbackSchema.parse(payload);
+export async function createPaymentLink(_userId: string, _planId: string) {
+  throw new CheckoutUnavailableError();
 }
 
 export async function grantEntitlement(
@@ -931,77 +609,6 @@ export async function handlePaymentConfirmed(transactionId: string) {
       where: { providerTransactionId: transactionId },
       include: { plan: true },
     });
-
-    if (payment.status === "chargebacked") {
-      return payment;
-    }
-
-    const updated =
-      payment.status === "confirmed"
-        ? payment
-        : await tx.payment.update({
-            where: { id: payment.id },
-            data: {
-              status: "confirmed",
-              confirmedAt: new Date(),
-            },
-          });
-
-    const { startsAt, endsAt } = buildEntitlementWindow(
-      payment.plan.durationDays,
-    );
-
-    await tx.entitlement.upsert({
-      where: {
-        sourcePaymentId: payment.id,
-      },
-      update: {},
-      create: {
-        userId: payment.userId,
-        planId: payment.planId,
-        startsAt,
-        endsAt,
-        sourcePaymentId: payment.id,
-      },
-    });
-
-    return updated;
-  });
-}
-
-function verifyPaymentAmountAndCurrency(
-  payment: { amountRub: number; currency: string },
-  expected?: { amount: number; currency: string },
-) {
-  if (!expected) {
-    return;
-  }
-
-  const expectedAmount = Math.round(expected.amount);
-
-  if (
-    payment.amountRub !== expectedAmount ||
-    payment.currency.toUpperCase() !== expected.currency.toUpperCase()
-  ) {
-    throw new Error(
-      `Platega webhook amount mismatch: expected ${payment.amountRub} ${payment.currency}, received ${expected.amount} ${expected.currency}`,
-    );
-  }
-}
-
-export async function handlePaymentConfirmedWithProviderPayload(
-  transactionId: string,
-  expected?: { amount: number; currency: string },
-) {
-  return prisma.$transaction(async (tx) => {
-    await acquireTransactionLock(tx, `billing:webhook:${transactionId}`);
-
-    const payment = await tx.payment.findUniqueOrThrow({
-      where: { providerTransactionId: transactionId },
-      include: { plan: true },
-    });
-
-    verifyPaymentAmountAndCurrency(payment, expected);
 
     if (payment.status === "chargebacked") {
       return payment;
@@ -1128,52 +735,6 @@ export async function getUserPaymentStatus(userId: string, paymentId: string) {
     };
   }
 
-  if (!payment.providerTransactionId) {
-    return {
-      payment,
-      providerSyncError,
-    };
-  }
-
-  try {
-    const providerStatus = await getTransactionStatus(
-      payment.providerTransactionId,
-    );
-    const status = mapProviderStatus(providerStatus.status);
-
-    if (status === "confirmed") {
-      await handlePaymentConfirmed(payment.providerTransactionId);
-    }
-
-    if (status === "canceled") {
-      await handlePaymentCanceled(payment.providerTransactionId);
-    }
-
-    if (status === "chargebacked") {
-      await handleChargeback(payment.providerTransactionId);
-    }
-
-    if (status !== "pending") {
-      payment = await prisma.payment.findFirstOrThrow({
-        where: {
-          id: paymentId,
-          userId,
-        },
-        include: {
-          plan: true,
-        },
-      });
-    }
-  } catch (error) {
-    providerSyncError =
-      error instanceof Error ? error.message : "Failed to sync provider status";
-
-    return {
-      payment,
-      providerSyncError,
-    };
-  }
-
   if (payment.status === "pending" && payment.expiresAt) {
     if (payment.expiresAt.getTime() <= Date.now()) {
       return {
@@ -1206,7 +767,7 @@ export async function expireEntitlements() {
 }
 
 export async function listActivePlans() {
-  return prisma.plan.findMany({
+  const plans = await prisma.plan.findMany({
     where: {
       active: true,
     },
@@ -1232,6 +793,11 @@ export async function listActivePlans() {
       },
     ],
   });
+
+  return plans.map((plan) => ({
+    ...plan,
+    checkoutEnabled: billingCheckoutAvailable && plan.checkoutEnabled,
+  }));
 }
 
 export async function listUserEntitlements(userId: string) {
@@ -1265,30 +831,4 @@ export async function listUserPayments(userId: string) {
 
 export async function startCheckout(userId: string, planId: string) {
   return createPaymentLink(userId, planId);
-}
-
-export async function handleProviderWebhook(
-  payload: unknown,
-  headers: Headers,
-) {
-  const callback = verifyWebhook(headers, payload);
-
-  switch (mapProviderStatus(callback.status)) {
-    case "confirmed":
-      await handlePaymentConfirmedWithProviderPayload(callback.id, {
-        amount: callback.amount,
-        currency: callback.currency,
-      });
-      break;
-    case "canceled":
-      await handlePaymentCanceled(callback.id);
-      break;
-    case "chargebacked":
-      await handleChargeback(callback.id);
-      break;
-    default:
-      break;
-  }
-
-  return callback;
 }

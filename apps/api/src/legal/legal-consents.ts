@@ -1,14 +1,13 @@
 import { UnprocessableEntityException } from "@nestjs/common";
 import type { Request } from "express";
 import { prisma } from "@offergo/db";
+import {
+  getLegalDocumentDefinitionBySlug,
+  legalDocumentsPublicBasePath,
+  requiredLegalConsentKinds,
+} from "@offergo/shared";
 
-export const requiredConsentKinds = [
-  "terms",
-  "privacy_policy",
-  "personal_data_consent",
-  "offer",
-  "cookie_policy",
-] as const;
+export const requiredConsentKinds = requiredLegalConsentKinds;
 
 export type LegalDocumentSummary = {
   id: string;
@@ -20,6 +19,19 @@ export type LegalDocumentSummary = {
   active: boolean;
   publishedAt: string;
 };
+
+function getDownloadUrls(slug: string) {
+  const definition = getLegalDocumentDefinitionBySlug(slug);
+
+  if (!definition) {
+    return null;
+  }
+
+  return {
+    docx: `${legalDocumentsPublicBasePath}/${definition.docxFile}`,
+    txt: `${legalDocumentsPublicBasePath}/${definition.txtFile}`,
+  };
+}
 
 function getClientIp(request: Request) {
   const forwardedFor = request.headers["x-forwarded-for"];
@@ -82,6 +94,7 @@ export function toDocumentResponse(document: {
     content: document.content,
     active: document.active,
     publishedAt: document.publishedAt.toISOString(),
+    downloads: getDownloadUrls(document.slug),
   };
 }
 

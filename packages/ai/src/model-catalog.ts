@@ -13,12 +13,14 @@
  *   Nano Banana 2 (`gemini-3.1-flash-image-preview`), Gemini 3.1 Flash TTS.
  */
 
-export const AI_PLAYGROUND_DEFAULT_TEXT_MODEL = "gemini-3.1-pro-preview";
-export const AI_PLAYGROUND_FAST_TEXT_MODEL = "gemini-3-flash-preview";
-export const AI_PLAYGROUND_CHEAP_TEXT_MODEL = "gemini-3.1-flash-lite-preview";
 export const YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL = "yandex/aliceai-llm";
 export const YANDEX_AI_STUDIO_PRO_TEXT_MODEL = "yandex/yandexgpt-5.1";
 export const YANDEX_AI_STUDIO_FAST_TEXT_MODEL = "yandex/yandexgpt-5-lite";
+export const AI_PLAYGROUND_DEFAULT_TEXT_MODEL =
+  YANDEX_AI_STUDIO_DEFAULT_TEXT_MODEL;
+export const AI_PLAYGROUND_FAST_TEXT_MODEL = YANDEX_AI_STUDIO_FAST_TEXT_MODEL;
+export const AI_PLAYGROUND_CHEAP_TEXT_MODEL =
+  YANDEX_AI_STUDIO_FAST_TEXT_MODEL;
 export const AI_PLAYGROUND_DEFAULT_IMAGE_MODEL =
   "gemini-3.1-flash-image-preview";
 export const AI_PLAYGROUND_DEFAULT_TTS_MODEL = "gemini-3.1-flash-tts-preview";

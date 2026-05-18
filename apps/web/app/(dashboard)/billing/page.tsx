@@ -65,6 +65,7 @@ async function syncReturnedPayment(paymentId?: string) {
 export default async function BillingPage({ searchParams }: BillingPageProps) {
   const query = await searchParams;
   await syncReturnedPayment(query.paymentId);
+  const checkoutUnavailable = query.status === "checkout_unavailable";
 
   const [plansResult, subscriptionResult] = await Promise.all([
     getBillingPlans(),
@@ -84,10 +85,20 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           Не удалось загрузить тарифы: {error}
         </div>
       ) : (
-        <PricingSection
-          plans={plansResult.items}
-          subscription={subscriptionResult}
-        />
+        <div className="flex w-full flex-col gap-4">
+          {checkoutUnavailable ? (
+            <div
+              className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm font-medium text-foreground"
+              role="status"
+            >
+              Функция покупки подписки пока недоступна.
+            </div>
+          ) : null}
+          <PricingSection
+            plans={plansResult.items}
+            subscription={subscriptionResult}
+          />
+        </div>
       )}
     </main>
   );
