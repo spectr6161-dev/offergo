@@ -116,6 +116,10 @@ jobs:
           GHCR_TOKEN="$(printf '%s' "$GHCR_TOKEN_B64" | base64 -d)"
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
+          docker container prune -f || true
+          docker builder prune -af || true
+          docker image prune -af || true
+
           export LANDING_IMAGE
           sh scripts/project.sh deploy-landing-image
           docker image prune -f --filter "until=168h" || true
