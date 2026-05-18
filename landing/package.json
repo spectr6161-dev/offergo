@@ -12,6 +12,7 @@
     "@astrojs/node": "^10.0.5",
     "@astrojs/react": "^5.0.3",
     "@floating-ui/dom": "1.7.6",
+    "@tailwindcss/vite": "^4.3.0",
     "@tiptap/extension-highlight": "^3.22.3",
     "@tiptap/extension-text-align": "^3.22.3",
     "@tiptap/extension-underline": "^3.22.3",
@@ -24,6 +25,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "sass": "^1.99.0",
+    "tailwindcss": "^4.3.0",
     "webcoreui": "^1.4.0"
   },
   "devDependencies": {

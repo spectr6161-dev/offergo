@@ -1,0 +1,40 @@
+---
+import { resumeItFaqItems } from "@/data/resume-it-faq";
+---
+
+<section
+  class="bg-[#f3f3f2] px-5 py-10 text-slate-950 dark:bg-[#03050a] dark:text-white sm:px-7 sm:py-12 lg:py-14"
+  aria-labelledby="resume-it-faq-title"
+>
+  <div class="mx-auto w-full max-w-[1300px]">
+    <h2
+      id="resume-it-faq-title"
+      class="text-center text-[clamp(1.9rem,2.8vw,3.1rem)] font-semibold leading-[1.04] tracking-[-0.055em]"
+    >
+      Частые вопросы
+    </h2>
+
+    <div class="mx-auto mt-16 max-w-[1120px] space-y-2.5 lg:mt-20">
+      {
+        resumeItFaqItems.map((item) => (
+          <details class="group overflow-hidden rounded-[15px] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.035)] ring-1 ring-slate-900/5 transition duration-200 open:shadow-[0_16px_36px_rgba(15,23,42,0.06)] dark:bg-slate-950/92 dark:ring-white/10 dark:open:shadow-[0_16px_36px_rgba(2,132,199,0.08)]">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-5 px-5 py-4 text-[1rem] font-semibold leading-snug text-slate-950 outline-none transition hover:text-sky-700 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 dark:text-white dark:hover:text-sky-200 [&::-webkit-details-marker]:hidden sm:px-6">
+              <span>{item.question}</span>
+              <svg
+                class="size-4 shrink-0 text-slate-700 transition duration-200 group-open:rotate-180 dark:text-slate-300"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+              </svg>
+            </summary>
+            <div class="px-5 pb-5 pr-12 text-[0.95rem] leading-relaxed text-slate-700 dark:text-slate-300 sm:px-6 sm:pr-16">
+              {item.answer}
+            </div>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>

@@ -1,415 +1,74 @@
 ---
-import BrandWordmark from "@/components/BrandWordmark.astro";
-
 const avatars = [
-  { label: "JS", tone: "blue" },
-  { label: "FL", tone: "sky" },
-  { label: "BE", tone: "dark" },
-  { label: "TS", tone: "cyan" },
+  { label: "FE", className: "bg-gradient-to-br from-cyan-300 to-blue-500 text-white" },
+  { label: "FL", className: "bg-gradient-to-br from-sky-200 to-emerald-400 text-slate-950" },
+  { label: "BE", className: "bg-gradient-to-br from-white to-blue-100 text-blue-950" },
 ];
 
-const logos = ["React", "Flutter", "Backend", "TypeScript", "Node.js"];
+const directions = ["Frontend", "Backend", "Mobile", "QA", "DevOps", "Data/ML", "Product", "UX/UI"];
 ---
 
-<section class="resume-it-hero" aria-labelledby="resume-it-hero-title">
-  <div class="resume-it-hero__surface">
-    <nav class="resume-it-hero__nav" aria-label="Навигация страницы резюме">
-      <BrandWordmark size="md" href="/promo" class="resume-it-hero__brand" />
+<section class="px-5 pt-[calc(var(--header)+8px)] pb-6 sm:px-7" aria-labelledby="resume-it-hero-title">
+  <div
+    class="relative mx-auto flex min-h-[calc(100svh-var(--header)-32px)] w-full max-w-[1880px] items-center justify-center overflow-hidden rounded-[40px] bg-[#1838b7] px-5 py-10 text-center shadow-[0_34px_110px_rgba(7,19,71,0.44)] sm:px-8 lg:px-12"
+  >
+    <div class="pointer-events-none absolute inset-0">
+      <div class="absolute -left-[12%] -top-[4%] h-[34vw] w-[30vw] rounded-full bg-[radial-gradient(circle,rgba(33,238,255,0.9)_0%,rgba(33,238,255,0.4)_38%,transparent_72%)] blur-[54px]"></div>
+      <div class="absolute left-1/2 -top-[24%] h-[24vw] w-[36vw] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(200,236,255,0.32)_0%,rgba(200,236,255,0.12)_42%,transparent_80%)] blur-[54px]"></div>
+      <div class="absolute -right-[12%] -bottom-[16%] h-[24vw] w-[34vw] rounded-full bg-[radial-gradient(circle,rgba(149,255,177,0.64)_0%,rgba(149,255,177,0.22)_42%,transparent_74%)] blur-[54px]"></div>
+      <div class="absolute -right-[16%] -bottom-[24%] h-[26vw] w-[42vw] rounded-full border-[48px] border-emerald-200/30 blur-[14px]"></div>
+      <div
+        class="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.1)_1px,transparent_0),linear-gradient(180deg,rgba(219,245,255,0.1),transparent_26%),linear-gradient(90deg,transparent_0_56%,rgba(77,245,255,0.12)_72%,transparent_88%)] bg-[length:26px_26px,100%_100%,100%_100%] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.98),rgba(0,0,0,0.94)_76%,rgba(0,0,0,0.7))]"
+      ></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_16%_2%,rgba(48,236,255,0.44),transparent_26%),radial-gradient(circle_at_52%_-8%,rgba(121,210,255,0.2),transparent_30%),radial-gradient(circle_at_88%_88%,rgba(134,255,179,0.34),transparent_24%),linear-gradient(180deg,rgba(17,37,166,0.98)_0%,rgba(23,56,188,0.97)_50%,rgba(16,44,163,0.95)_100%)]"></div>
+    </div>
 
-      <div class="resume-it-hero__nav-actions">
-        <span class="resume-it-hero__language" aria-label="Русский язык">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M3 12h18M12 3a13.6 13.6 0 0 1 0 18M12 3a13.6 13.6 0 0 0 0 18" />
-          </svg>
-          RU
+    <div class="relative z-10 mx-auto grid max-w-7xl justify-items-center">
+      <h1
+        id="resume-it-hero-title"
+        class="max-w-7xl text-balance font-sans text-[clamp(2.65rem,5vw,4.55rem)] font-semibold leading-[0.94] tracking-[-0.045em] text-white"
+      >
+        <span class="block">Хватит подавать заявки неделями</span>
+        <span class="relative z-0 mt-3 inline-block bg-[linear-gradient(90deg,#7dd3fc_0%,#f8fafc_28%,#a7f3d0_56%,#38bdf8_100%)] bg-clip-text text-[clamp(2.45rem,4.55vw,4.18rem)] tracking-[-0.045em] text-transparent drop-shadow-[0_18px_36px_rgba(56,189,248,0.28)] before:absolute before:inset-x-[8%] before:-bottom-2 before:-z-10 before:h-4 before:rounded-full before:bg-[linear-gradient(90deg,rgba(125,211,252,0)_0%,rgba(125,211,252,0.56)_38%,rgba(16,185,129,0.42)_68%,rgba(56,189,248,0)_100%)] before:blur-xl before:content-['']">
+          Начните получать собеседования за дни
         </span>
-        <a class="resume-it-hero__tools" href="/promo/interview-assistant">AI-инструменты</a>
-        <a class="resume-it-hero__panel" href="https://offergo.ru/dashboard">Панель</a>
-      </div>
-    </nav>
-
-    <div class="resume-it-hero__center reveal">
-      <h1 id="resume-it-hero-title" class="resume-it-hero__title">
-        <span>Хватит отправлять резюме</span>
-        <span>неделями</span>
-        <strong>
-          <span>Начните получать</span>
-          <span>собеседования за дни</span>
-        </strong>
       </h1>
 
-      <p class="resume-it-hero__description">
-        offerGO проверяет резюме IT-специалиста, усиливает резюме программиста под React, Flutter и Backend
-        вакансии, помогает подготовить отклик и быстрее перейти к IT-собеседованию.
+      <p class="mt-6 max-w-5xl text-balance text-[clamp(0.98rem,1.35vw,1.16rem)] leading-7 text-blue-50/95">
+        offerGO находит подходящие вакансии, адаптирует резюме и сопроводительное письмо,
+        автоматически подает заявки и готовит вас — так вы быстро переходите от подачи к трудоустройству.
       </p>
 
-      <div class="resume-it-hero__conversion" aria-label="Начать проверку резюме">
-        <a class="resume-it-hero__button" href="https://offergo.ru/resumes">
+      <div class="mt-7 flex flex-col items-center justify-center gap-5 sm:flex-row">
+        <a
+          class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full !bg-white px-8 text-base font-extrabold !text-blue-700 shadow-[0_18px_40px_rgba(8,18,70,0.24)] transition hover:-translate-y-0.5 hover:!bg-blue-50 dark:!bg-white dark:!text-blue-700 dark:hover:!bg-blue-50 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-cyan-200"
+          href="https://offergo.ru/resumes"
+        >
           <span>Начать</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M5 10h9m0 0-3.25-3.25M14 10l-3.25 3.25" />
-          </svg>
+          <span aria-hidden="true">→</span>
         </a>
 
-        <div class="resume-it-hero__avatars" aria-hidden="true">
-          {avatars.map((avatar) => <span data-tone={avatar.tone}>{avatar.label}</span>)}
-        </div>
-
-        <div class="resume-it-hero__trust">
-          <div class="resume-it-hero__stars" aria-hidden="true">★★★★★</div>
-          <p>Доверяют 1 000+ пользователей</p>
+        <div class="flex items-center gap-3 text-left">
+          <div class="flex -space-x-3" aria-hidden="true">
+            {avatars.map((avatar) => (
+              <span class:list={["grid size-10 place-items-center rounded-full border-2 border-white/90 text-[0.68rem] font-black tracking-wider shadow-lg", avatar.className]}>
+                {avatar.label}
+              </span>
+            ))}
+          </div>
+          <div>
+            <div class="text-sm font-black tracking-[0.1em] text-amber-300" aria-hidden="true">★★★★★</div>
+            <p class="m-0 text-sm font-semibold text-blue-50/85">Доверяют 1 000+ пользователей</p>
+          </div>
         </div>
       </div>
 
-      <div class="resume-it-hero__companies" aria-label="Направления и технологии">
-        <p>Подготовка резюме и откликов для IT-направлений</p>
-        <ul>
-          {logos.map((logo) => <li>{logo}</li>)}
+      <div class="mt-8 grid justify-items-center gap-3">
+        <p class="m-0 text-sm font-semibold text-blue-100/70">Вас заметят лучшие команды в IT</p>
+        <ul class="m-0 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 p-0 text-xl font-black tracking-[-0.04em] text-blue-100/45 sm:text-2xl" aria-label="Направления подготовки">
+          {directions.map((direction) => <li class="list-none">{direction}</li>)}
         </ul>
       </div>
     </div>
   </div>
 </section>
-
-<style>
-  .resume-it-hero {
-    min-height: 100vh;
-    overflow: hidden;
-    background: #f7f7f5;
-  }
-
-  :root[data-theme="dark"] .resume-it-hero {
-    background: #f7f7f5;
-  }
-
-  .resume-it-hero__surface {
-    position: relative;
-    width: 100%;
-    min-height: 714px;
-    overflow: hidden;
-    border-radius: 0 0 360px 360px;
-    background:
-      radial-gradient(circle at 9% 16%, rgba(211, 188, 255, 0.72) 0%, transparent 28%),
-      radial-gradient(circle at 82% 14%, rgba(186, 218, 255, 0.42) 0%, transparent 29%),
-      linear-gradient(103deg, #e6d2fb 0%, #ead3f1 43%, #f9c7da 100%);
-    color: #050505;
-  }
-
-  .resume-it-hero__surface::before {
-    position: absolute;
-    right: -24vw;
-    bottom: -34vw;
-    width: 78vw;
-    height: 78vw;
-    border-radius: 999px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.14) 33%, transparent 66%);
-    content: "";
-    pointer-events: none;
-  }
-
-  .resume-it-hero__nav {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: calc(100% - 86px);
-    margin-inline: auto;
-    padding-top: 34px;
-  }
-
-  .resume-it-hero__brand :global(.brand-wordmark__offer) {
-    color: #4f46e5;
-  }
-
-  .resume-it-hero__brand :global(.brand-wordmark__go-shell) {
-    background: #2563eb;
-  }
-
-  .resume-it-hero__nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 38px;
-    font-size: 0.95rem;
-    font-weight: 850;
-  }
-
-  .resume-it-hero__language {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .resume-it-hero__language svg {
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 1.8;
-  }
-
-  .resume-it-hero__tools {
-    color: currentColor;
-  }
-
-  .resume-it-hero__tools::after {
-    content: "";
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    margin-left: 8px;
-    border-right: 1.8px solid currentColor;
-    border-bottom: 1.8px solid currentColor;
-    transform: translateY(-3px) rotate(45deg);
-  }
-
-  .resume-it-hero__panel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 56px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 999px;
-    padding: 0 24px;
-    background: rgba(255, 255, 255, 0.86);
-    box-shadow:
-      0 9px 24px rgba(15, 23, 42, 0.13),
-      inset 0 1px 0 rgba(255, 255, 255, 0.86);
-    color: #050505;
-    font-weight: 900;
-  }
-
-  .resume-it-hero__center {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    justify-items: center;
-    width: min(100% - 36px, 840px);
-    margin: 33px auto 0;
-    text-align: center;
-  }
-
-  .resume-it-hero__title {
-    margin: 0;
-    font-family: "Manrope", "Segoe UI", sans-serif;
-    font-size: clamp(3.35rem, 3.05vw, 3.75rem);
-    font-weight: 500;
-    line-height: 1.02;
-    letter-spacing: -0.055em;
-  }
-
-  .resume-it-hero__title span,
-  .resume-it-hero__title strong {
-    display: block;
-  }
-
-  .resume-it-hero__title strong {
-    margin-top: 8px;
-    background: linear-gradient(93deg, #7c3aed 0%, #2563eb 34%, #0ea5e9 68%, #38bdf8 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    font-size: 1em;
-    font-weight: 850;
-    line-height: 1.02;
-  }
-
-  .resume-it-hero__description {
-    width: min(100%, 520px);
-    margin: 26px 0 0;
-    color: #050505;
-    font-size: 1.12rem;
-    font-weight: 600;
-    line-height: 1.55;
-  }
-
-  .resume-it-hero__conversion {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    margin-top: 27px;
-  }
-
-  .resume-it-hero__button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-    min-height: 52px;
-    border: 2px solid rgba(37, 99, 235, 0.48);
-    border-radius: 999px;
-    padding: 0 23px;
-    background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.38),
-      0 8px 0 rgba(37, 99, 235, 0.24);
-    color: #fff;
-    font-size: 1.08rem;
-    font-weight: 950;
-    letter-spacing: -0.02em;
-  }
-
-  .resume-it-hero__button svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
-  }
-
-  .resume-it-hero__avatars {
-    display: flex;
-    align-items: center;
-    padding-left: 8px;
-  }
-
-  .resume-it-hero__avatars span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 30px;
-    height: 30px;
-    margin-left: -8px;
-    border: 2px solid rgba(255, 255, 255, 0.92);
-    border-radius: 999px;
-    color: #fff;
-    font-size: 0.65rem;
-    font-weight: 950;
-    letter-spacing: -0.04em;
-  }
-
-  .resume-it-hero__avatars span[data-tone="blue"] {
-    background: #2563eb;
-  }
-
-  .resume-it-hero__avatars span[data-tone="sky"] {
-    background: #0ea5e9;
-  }
-
-  .resume-it-hero__avatars span[data-tone="dark"] {
-    background: #0f172a;
-  }
-
-  .resume-it-hero__avatars span[data-tone="cyan"] {
-    background: #06b6d4;
-  }
-
-  .resume-it-hero__trust {
-    display: grid;
-    justify-items: start;
-    gap: 3px;
-    text-align: left;
-  }
-
-  .resume-it-hero__stars {
-    color: #ff8a00;
-    font-size: 0.95rem;
-    letter-spacing: 0.1em;
-    line-height: 1;
-  }
-
-  .resume-it-hero__trust p {
-    margin: 0;
-    color: rgba(5, 5, 5, 0.52);
-    font-size: 0.78rem;
-    font-weight: 650;
-  }
-
-  .resume-it-hero__companies {
-    margin-top: 33px;
-  }
-
-  .resume-it-hero__companies p {
-    margin: 0;
-    color: rgba(5, 5, 5, 0.45);
-    font-size: 0.86rem;
-    font-weight: 650;
-  }
-
-  .resume-it-hero__companies ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 28px;
-    margin: 20px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .resume-it-hero__companies li {
-    color: rgba(5, 5, 5, 0.28);
-    font-family: "Manrope", "Segoe UI", sans-serif;
-    font-size: clamp(1.4rem, 1.8vw, 2rem);
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -0.07em;
-  }
-
-  @media (max-width: 900px) {
-    .resume-it-hero__surface {
-      min-height: 720px;
-      border-radius: 0 0 180px 180px;
-    }
-
-    .resume-it-hero__nav {
-      width: calc(100% - 32px);
-      padding-top: 20px;
-    }
-
-    .resume-it-hero__language,
-    .resume-it-hero__tools {
-      display: none;
-    }
-
-    .resume-it-hero__panel {
-      min-height: 45px;
-      padding: 0 18px;
-    }
-
-    .resume-it-hero__center {
-      width: min(100% - 28px, 700px);
-      margin-top: 56px;
-    }
-
-    .resume-it-hero__title {
-      font-size: clamp(3.2rem, 12vw, 4.9rem);
-      letter-spacing: -0.07em;
-    }
-
-    .resume-it-hero__conversion {
-      display: grid;
-      gap: 14px;
-      justify-items: center;
-    }
-
-    .resume-it-hero__trust {
-      justify-items: center;
-      text-align: center;
-    }
-  }
-
-  @media (max-width: 520px) {
-    .resume-it-hero__surface {
-      min-height: 760px;
-      border-radius: 0 0 96px 96px;
-    }
-
-    .resume-it-hero__title {
-      font-size: clamp(2.75rem, 15vw, 3.75rem);
-    }
-
-    .resume-it-hero__description {
-      font-size: 1rem;
-    }
-
-    .resume-it-hero__companies ul {
-      gap: 14px 18px;
-    }
-  }
-</style>

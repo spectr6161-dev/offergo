@@ -1,4 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --font-sans: "Manrope", "Segoe UI", sans-serif;
+}
 
 :root {
   color-scheme: light;
@@ -162,6 +169,7 @@ svg {
 
 .container {
   width: min(var(--max), calc(100% - 56px));
+  max-width: none;
   margin-inline: auto;
 }
 

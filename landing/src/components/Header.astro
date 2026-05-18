@@ -8,6 +8,7 @@ const isResumePage = currentPath.startsWith("/promo/resume") || currentPath.star
 
 function isActive(href: string) {
   if (href === "/") return currentPath === "/";
+  if (href === "/promo") return currentPath === "/promo" || currentPath === "/promo/";
   if (href.startsWith("/#")) return false;
   return currentPath === href || currentPath.startsWith(`${href}/`);
 }

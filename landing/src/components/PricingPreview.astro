@@ -251,6 +251,9 @@ const billingPlans = {
   .pricing-stage {
     position: relative;
     overflow: hidden;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
     padding: 62px 0 0;
   }
 
@@ -307,7 +310,7 @@ const billingPlans = {
     z-index: 1;
     display: grid;
     gap: 44px;
-    width: min(980px, 100%);
+    width: min(980px, calc(100% - 56px));
     margin: 0 auto;
     padding-bottom: 42px;
   }

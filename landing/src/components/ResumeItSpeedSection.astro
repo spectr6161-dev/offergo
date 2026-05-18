@@ -1,0 +1,191 @@
+---
+const avatars = [
+  { label: "JS", className: "bg-gradient-to-br from-sky-300 to-blue-500 text-white" },
+  { label: "FL", className: "bg-gradient-to-br from-emerald-200 to-sky-300 text-slate-950" },
+  { label: "QA", className: "bg-gradient-to-br from-white to-slate-200 text-slate-900" },
+];
+
+const jobCards = [
+  {
+    icon: "◰",
+    iconClass: "bg-violet-600 text-white dark:bg-sky-500",
+    title: "Аналитик данных, Stripe",
+    subtitle: "Финансы",
+    time: "3 ч",
+    tags: ["Аналитика", "Python"],
+    action: "Откликнулся",
+    actionClass: "bg-violet-600 text-white dark:bg-sky-500",
+  },
+  {
+    icon: "■",
+    iconClass: "bg-[conic-gradient(#f25022_0_25%,#7fba00_0_50%,#00a4ef_0_75%,#ffb900_0)] text-transparent",
+    title: "Стратег. партнер, Microsoft",
+    subtitle: "Корпоратив",
+    time: "4 ч",
+    tags: ["Стратегия", "Лидерство"],
+    action: "Запуск",
+    actionClass: "bg-orange-500 text-white dark:bg-orange-400 dark:text-slate-950",
+  },
+];
+---
+
+<section class="bg-[#f3f3f2] px-5 py-10 dark:bg-[#03050a] sm:px-7 sm:py-12 lg:py-14" aria-labelledby="resume-it-speed-title">
+  <div class="mx-auto w-full max-w-[1600px]">
+    <h2
+      id="resume-it-speed-title"
+      class="mx-auto mb-16 max-w-4xl text-center text-[clamp(1.9rem,2.8vw,3.1rem)] font-semibold leading-[1.04] tracking-[-0.055em] text-slate-950 dark:text-white lg:mb-20"
+    >
+      С offerGO вы на 80% быстрее найдёте работу
+    </h2>
+
+    <div class="grid gap-7 lg:grid-cols-2">
+      <article class="relative min-h-[370px] overflow-hidden rounded-[34px] bg-white p-8 shadow-[0_22px_54px_rgba(15,23,42,0.08)] dark:bg-slate-950 dark:shadow-[0_22px_64px_rgba(2,132,199,0.12)]">
+        <div class="relative z-10 max-w-[27rem]">
+          <p class="m-0 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-violet-300 dark:text-sky-300/80">Подготовка</p>
+          <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">ИИ-генератор резюме</h3>
+          <p class="m-0 mt-2 text-base leading-6 text-slate-500 dark:text-slate-300">
+            Генерируйте резюме и письма для каждой вакансии на основе ваших навыков и опыта
+          </p>
+
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            <a
+              class="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+              href="https://offergo.ru/resumes"
+            >
+              Начать <span aria-hidden="true">→</span>
+            </a>
+            <div class="flex -space-x-2" aria-hidden="true">
+              {avatars.map((avatar) => (
+                <span class:list={["grid size-8 place-items-center rounded-full border-2 border-white text-[0.55rem] font-black shadow-sm dark:border-slate-950", avatar.className]}>
+                  {avatar.label}
+                </span>
+              ))}
+            </div>
+            <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">Доверяют 1 000+ пользователей</span>
+          </div>
+        </div>
+
+        <div class="absolute inset-x-0 bottom-0 flex justify-center px-8">
+          <div class="relative h-[190px] w-[70%] min-w-[260px] max-w-[360px] translate-y-20 overflow-hidden rounded-[8px] bg-white shadow-[0_22px_52px_rgba(15,23,42,0.14)] ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-white/10">
+            <div class="p-6 text-left text-[8px] leading-4 text-slate-600 dark:text-slate-300">
+              <h4 class="mb-2 text-center text-lg font-black tracking-[-0.05em] text-slate-800 dark:text-white">Стив Джобс</h4>
+              <div class="mb-3 flex justify-center gap-2 text-[6px] text-slate-500 dark:text-slate-400">
+                <span>Los Altos, CA</span>
+                <span>steve@apple.com</span>
+                <span>linkedin.com/stevejobs</span>
+              </div>
+              <p class="border-y border-slate-200 py-2 dark:border-white/10">
+                Визионер-предприниматель и инноватор в технологиях с опытом запуска продуктов, которые меняют рынок.
+              </p>
+              <p class="mt-2">Apple Inc. · стратегия продукта · команды · запуск новых направлений</p>
+            </div>
+            <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-slate-900 dark:via-slate-900/85"></div>
+          </div>
+        </div>
+
+        <div class="absolute inset-x-8 bottom-5 z-20 flex min-h-14 items-center justify-between rounded-full border-[3px] border-fuchsia-500 bg-white px-5 text-left text-sm font-semibold text-slate-950 shadow-[0_14px_36px_rgba(236,72,153,0.22)] dark:bg-slate-900 dark:text-white">
+          <span>Сократить текст&nbsp;|</span>
+          <svg class="size-5 text-slate-600 dark:text-slate-300" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z" />
+          </svg>
+        </div>
+      </article>
+
+      <article class="relative min-h-[370px] overflow-hidden rounded-[34px] bg-white p-8 shadow-[0_22px_54px_rgba(15,23,42,0.08)] dark:bg-slate-950 dark:shadow-[0_22px_64px_rgba(2,132,199,0.12)]">
+        <div class="relative z-10 max-w-[31rem]">
+          <p class="m-0 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-violet-300 dark:text-sky-300/80">Откликнуться</p>
+          <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Автоподача заявок</h3>
+          <p class="m-0 mt-2 text-base leading-6 text-slate-500 dark:text-slate-300">
+            offerGO автоматически откликнется на тысячи вакансий. Экономьте время и быстрее найдите работу
+          </p>
+
+          <div class="mt-5 flex flex-wrap items-center gap-3">
+            <a
+              class="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+              href="https://offergo.ru/resumes"
+            >
+              Начать <span aria-hidden="true">→</span>
+            </a>
+            <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">372 241+ откликов отправлено</span>
+          </div>
+        </div>
+
+        <div class="absolute inset-x-8 bottom-0 grid translate-y-14 gap-3 sm:left-auto sm:w-[420px]">
+          {jobCards.map((job) => (
+            <div class="rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-[0_7px_18px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-slate-900 dark:shadow-[0_12px_26px_rgba(0,0,0,0.34)]">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex min-w-0 items-start gap-3">
+                  <span class:list={["mt-1 grid size-6 shrink-0 place-items-center rounded-md text-xs font-black", job.iconClass]}>{job.icon}</span>
+                  <div class="min-w-0">
+                    <p class="m-0 truncate text-xs font-bold text-slate-950 dark:text-white">{job.title}</p>
+                    <p class="m-0 text-xs font-medium text-slate-400 dark:text-slate-500">{job.subtitle}</p>
+                  </div>
+                </div>
+                <span class="shrink-0 text-xs font-medium text-slate-400 dark:text-slate-500">{job.time}</span>
+              </div>
+              <div class="mt-3 flex items-center justify-between gap-3">
+                <div class="flex flex-wrap gap-1.5">
+                  {job.tags.map((tag) => <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">{tag}</span>)}
+                </div>
+                <span class:list={["shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold", job.actionClass]}>{job.action}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/70 to-transparent dark:from-slate-950 dark:via-slate-950/70"></div>
+      </article>
+
+      <article class="overflow-hidden rounded-[34px] bg-white shadow-[0_22px_54px_rgba(15,23,42,0.08)] dark:bg-slate-950 dark:shadow-[0_22px_64px_rgba(2,132,199,0.12)] lg:col-span-2">
+        <div class="grid min-h-[360px] lg:grid-cols-[0.78fr_1.22fr]">
+          <div class="relative z-10 flex flex-col p-8">
+            <p class="m-0 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-violet-300 dark:text-sky-300/80">Успех</p>
+            <h3 class="m-0 mt-2 text-2xl font-semibold tracking-[-0.04em] text-slate-950 dark:text-white">Interview Buddy</h3>
+            <p class="m-0 mt-2 max-w-[29rem] text-base leading-6 text-slate-500 dark:text-slate-300">
+              Получайте помощь в реальном времени и ответы на вопросы интервью.
+            </p>
+
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+              <a
+                class="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-bold text-slate-950 shadow-[0_8px_20px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                href="https://offergo.ru/resumes"
+              >
+                Начать <span aria-hidden="true">→</span>
+              </a>
+              <span class="rounded-full bg-emerald-100 px-4 py-2 text-xs font-black tracking-[0.18em] text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">★★★★★</span>
+              <span class="text-[0.72rem] font-semibold text-slate-500 dark:text-slate-400">4.7 · 387 отзывов</span>
+            </div>
+
+            <div class="mt-auto pt-10 text-sm leading-5 text-slate-600 dark:text-slate-300">
+              <p class="m-0 max-w-[30rem]">
+                Interview Buddy — будущее подготовки к собеседованиям. Точные ответы, прогноз следующих вопросов и спокойствие. Стоит каждой копейки!
+              </p>
+              <p class="m-0 mt-4 text-xs text-slate-500 dark:text-slate-400">👤 Джейсон Т., менеджер по продажам</p>
+            </div>
+          </div>
+
+          <div class="relative min-h-[320px] overflow-hidden bg-[linear-gradient(125deg,#0b58c6_0%,#0872d1_27%,#1264d7_46%,#ff934f_73%,#ffd18a_100%)]">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_78%_16%,rgba(255,255,255,0.34),transparent_28%),linear-gradient(105deg,rgba(2,6,23,0)_0_38%,rgba(255,255,255,0.16)_39%_43%,rgba(2,6,23,0)_44%_100%)]"></div>
+            <div class="absolute left-1/2 top-[30%] w-[min(78%,480px)] -translate-x-1/2">
+              <div class="mx-auto mb-3 flex w-max items-center gap-2 rounded-full bg-white/70 px-3 py-2 text-xs font-bold text-slate-700 shadow-[0_12px_32px_rgba(15,23,42,0.18)] backdrop-blur">
+                <span class="size-2 rounded-full bg-sky-500"></span>
+                <span>Ответ</span>
+                <span>⌘</span>
+                <span>A</span>
+                <span>Сбросить</span>
+                <span>⌘</span>
+                <span>R</span>
+                <span class="size-3 rounded-full bg-red-400"></span>
+              </div>
+              <div class="rounded-2xl bg-white/64 p-4 text-left text-sm leading-5 text-white shadow-[0_24px_52px_rgba(15,23,42,0.22)] backdrop-blur-md ring-1 ring-white/30">
+                <p class="m-0 text-xs font-semibold text-slate-700">Наш шорт: цикл продаж — 120 дней, как сократить?</p>
+                <p class="m-0 mt-2 font-bold text-white drop-shadow">
+                  Привязать каждый аккаунт к тепловой карте закупочного комитета, показать персональные ROI-гипотезы на 1–5 недель и запустить техн. пилот за 30 дней.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

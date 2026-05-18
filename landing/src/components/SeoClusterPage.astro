@@ -1,12 +1,17 @@
 ---
-import ResumeItHero from "@/components/ResumeItHero.astro";
 import { getRelatedSeoPages, type SeoClusterPage } from "@/data/seo-clusters";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import ResumeItHero from "@/components/ResumeItHero.astro";
+import ResumeItExamplesSection from "@/components/ResumeItExamplesSection.astro";
+import ResumeItFaqSection from "@/components/ResumeItFaqSection.astro";
+import ResumeItFeaturesGrid from "@/components/ResumeItFeaturesGrid.astro";
+import ResumeItSpeedSection from "@/components/ResumeItSpeedSection.astro";
+import ResumeItShowcase from "@/components/ResumeItShowcase.astro";
+import { resumeItFaqItems } from "@/data/resume-it-faq";
 import {
   buildArticleJsonLd,
   buildFaqJsonLd,
   buildItemListJsonLd,
-  buildSoftwareApplicationJsonLd,
   buildWebPageJsonLd,
 } from "@/lib/seo";
 
@@ -16,147 +21,170 @@ interface Props {
 
 const { page } = Astro.props;
 const isResumeItPage = page.slug === "resume-it";
-const relatedPages = getRelatedSeoPages(page);
+const relatedPages = isResumeItPage ? [] : getRelatedSeoPages(page);
+const resolvedTitle = isResumeItPage
+  ? "Проверка резюме IT — AI-анализ резюме программиста и подготовка к собеседованию"
+  : page.title;
+const resolvedDescription = isResumeItPage
+  ? "AI-проверка резюме для IT-специалистов и смежных цифровых ролей: разработка, QA, DevOps, Data/ML, аналитика, продукт, дизайн, менеджмент, отклики и подготовка к IT-собеседованию."
+  : page.description;
+const resolvedKeywords = isResumeItPage
+  ? ["проверка резюме IT", "резюме программиста", "резюме QA инженера", "резюме DevOps", "резюме аналитика данных", "резюме product manager", "резюме UX UI дизайнера", "IT вакансии"]
+  : page.primaryKeywords;
+const finalTitle = isResumeItPage
+  ? "Проверка резюме IT — AI-анализ резюме программиста и подготовка к собеседованию"
+  : resolvedTitle;
+const finalDescription = isResumeItPage
+  ? "AI-проверка резюме для IT-специалистов и смежных цифровых ролей: разработка, QA, DevOps, Data/ML, аналитика, продукт, дизайн, менеджмент, отклики и подготовка к IT-собеседованию."
+  : resolvedDescription;
+const finalKeywords = isResumeItPage
+  ? ["проверка резюме IT", "резюме программиста", "резюме QA инженера", "резюме DevOps", "резюме аналитика данных", "резюме product manager", "резюме UX UI дизайнера", "IT вакансии"]
+  : resolvedKeywords;
 const jsonLd = [
   buildWebPageJsonLd({
-    title: page.title,
-    description: page.description,
+    title: finalTitle,
+    description: finalDescription,
     path: page.path,
-    keywords: page.primaryKeywords,
+    keywords: finalKeywords,
   }),
   buildArticleJsonLd({
-    title: page.title,
-    description: page.description,
+    title: finalTitle,
+    description: finalDescription,
     path: page.path,
-    keywords: page.primaryKeywords,
+    keywords: finalKeywords,
   }),
-  buildFaqJsonLd(page.faq),
-  buildItemListJsonLd(relatedPages.map((item) => ({ title: item.h1, path: item.path }))),
+  buildFaqJsonLd(isResumeItPage ? resumeItFaqItems : page.faq),
+  ...(relatedPages.length ? [buildItemListJsonLd(relatedPages.map((item) => ({ title: item.h1, path: item.path })))] : []),
 ];
 
-if (page.slug === "interview-assistant") {
-  jsonLd.push(buildSoftwareApplicationJsonLd());
-}
 ---
 
 <BaseLayout
-  title={page.title}
-  description={page.description}
+  title={finalTitle}
+  description={finalDescription}
   canonicalPath={page.path}
   jsonLd={jsonLd}
   pageType="article"
-  hideHeader={isResumeItPage}
 >
   <article class="seo-page">
     {isResumeItPage ? (
-      <ResumeItHero />
+      <>
+        <ResumeItHero />
+        <ResumeItShowcase />
+        <ResumeItSpeedSection />
+        <ResumeItFeaturesGrid />
+        <ResumeItExamplesSection />
+        <ResumeItFaqSection />
+      </>
     ) : (
-      <section class="seo-hero" aria-labelledby="seo-title">
-        <div class="container seo-hero__grid">
-          <div class="seo-hero__copy reveal">
-            <p class="eyebrow">{page.eyebrow}</p>
-            <h1 id="seo-title">{page.h1}</h1>
-            <p>{page.lead}</p>
-            <div class="seo-hero__actions">
-              <a class="btn btn-primary" href={page.cta.href}>{page.cta.label}</a>
-              <a class="btn btn-secondary" href="/promo">Вернуться на главную</a>
+      <>
+        <section class="seo-hero" aria-labelledby="seo-title">
+          <div class="container seo-hero__grid">
+            <div class="seo-hero__copy reveal">
+              <p class="eyebrow">{page.eyebrow}</p>
+              <h1 id="seo-title">{page.h1}</h1>
+              <p>{page.lead}</p>
+              <div class="seo-hero__actions">
+                <a class="btn btn-primary" href={page.cta.href}>{page.cta.label}</a>
+                <a class="btn btn-secondary" href="/promo">Вернуться на главную</a>
+              </div>
+            </div>
+
+            <aside class="seo-hero__keywords reveal" aria-label="Ключевые направления страницы">
+              <span>Поисковые сценарии</span>
+              <ul>
+                {page.primaryKeywords.map((keyword) => <li>{keyword}</li>)}
+              </ul>
+            </aside>
+          </div>
+        </section>
+
+        <section class="seo-section" aria-labelledby="seo-covers-title">
+          <div class="container">
+            <div class="seo-section__head reveal">
+              <p class="eyebrow">Что закрывает страница</p>
+              <h2 id="seo-covers-title">Практический маршрут от подготовки до отклика</h2>
+            </div>
+
+            <div class="seo-cards">
+              {page.sections.map((section) => (
+                <section class="seo-card reveal">
+                  <h3>{section.title}</h3>
+                  <p>{section.text}</p>
+                </section>
+              ))}
             </div>
           </div>
+        </section>
 
-          <aside class="seo-hero__keywords reveal" aria-label="Ключевые направления страницы">
-            <span>Поисковые сценарии</span>
-            <ul>
-              {page.primaryKeywords.map((keyword) => <li>{keyword}</li>)}
-            </ul>
-          </aside>
-        </div>
-      </section>
-    )}
-
-    <section class="seo-section" aria-labelledby="seo-covers-title">
-      <div class="container">
-        <div class="seo-section__head reveal">
-          <p class="eyebrow">Что закрывает страница</p>
-          <h2 id="seo-covers-title">Практический маршрут от подготовки до отклика</h2>
-        </div>
-
-        <div class="seo-cards">
-          {page.sections.map((section) => (
-            <section class="seo-card reveal">
-              <h3>{section.title}</h3>
-              <p>{section.text}</p>
-            </section>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="seo-section seo-section--split" aria-labelledby="seo-audience-title">
-      <div class="container seo-split">
-        <div class="reveal">
-          <p class="eyebrow">Кому подходит</p>
-          <h2 id="seo-audience-title">Для кандидатов на разных этапах поиска</h2>
-        </div>
-
-        <div class="seo-list reveal">
-          {page.audiences.map((item) => (
-            <div class="seo-list__item">
-              <span aria-hidden="true">✓</span>
-              <p>{item}</p>
+        <section class="seo-section seo-section--split" aria-labelledby="seo-audience-title">
+          <div class="container seo-split">
+            <div class="reveal">
+              <p class="eyebrow">Кому подходит</p>
+              <h2 id="seo-audience-title">Для кандидатов на разных этапах поиска</h2>
             </div>
-          ))}
-        </div>
-      </div>
-    </section>
 
-    <section class="seo-section" aria-labelledby="seo-helps-title">
-      <div class="container">
-        <div class="seo-section__head reveal">
-          <p class="eyebrow">Как помогает offerGO</p>
-          <h2 id="seo-helps-title">Связанные инструменты внутри продукта</h2>
-        </div>
+            <div class="seo-list reveal">
+              {page.audiences.map((item) => (
+                <div class="seo-list__item">
+                  <span aria-hidden="true">✓</span>
+                  <p>{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        <div class="seo-tools reveal">
-          {page.helps.map((item) => <span>{item}</span>)}
-        </div>
-      </div>
-    </section>
+        <section class="seo-section" aria-labelledby="seo-helps-title">
+          <div class="container">
+            <div class="seo-section__head reveal">
+              <p class="eyebrow">Как помогает offerGO</p>
+              <h2 id="seo-helps-title">Связанные инструменты внутри продукта</h2>
+            </div>
 
-    <section class="seo-section seo-faq" aria-labelledby="seo-faq-title">
-      <div class="container seo-faq__grid">
-        <div class="reveal">
-          <p class="eyebrow">FAQ</p>
-          <h2 id="seo-faq-title">Частые вопросы</h2>
-        </div>
+            <div class="seo-tools reveal">
+              {page.helps.map((item) => <span>{item}</span>)}
+            </div>
+          </div>
+        </section>
 
-        <div class="seo-faq__list">
-          {page.faq.map((item) => (
-            <details class="seo-faq__item reveal">
-              <summary>{item.question}</summary>
-              <p>{item.answer}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
+        <section class="seo-section seo-faq" aria-labelledby="seo-faq-title">
+          <div class="container seo-faq__grid">
+            <div class="reveal">
+              <p class="eyebrow">FAQ</p>
+              <h2 id="seo-faq-title">Частые вопросы</h2>
+            </div>
 
-    <section class="seo-section seo-related" aria-labelledby="seo-related-title">
-      <div class="container">
-        <div class="seo-section__head reveal">
-          <p class="eyebrow">Дальше</p>
-          <h2 id="seo-related-title">Связанные разделы</h2>
-        </div>
+            <div class="seo-faq__list">
+              {page.faq.map((item) => (
+                <details class="seo-faq__item reveal">
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        <div class="seo-related__grid">
-          {relatedPages.map((item) => (
-            <a class="seo-related__item reveal" href={item.path}>
-              <span>{item.eyebrow}</span>
-              <strong>{item.h1}</strong>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
+        <section class="seo-section seo-related" aria-labelledby="seo-related-title">
+          <div class="container">
+            <div class="seo-section__head reveal">
+              <p class="eyebrow">Дальше</p>
+              <h2 id="seo-related-title">Связанные разделы</h2>
+            </div>
+
+            <div class="seo-related__grid">
+              {relatedPages.map((item) => (
+                <a class="seo-related__item reveal" href={item.path}>
+                  <span>{item.eyebrow}</span>
+                  <strong>{item.h1}</strong>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      </>
+    )}
   </article>
 </BaseLayout>
 
