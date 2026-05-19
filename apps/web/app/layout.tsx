@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LegalFooter } from "@/components/legal-footer";
 import { AppProviders } from "@/components/providers";
 import "./globals.css";
 
@@ -16,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="ru" className="font-sans" suppressHydrationWarning>
       <body>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          {children}
+          <LegalFooter />
+        </AppProviders>
       </body>
     </html>
   );

@@ -383,8 +383,6 @@ export const seoSitemapEntries = [
   { path: "/promo/questions", priority: "0.8", changefreq: "weekly" },
   { path: "/promo/resume", priority: "0.8", changefreq: "weekly" },
   { path: "/promo/pricing", priority: "0.6", changefreq: "monthly" },
-  { path: "/promo/privacy", priority: "0.4", changefreq: "monthly" },
-  { path: "/promo/terms", priority: "0.4", changefreq: "monthly" },
   { path: "/promo/contacts", priority: "0.4", changefreq: "monthly" },
 ];
 

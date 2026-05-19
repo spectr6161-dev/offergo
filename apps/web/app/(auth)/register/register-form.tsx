@@ -29,6 +29,7 @@ type FieldErrors = {
   password?: string;
   termsAccepted?: string;
   privacyAccepted?: string;
+  cookieAccepted?: string;
 };
 
 type StatusState =
@@ -50,6 +51,7 @@ function validate(
   password: string,
   termsAccepted: boolean,
   privacyAccepted: boolean,
+  cookieAccepted: boolean,
 ): FieldErrors {
   const errors: FieldErrors = {};
 
@@ -72,6 +74,10 @@ function validate(
       "Подтвердите согласие с обработкой персональных данных.";
   }
 
+  if (!cookieAccepted) {
+    errors.cookieAccepted = "Подтвердите политику использования cookie.";
+  }
+
   return errors;
 }
 
@@ -92,6 +98,7 @@ async function acceptLegalDocuments(source: string) {
 function getLegalErrors(
   termsAccepted: boolean,
   privacyAccepted: boolean,
+  cookieAccepted: boolean,
 ): FieldErrors {
   const errors: FieldErrors = {};
 
@@ -102,6 +109,10 @@ function getLegalErrors(
   if (!privacyAccepted) {
     errors.privacyAccepted =
       "Подтвердите согласие с обработкой персональных данных.";
+  }
+
+  if (!cookieAccepted) {
+    errors.cookieAccepted = "Подтвердите политику использования cookie.";
   }
 
   return errors;
@@ -141,6 +152,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [cookieAccepted, setCookieAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<StatusState>();
@@ -154,6 +166,7 @@ export function RegisterForm() {
       password,
       termsAccepted,
       privacyAccepted,
+      cookieAccepted,
     );
     const normalizedLogin = normalizeLogin(login);
     setErrors(nextErrors);
@@ -197,7 +210,11 @@ export function RegisterForm() {
   }
 
   async function handleSocialClick(provider: SocialProvider) {
-    const nextErrors = getLegalErrors(termsAccepted, privacyAccepted);
+    const nextErrors = getLegalErrors(
+      termsAccepted,
+      privacyAccepted,
+      cookieAccepted,
+    );
 
     setErrors((current) => ({ ...current, ...nextErrors }));
     setStatus(undefined);
@@ -402,6 +419,44 @@ export function RegisterForm() {
               </Link>
             </FieldLabel>
             <FieldError>{errors.privacyAccepted}</FieldError>
+          </FieldContent>
+        </Field>
+
+        <Field
+          orientation="horizontal"
+          data-invalid={Boolean(errors.cookieAccepted)}
+          className="items-start gap-3"
+        >
+          <Checkbox
+            id="register-cookie"
+            checked={cookieAccepted}
+            aria-invalid={Boolean(errors.cookieAccepted)}
+            className="mt-1 border-white/18 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-black"
+            onCheckedChange={(checked) => {
+              setCookieAccepted(checked === true);
+              if (errors.cookieAccepted) {
+                setErrors((current) => ({
+                  ...current,
+                  cookieAccepted: undefined,
+                }));
+              }
+            }}
+          />
+          <FieldContent className="min-w-0 gap-1">
+            <FieldLabel
+              htmlFor="register-cookie"
+              className="block w-full min-w-0 text-sm font-normal leading-6 whitespace-normal text-white/78"
+            >
+              Я принимаю{" "}
+              <Link
+                href="/legal/cookie-policy"
+                className="text-white underline underline-offset-4 hover:text-white/80"
+                onClick={(event) => event.stopPropagation()}
+              >
+                политику использования cookie
+              </Link>
+            </FieldLabel>
+            <FieldError>{errors.cookieAccepted}</FieldError>
           </FieldContent>
         </Field>
       </FieldGroup>
